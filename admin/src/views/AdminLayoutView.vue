@@ -60,9 +60,9 @@
         },
         {
           icon: "category",
-          label: "Quản lý danh mục",
+          label: "Quản lý thiết bị",
           separator: true,
-          path: "category",
+          path: "/admins/facilities",
         },
         {
           icon: "groups",

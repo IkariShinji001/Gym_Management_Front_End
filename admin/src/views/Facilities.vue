@@ -13,6 +13,7 @@
         <div class="btn-add q-pa-md q-gutter-sm">
           <q-btn
             label="Thêm thiết bị"
+            icon="add"
             color="primary"
             @click="showAddDialog = true"
           />
@@ -40,13 +41,13 @@
               <td>
                 <q-btn
                   class="btn-update"
-                  label="Sửa"
+                  icon="update"
                   color="primary"
                   @click="editFacility(facility)"
                 />
                 <q-btn
                   class="btn-delete"
-                  label="Xóa"
+                  icon="delete"
                   color="negative"
                   @click="deleteFacility(facility.id)"
                 />
@@ -72,8 +73,8 @@
                 v-model="facility.maintenanceDate"
                 label="Ngày bảo trì"
               />
-              <q-btn class="btn-save" label="Lưu" type="submit" />
-              <q-btn class="btn-cancel" label="Hủy" flat @click="showAddDialog = false" />
+              <q-btn class="btn-save" icon="save" label="Lưu" type="submit" />
+              <q-btn class="btn-cancel" icon="cancel" label="Hủy" flat @click="showAddDialog = false" />
             </q-form>
           </q-card-section>
         </q-card>
@@ -95,8 +96,8 @@
                 v-model="facilityToEdit.maintenanceDate"
                 label="Ngày bảo trì"
               /> 
-              <q-btn class="btn-save" label="Lưu" type="submit" />
-              <q-btn class="btn-cancel" label="Hủy" flat @click="showEditDialog = false" />
+              <q-btn class="btn-save" icon="save" label="Lưu" type="submit" />
+              <q-btn class="btn-cancel" icon="cancel" label="Hủy" flat @click="showEditDialog = false" />
             </q-form>
           </q-card-section>
         </q-card>
@@ -225,7 +226,7 @@ h3 {
   margin: 0px;
   padding: 15px;
   margin: 20px;
-  background: #3cf145;
+  background: #0c66ec;
 }
 h4 {
   margin: 20px 20px 0px 20px;
