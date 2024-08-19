@@ -8,7 +8,6 @@
           class="input-search"
           v-model="searchQuery"
           label="Tìm kiếm thiết bị"
-          debounce="300"
         />
         <div class="btn-add q-pa-md q-gutter-sm">
           <q-btn
@@ -32,23 +31,26 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(facility,id) in displayedFacilities" :key="facility.id">
-              <th scope="row">{{ id+1 }}</th>
-              <td>{{ facility.name }}</td>
-              <td><img :src="facility.imageUrl" alt="Hình ảnh thiết bị" /></td>
-              <td>{{ facility.description }}</td>
-              <td>{{ facility.maintenanceDate }}</td>
-              <td>
+            <tr
+              v-for="(facility, id) in displayedFacilities"
+              :key="facility.id"
+            >
+              <td width="5%" scope="row">{{ id + 1 }}</td>
+              <td width="15%">{{ facility.name }}</td>
+              <td width="20%">
+                <img :src="facility.imageUrl" alt="Hình ảnh thiết bị" />
+              </td>
+              <td width="20%">{{ facility.description }}</td>
+              <td width="20%">{{ facility.maintenanceDate }}</td>
+              <td width="20%">
                 <q-btn
                   class="btn-update"
                   icon="update"
-                  color="primary"
                   @click="editFacility(facility)"
                 />
                 <q-btn
                   class="btn-delete"
                   icon="delete"
-                  color="negative"
                   @click="deleteFacility(facility.id)"
                 />
               </td>
@@ -70,11 +72,18 @@
               <q-input v-model="facility.imageUrl" label="URL hình ảnh" />
               <q-input v-model="facility.description" label="Mô tả" />
               <q-input
+                type="date"
                 v-model="facility.maintenanceDate"
                 label="Ngày bảo trì"
               />
               <q-btn class="btn-save" icon="save" label="Lưu" type="submit" />
-              <q-btn class="btn-cancel" icon="cancel" label="Hủy" flat @click="showAddDialog = false" />
+              <q-btn
+                class="btn-cancel"
+                icon="cancel"
+                label="Hủy"
+                flat
+                @click="showAddDialog = false"
+              />
             </q-form>
           </q-card-section>
         </q-card>
@@ -93,11 +102,18 @@
               <q-input v-model="facilityToEdit.imageUrl" label="URL hình ảnh" />
               <q-input v-model="facilityToEdit.description" label="Mô tả" />
               <q-input
+                type="date"
                 v-model="facilityToEdit.maintenanceDate"
                 label="Ngày bảo trì"
-              /> 
+              />
               <q-btn class="btn-save" icon="save" label="Lưu" type="submit" />
-              <q-btn class="btn-cancel" icon="cancel" label="Hủy" flat @click="showEditDialog = false" />
+              <q-btn
+                class="btn-cancel"
+                icon="cancel"
+                label="Hủy"
+                flat
+                @click="showEditDialog = false"
+              />
             </q-form>
           </q-card-section>
         </q-card>
@@ -132,11 +148,19 @@ export default {
       imageUrl: "",
     });
 
+    const resetFacility = () => {
+      facility.name = "";
+      facility.maintenanceDate = "";
+      facility.description = "";
+      facility.imageUrl = "";
+    };
+
     const displayedFacilities = ref([]);
 
     const fetchFacilities = async () => {
       try {
         facilities.value = await facilitiesService.findAll();
+        console.log(facilities.value);
         displayedFacilities.value = facilities.value; // Initialize displayedFacilities
       } catch (error) {
         console.log(error);
@@ -165,6 +189,7 @@ export default {
       try {
         await facilitiesService.create(facility);
         await fetchFacilities(); // Refresh the list after adding
+        await resetFacility();
         showAddDialog.value = false;
       } catch (error) {
         console.error("Error adding facility:", error);
@@ -206,6 +231,7 @@ export default {
       showEditDialog,
       facility,
       facilityToEdit,
+      resetFacility,
       displayedFacilities,
       addFacility,
       editFacility,
@@ -233,13 +259,13 @@ h4 {
   padding: 20px;
 }
 .table {
-  margin: 0px 20px;
-  padding: 0px 20px;
-  background: #d1d1d3;
+  margin-left: 40px !important;
+  background: #3737e7;
+  width: 94% !important;
 }
 .search-bar {
-  margin: 0px 20px;
-  padding: 10px 20px;
+  margin: 0px 0px 10px 40px;
+  width: 94%;
   display: flex;
 }
 .input-search {
@@ -264,6 +290,7 @@ h4 {
 }
 .btn-delete {
   margin-left: 5px;
+  background: red;
 }
 .btn-save {
   margin-top: 10px;
@@ -280,7 +307,6 @@ th {
 }
 td {
   border: 2px solid #343438;
-
   padding: 10px;
   text-align: center;
 }
