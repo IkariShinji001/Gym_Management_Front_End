@@ -68,7 +68,7 @@
           icon: "groups",
           label: "Quản lý thành viên",
           separator: false,
-          path: "/admin/members",
+          path: "/admins/pts",
         },
       ];
       return {

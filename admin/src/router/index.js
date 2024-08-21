@@ -5,7 +5,6 @@ const router = createRouter({
   routes: [
     {
       path: "/admins",
-      name: "admin",
       component: () => import("../views/AdminLayoutView.vue"),
       children: [
         {
@@ -18,6 +17,11 @@ const router = createRouter({
           name: "facilities",
           component: () => import("../views/Facilities.vue"),
         },
+        {
+          path: "pts",
+          name: "pts",
+          component: () => import("../views/Pts.vue"),
+        }
       ],
     },
     {

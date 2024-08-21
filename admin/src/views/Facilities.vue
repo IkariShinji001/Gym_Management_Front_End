@@ -124,9 +124,9 @@
 
 <script>
 import { ref, reactive, onBeforeMount, watch } from "vue";
-import facilitiesService from "../service/facilities.service";
+import facilitiesService from "../services/facilities.service";
 
-export default {
+export default {  
   setup() {
     const facilities = ref([]);
     const searchQuery = ref("");
