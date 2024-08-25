@@ -3,13 +3,7 @@
       <q-header reveal elevated class="bg-primary text-white">
         <q-toolbar>
           <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
-  
-          <q-toolbar-title>
-            <q-avatar>
-              <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg" />
-            </q-avatar>
-            Bờ Lốc
-          </q-toolbar-title>
+          <q-toolbar-title>Bờ Lốc</q-toolbar-title>
         </q-toolbar>
       </q-header>
   
@@ -18,7 +12,7 @@
           <q-list>
             <template v-for="(menuItem, index) in menuList" :key="index">
               <router-link :to="menuItem.path">
-                <q-item clickable :active="menuItem.label === 'Outbox'" v-ripple>
+                <q-item clickable :active="menuItem.label === 'Outbox'" >
                   <q-item-section avatar>
                     <q-icon :name="menuItem.icon" />
                   </q-item-section>
@@ -34,7 +28,7 @@
       </q-drawer>
   
       <q-page-container>
-        <router-view />
+        <router-view :drawerOpen="leftDrawerOpen" />
       </q-page-container>
     </q-layout>
   </template>
@@ -45,48 +39,30 @@
   export default {
     setup() {
       const leftDrawerOpen = ref(false);
-      const menuList = [
-        {
-          icon: "post_add",
-          label: "Quản lý bài đăng",
-          separator: false,
-          path: "posts",
-        },
-        {
-          icon: "style",
-          label: "Quản lý tags",
-          separator: false,
-          path: "tags",
-        },
-        {
-          icon: "category",
-          label: "Quản lý danh mục",
-          separator: true,
-          path: "category",
-        },
-        {
-          icon: "groups",
-          label: "Quản lý thành viên",
-          separator: false,
-          path: "/admin/members",
-        },
-      ];
+  
+      const toggleLeftDrawer = () => {
+        leftDrawerOpen.value = !leftDrawerOpen.value;
+      }
+  
       return {
         leftDrawerOpen,
-        toggleLeftDrawer() {
-          leftDrawerOpen.value = !leftDrawerOpen.value;
-        },
-        menuList,
+        toggleLeftDrawer,
+        menuList: [
+          {
+            icon: "post_add",
+            label: "Quản lý bài đăng",
+            separator: false,
+            path: "posts",
+          },
+          {
+            icon: "style",
+            label: "Quản lý tags",
+            separator: false,
+            path: "tags",
+          },
+        ],
       };
     },
   };
   </script>
-  
-  <style scoped>
-  a {
-    color: black;
-    font-size: 17px;
-    text-decoration: none;
-  }
-  </style>
   

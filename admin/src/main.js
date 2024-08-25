@@ -2,8 +2,8 @@
 
 import { createApp } from "vue";
 import { Quasar } from "quasar";
-import Toast from "vue-toastification"
-import "vue-toastification/dist/index.css"
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
 // Import icon libraries
 import "@quasar/extras/material-icons/material-icons.css";
 import "quasar/src/css/index.sass";
