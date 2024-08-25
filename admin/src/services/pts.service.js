@@ -1,7 +1,7 @@
 import api from "./api.service";
 
 class ptsService {
-    async findAll() {
+    async getAll() {
         return (await api.get("/pts")).data;
     }
     async find(id) {
@@ -10,7 +10,6 @@ class ptsService {
     async create(data) {
         return (await api.post("/pts", data)).data;
     }
-  
     async update(id, data) {
         return (await api.patch(`/pts/${id}`, data)).data;
     }
