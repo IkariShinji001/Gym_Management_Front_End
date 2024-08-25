@@ -44,6 +44,32 @@
         leftDrawerOpen.value = !leftDrawerOpen.value;
       }
   
+      const menuList = [
+        {
+          icon: "post_add",
+          label: "Quản lý bài đăng",
+          separator: false,
+          path: "posts",
+        },
+        {
+          icon: "style",
+          label: "Quản lý tags",
+          separator: false,
+          path: "tags",
+        },
+        {
+          icon: "category",
+          label: "Quản lý thiết bị",
+          separator: true,
+          path: "/admins/facilities",
+        },
+        {
+          icon: "groups",
+          label: "Quản lý thành viên",
+          separator: false,
+          path: "/admins/pts",
+        },
+      ];
       return {
         leftDrawerOpen,
         toggleLeftDrawer,
