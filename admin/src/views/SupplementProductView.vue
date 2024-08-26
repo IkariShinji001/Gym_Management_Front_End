@@ -158,8 +158,7 @@
                   ></q-icon>
                 </q-btn>
                 <h6 class="btn-amount">{{ amounts[product.id] }}</h6>
-                <q-btn
-                 class="btn-amount" @click="increaseAmount(product.id)">
+                <q-btn class="btn-amount" @click="increaseAmount(product.id)">
                   <q-icon
                     name="add"
                     color="black"
@@ -168,7 +167,7 @@
                   ></q-icon>
                 </q-btn>
               </div>
-              <q-btn  @click="sellFunction"> Bán </q-btn>
+              <q-btn @click="sellFunction(product.id, product)"> Bán </q-btn>
             </div>
           </q-card-section>
         </q-card>
@@ -207,7 +206,7 @@
 </template>
 
 <script>
-import { ref, watchEffect, onBeforeMount, computed } from "vue";
+import { ref, watchEffect, onBeforeMount, computed, reactive } from "vue";
 import { useToast } from "vue-toastification";
 import supplementProductService from "../serviceHukhan/supplementProduct.service";
 import typeService from "../serviceHukhan/type.service";
@@ -242,6 +241,12 @@ export default {
     const filteredSupplementProducts = ref([]);
     const showConfirmDialog = ref(false);
     const selectedProductId = ref(null);
+    const soldProductPayload = reactive({
+      supplementProductId: 0,
+      profileId: 0,
+      quantity: 0,
+      price: 0,
+    });
 
     const amounts = ref({});
 
@@ -250,11 +255,13 @@ export default {
         types.value = await typeService.getAllType();
         supplementProducts.value =
           await supplementProductService.getAllSupplementProduct();
+
+          console.log(supplementProducts.value)
         filteredSupplementProducts.value = supplementProducts.value;
 
         supplementProducts.value.forEach((product) => {
-          amounts.value[product.id] = 0
-        })
+          amounts.value[product.id] = 0;
+        });
       } catch (e) {
         console.log(e);
       }
@@ -263,10 +270,10 @@ export default {
     watchEffect(() => {
       drawerOpen1.value = props.drawerOpen;
       filteredSupplementProducts.value.forEach((product) => {
-        if(!amounts.value.hasOwnProperty(product.id)) {
-          amounts.value[product.id] = 0
+        if (!amounts.value.hasOwnProperty(product.id)) {
+          amounts.value[product.id] = 0;
         }
-      })
+      });
     });
 
     async function fileterProductsByTypeId(type) {
@@ -318,19 +325,28 @@ export default {
     }
 
     function increaseAmount(productId) {
-      if(amounts.value[productId] !== undefined) {
-        amounts.value[productId]++
+      if (amounts.value[productId] !== undefined) {
+        amounts.value[productId]++;
       }
     }
 
     function decreaseAmount(productId) {
-      if(amounts.value[productId] !== undefined && amounts.value[productId] >0) {
-        amounts.value[productId] --
+      if (
+        amounts.value[productId] !== undefined &&
+        amounts.value[productId] > 0
+      ) {
+        amounts.value[productId]--;
       }
     }
 
-    function sellFunction() {
-      
+    async function sellFunction(productId, product) {
+      soldProductPayload.profileId = 1;
+      soldProductPayload.supplementProductId = productId;
+      soldProductPayload.quantity =  amounts.value[productId];
+      soldProductPayload.price = soldProductPayload.quantity * product.price
+
+      console.log(soldProductPayload)
+      const soldPro = await soldProductService.createSoldProduct(soldProductPayload);
     }
     return {
       drawerOpen1,
@@ -358,7 +374,7 @@ export default {
       amounts,
       increaseAmount,
       decreaseAmount,
-      sellFunction
+      sellFunction,
     };
   },
 };
@@ -459,7 +475,6 @@ export default {
 .amount-icon {
   /* border: 1px solid black; */
   margin: 0 0;
-
 }
 /* 
 .q-card-action-class {

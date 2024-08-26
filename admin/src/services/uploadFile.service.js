@@ -1,4 +1,4 @@
-import { api } from "./api.service";
+import { api } from "../services/api.service";
 
 class UploadService {
   constructor() {
