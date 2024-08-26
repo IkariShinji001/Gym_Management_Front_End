@@ -33,7 +33,7 @@
 
 <script>
 import { ref, reactive } from "vue";
-import typeService from "../serviceHukhan/type.service";
+import typeService from "../services/type.service";
 
 export default {
   props: {

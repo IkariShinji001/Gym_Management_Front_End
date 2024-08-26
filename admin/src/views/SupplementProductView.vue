@@ -208,13 +208,13 @@
 <script>
 import { ref, watchEffect, onBeforeMount, computed, reactive } from "vue";
 import { useToast } from "vue-toastification";
-import supplementProductService from "../serviceHukhan/supplementProduct.service";
-import typeService from "../serviceHukhan/type.service";
+import supplementProductService from "../services/supplementProduct.service";
+import typeService from "../services/type.service";
 import AddProductForm from "../components/AddProductForm.vue";
 import AddTypeForm from "../components/AddTypeForm.vue";
 import UpdateTypeForm from "../components/UpdateTypeForm.vue";
 import UpdateProductForm from "../components/UpdateProductForm.vue";
-import soldProductService from "../serviceHukhan/soldProduct.service";
+import soldProductService from "../services/soldProduct.service";
 
 export default {
   components: {

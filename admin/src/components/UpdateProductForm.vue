@@ -70,9 +70,9 @@
 
 <script>
 import { ref, onBeforeMount, reactive } from "vue";
-import typeService from "../serviceHukhan/type.service";
-import uploadFileService from "../serviceHukhan/uploadFile.service";
-import supplementProductService from "../serviceHukhan/supplementProduct.service";
+import typeService from "../services/type.service";
+import uploadFileService from "../services/uploadFile.service";
+import supplementProductService from "../services/supplementProduct.service";
 
 export default {
   props: {
