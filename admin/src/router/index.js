@@ -18,6 +18,11 @@ const router = createRouter({
           name: "facilities",
           component: () => import("../views/Facilities.vue"),
         },
+        {
+          path: "maintenances",
+          name: "maintenances",
+          component: () => import("../views/MaintenanceView.vue"),
+        },
       ],
     },
     {

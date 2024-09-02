@@ -8,9 +8,11 @@
           class="input-search"
           v-model="searchQuery"
           label="Tìm kiếm thiết bị"
+          filled
         />
         <div class="btn-add q-pa-md q-gutter-sm">
           <q-btn
+            style="height: 50px; border-radius: 15px"
             label="Thêm thiết bị"
             icon="add"
             color="primary"
@@ -19,30 +21,57 @@
         </div>
       </div>
       <div class="table">
-        <table>
+        <table style="width: 100%">
           <thead>
             <tr>
               <th>ID</th>
               <th>Tên</th>
               <th>Hình ảnh</th>
               <th>Mô tả</th>
-              <th>Ngày bảo trì</th>
+              <th>Chi nhánh</th>
+              <th>Ngày mua</th>
+              <th>Ngày bắt đầu bảo hành</th>
+              <th>Ngày kết thúc bảo hành</th>
+              <th>Bảo trì</th>
+              <th>Hoạt động</th>
               <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(facility, id) in displayedFacilities"
-              :key="facility.id"
-            >
-              <td width="5%" scope="row">{{ id + 1 }}</td>
-              <td width="15%">{{ facility.name }}</td>
-              <td width="20%">
+            <tr v-if="filteredFacilities.length === 0">
+              <td colspan="11" style="text-align: center; padding: 20px">
+                No data available
+              </td>
+            </tr>
+            <tr v-for="(facility, id) in filteredFacilities" :key="facility.id">
+              <td width="3%" scope="row">{{ id + 1 }}</td>
+              <td>{{ facility.name }}</td>
+              <td>
                 <img :src="facility.imageUrl" alt="Hình ảnh thiết bị" />
               </td>
-              <td width="20%">{{ facility.description }}</td>
-              <td width="20%">{{ facility.maintenanceDate }}</td>
-              <td width="20%">
+              <td>{{ facility.description }}</td>
+              <td width="4%">{{ facility.branchId }}</td>
+              <td>{{ facility.purchaseDate }}</td>
+              <td>{{ facility.warrantyStartDate }}</td>
+              <td>{{ facility.warrantyEndDate }}</td>
+              <td>
+                <q-btn
+                  style="border-radius: 15px"
+                  icon="add"
+                  color="primary"
+                  @click="addMaintenance(facility.id)"
+                />
+              </td>
+              <td>
+                <div class="q-pa-md">
+                  <q-toggle
+                    v-model="facility.isActive"
+                    color="blue"
+                    @update:model-value="updateFacility(facility.id, facility)"
+                  />
+                </div>
+              </td>
+              <td width="11%">
                 <q-btn
                   class="btn-update"
                   icon="update"
@@ -59,11 +88,41 @@
         </table>
       </div>
 
+      <!-- Thêm thiết bị vào lịch bảo trì -->
+      <q-dialog v-model="showAddMaintenance">
+        <q-card class="dialog-add-maintenance">
+          <q-card-section>
+            <h4>Thêm vào lịch bảo trì</h4>
+          </q-card-section>
+          <q-card-section>
+            <q-form @submit="submitAddMaintenance">
+              <q-input
+                v-model="maintenance.description"
+                label="Nhập mô tả bảo trì"
+              ></q-input>
+              <q-input
+                v-model="maintenance.date"
+                type="date"
+                label="Nhập ngày bảo trì"
+              ></q-input>
+              <q-btn class="btn-save" icon="save" label="Lưu" type="submit" />
+              <q-btn
+                class="btn-cancel"
+                icon="cancel"
+                label="Hủy"
+                flat
+                @click="showAddMaintenance = false"
+              />
+            </q-form>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
       <!-- QDialog component thêm thiết bị-->
       <q-dialog v-model="showAddDialog" persistent>
-        <q-card class="dialog-add">
+        <q-card class="dialog-add-facility">
           <q-card-section>
-            <div class="text-h6">Thêm thiết bị mới</div>
+            <h4>Thêm thiết bị mới</h4>
           </q-card-section>
 
           <q-card-section>
@@ -71,10 +130,21 @@
               <q-input v-model="facility.name" label="Tên thiết bị" />
               <q-input v-model="facility.imageUrl" label="URL hình ảnh" />
               <q-input v-model="facility.description" label="Mô tả" />
+              <q-input v-model="facility.branchId" label="Chi nhánh" />
               <q-input
                 type="date"
-                v-model="facility.maintenanceDate"
-                label="Ngày bảo trì"
+                v-model="facility.purchaseDate"
+                label="Ngày mua"
+              />
+              <q-input
+                type="date"
+                v-model="facility.warrantyStartDate"
+                label="Ngày bắt đầu bảo hành"
+              />
+              <q-input
+                type="date"
+                v-model="facility.warrantyEndDate"
+                label="Ngày kết thúc bảo hành"
               />
               <q-btn class="btn-save" icon="save" label="Lưu" type="submit" />
               <q-btn
@@ -91,21 +161,33 @@
 
       <!-- QDialog component sửa thiết bị-->
       <q-dialog v-model="showEditDialog" persistent>
-        <q-card class="dialog-update">
+        <q-card class="dialog-update-facility">
           <q-card-section>
-            <div class="text-h6">Sửa thông tin thiết bị</div>
+            <h4>Sửa thông tin thiết bị</h4>
           </q-card-section>
 
           <q-card-section>
-            <q-form @submit="updateFacility">
+            <q-form @submit="updateFacility(facilityToEdit.id, facilityToEdit)">
               <q-input v-model="facilityToEdit.name" label="Tên thiết bị" />
               <q-input v-model="facilityToEdit.imageUrl" label="URL hình ảnh" />
               <q-input v-model="facilityToEdit.description" label="Mô tả" />
+              <q-input v-model="facilityToEdit.branchId" label="Chi nhánh" />
               <q-input
                 type="date"
-                v-model="facilityToEdit.maintenanceDate"
-                label="Ngày bảo trì"
+                v-model="facilityToEdit.purchaseDate"
+                label="Ngày mua"
               />
+              <q-input
+                type="date"
+                v-model="facilityToEdit.warrantyStartDate"
+                label="Ngày bắt đầu bảo hành"
+              />
+              <q-input
+                type="date"
+                v-model="facilityToEdit.warrantyEndDate"
+                label="Ngày kết thúc bảo hành"
+              />
+
               <q-btn class="btn-save" icon="save" label="Lưu" type="submit" />
               <q-btn
                 class="btn-cancel"
@@ -123,92 +205,119 @@
 </template>
 
 <script>
-import { ref, reactive, onBeforeMount, watch } from "vue";
+import { ref, reactive, onBeforeMount, computed } from "vue";
 import facilitiesService from "../service/facilities.service";
+import maintenancesService from "../service/maintenance.service";
 
 export default {
   setup() {
     const facilities = ref([]);
     const searchQuery = ref("");
+    const showAddMaintenance = ref(false);
     const showAddDialog = ref(false);
     const showEditDialog = ref(false);
 
     const facility = reactive({
       name: "",
-      maintenanceDate: "",
       description: "",
       imageUrl: "",
+      branchId: "",
+      purchaseDate: "",
+      warrantyStartDate: "",
+      warrantyEndDate: "",
     });
 
     const facilityToEdit = reactive({
-      id: null,
       name: "",
-      maintenanceDate: "",
       description: "",
       imageUrl: "",
+      branchId: "",
+      purchaseDate: "",
+      warrantyStartDate: "",
+      warrantyEndDate: "",
+      isActive: "",
     });
 
-    const resetFacility = () => {
-      facility.name = "";
-      facility.maintenanceDate = "";
-      facility.description = "";
-      facility.imageUrl = "";
-    };
+    const maintenance = reactive({
+      facilityIds: [],
+      date: "",
+      description: "",
+    });
 
-    const displayedFacilities = ref([]);
-
-    const fetchFacilities = async () => {
+    onBeforeMount(async () => {
       try {
         facilities.value = await facilitiesService.findAll();
         console.log(facilities.value);
-        displayedFacilities.value = facilities.value; // Initialize displayedFacilities
       } catch (error) {
         console.log(error);
       }
-    };
-
-    onBeforeMount(() => {
-      fetchFacilities();
     });
 
-    watch(
-      searchQuery,
-      (newValue) => {
-        if (newValue.trim() === "") {
-          displayedFacilities.value = facilities.value; // Show all facilities when search is empty
-        } else {
-          displayedFacilities.value = facilities.value.filter((facility) =>
-            facility.name.toLowerCase().includes(newValue.toLowerCase())
-          );
-        }
-      },
-      { immediate: true }
-    );
+    // Use computed to filter facilities based on searchQuery
+    const filteredFacilities = computed(() => {
+      if (searchQuery.value.trim() === "") {
+        return facilities.value; // Show all facilities when search is empty
+      } else {
+        return facilities.value.filter((facility) =>
+          facility.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+        );
+      }
+    });
 
     const addFacility = async () => {
       try {
         await facilitiesService.create(facility);
-        await fetchFacilities(); // Refresh the list after adding
-        await resetFacility();
+        // await fetchFacilities(); // Refresh the list after adding
+        // await resetFacility();
         showAddDialog.value = false;
+        window.location.reload();
       } catch (error) {
         console.error("Error adding facility:", error);
+      }
+    };
+
+    const addMaintenance = (id) => {
+      maintenance.facilityIds.push(id);
+      showAddMaintenance.value = true;
+    };
+
+    const submitAddMaintenance = async () => {
+      try {
+        console.log(maintenance.value);
+        const id = maintenance.facilityIds[0];
+        console.log(id);
+        const facility = await facilitiesService.checkFacilityIsFinishedIsFalse(
+          id
+        );
+        if (!facility) {
+          await maintenancesService.create(maintenance);
+          showAddDialog.value = false;
+          window.location.reload();
+        } else {
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error("Error adding maintenance:", error);
       }
     };
 
     const editFacility = (facility) => {
       facilityToEdit.id = facility.id;
       facilityToEdit.name = facility.name;
-      facilityToEdit.maintenanceDate = facility.maintenanceDate;
       facilityToEdit.description = facility.description;
       facilityToEdit.imageUrl = facility.imageUrl;
+      facilityToEdit.branchId = facility.branchId;
+      facilityToEdit.purchaseDate = facility.purchaseDate;
+      facilityToEdit.warrantyStartDate = facility.warrantyStartDate;
+      facilityToEdit.warrantyEndDate = facility.warrantyEndDate;
+      facilityToEdit.isActive = facility.isActive;
       showEditDialog.value = true;
     };
 
-    const updateFacility = async () => {
+    const updateFacility = async (id, facilityToEdit) => {
       try {
-        await facilitiesService.update(facilityToEdit.id, facilityToEdit);
-        await fetchFacilities(); // Refresh the list after updating
+        await facilitiesService.update(id, facilityToEdit);
+        window.location.reload();
         showEditDialog.value = false;
       } catch (error) {
         console.error("Error updating facility:", error);
@@ -218,7 +327,8 @@ export default {
     const deleteFacility = async (id) => {
       try {
         await facilitiesService.delete(id);
-        await fetchFacilities(); // Refresh the list after deleting
+        window.location.reload();
+        // await fetchFacilities(); // Refresh the list after deleting
       } catch (error) {
         console.error("Error deleting facility:", error);
       }
@@ -227,16 +337,19 @@ export default {
     return {
       facilities,
       searchQuery,
+      maintenance,
+      showAddMaintenance,
       showAddDialog,
       showEditDialog,
       facility,
       facilityToEdit,
-      resetFacility,
-      displayedFacilities,
       addFacility,
+      addMaintenance,
+      submitAddMaintenance,
       editFacility,
       updateFacility,
       deleteFacility,
+      filteredFacilities,
     };
   },
 };
@@ -246,7 +359,7 @@ export default {
 .equipment-management {
   margin: 20px;
   padding-bottom: 20px;
-  background: #d5d5d6;
+  /* background: #d5d5d6; */
 }
 h3 {
   margin: 0px;
@@ -260,8 +373,11 @@ h4 {
 }
 .table {
   margin-left: 40px !important;
-  background: #3737e7;
-  width: 94% !important;
+  width: 94.5% !important;
+  table-layout: auto;
+  overflow-y: auto;
+  height: 370px;
+  border: 1px solid #959599;
 }
 .search-bar {
   margin: 0px 0px 10px 40px;
@@ -273,10 +389,13 @@ h4 {
   width: 70%;
   padding: 0px !important;
 }
-.dialog-add {
+.dialog-add-maintenance {
   width: 500px;
 }
-.dialog-update {
+.dialog-add-facility {
+  width: 500px;
+}
+.dialog-update-facility {
   width: 500px;
 }
 .btn-add {
@@ -287,10 +406,12 @@ h4 {
   margin-right: 5px;
   background: rgb(241, 241, 37) !important;
   color: black !important;
+  border-radius: 15px;
 }
 .btn-delete {
   margin-left: 5px;
   background: red;
+  border-radius: 15px;
 }
 .btn-save {
   margin-top: 10px;
@@ -301,13 +422,21 @@ h4 {
   margin-top: 10px;
 }
 th {
-  padding: 10px;
+  padding: 5px;
   text-align: center;
-  border: 2px solid #343438;
+  border-bottom: 1px solid #959599;
+  border-right: 1px solid #959599;
 }
 td {
-  border: 2px solid #343438;
-  padding: 10px;
+  border-bottom: 1px solid #959599;
+  border-right: 1px solid #959599;
+  padding: 5px;
   text-align: center;
+}
+tr {
+  transition: background-color 0.3s;
+}
+tr:hover {
+  background: #e4dfdf;
 }
 </style>
