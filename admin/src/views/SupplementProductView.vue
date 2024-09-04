@@ -107,7 +107,7 @@
       </q-btn-dropdown>
     </div>
 
-    <!-- PRODUCT ------------- -->
+    <!-- PRODUCT --------------->
     <div class="q-pa-md img-container">
       <div
         v-for="product in filteredSupplementProducts"
