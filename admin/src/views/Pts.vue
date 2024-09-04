@@ -1,15 +1,15 @@
 <template>
   <section>
-    <h1>Quản lý nhân viên</h1>
+    <h1>Quản lý PT</h1>
     <div class="input-search">
       <q-input
         class="input"
         outlined
         v-model="search"
-        label="Tìm kiếm nhân viên"
+        label="Tìm kiếm PT"
       />
       <q-btn class="add" color="primary" @click="handleOpenCreateDialog"
-        >Thêm nhân viên</q-btn
+        >Thêm PT</q-btn
       >
     </div>
 
@@ -39,17 +39,22 @@
             @click="handleDelete(pt.id)"
             name="delete"
           ></q-icon>
+          <q-icon
+            class="icons"
+            @click="handleOpenDetailDialog(pt.id)"
+            name="visibility"
+          ></q-icon>
         </td>
       </tr>
     </table>
 
-    <!-- Dialog cho thêm nhân viên -->
+    <!-- Dialog cho thêm PT -->
     <q-dialog v-model="openCreateDialog">
       <q-card class="modal">
         <q-card-section>
           <q-card-title>
             <q-icon name="add"></q-icon>
-            <span>Thêm nhân viên</span>
+            <span>Thêm PT</span>
           </q-card-title>
           <q-card-section>
             <q-input
@@ -82,14 +87,13 @@
       </q-card>
     </q-dialog>
 
-    <!-- Dialog cho cập nhật nhân viên -->
+    <!-- Dialog cho cập nhật PT -->
     <q-dialog v-model="openUpdateDialog">
-
       <q-card class="modal">
         <q-card-section>
           <q-card-title>
             <q-icon name="edit"></q-icon>
-            <span>Cập nhật nhân viên</span>
+            <span>Cập nhật PT</span>
           </q-card-title>
           <q-card-section>
             <q-input v-model="pt.weight" label="Cân nặng" outlined />
@@ -100,8 +104,96 @@
           </q-card-section>
         </q-card-section>
         <q-card-actions class="action">
-          <q-btn class="btn" color="primary" label="Lưu" @click="handleUpdate(pt.id)" />
+          <q-btn
+            class="btn"
+            color="primary"
+            label="Lưu"
+            @click="handleUpdate(pt.id)"
+          />
         </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Dialog cho xem chi tiết thông tin -->
+    <q-dialog v-model="openDetailDialog">
+      <q-card>
+        <img v-if="pt.images.length" :src="pt.images[0].imageUrl"  class="card-img"/>
+        <q-tab-panel class="panel" >
+              <q-item class="item">
+                <q-item-section>
+                  <q-item-label>Tên</q-item-label>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label caption>{{ pt.profile.fullName }}</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item class="item">
+                <q-item-section>
+                  <q-item-label>Số điện thoại</q-item-label>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label caption>{{
+                    pt.profile.phoneNumber
+                  }}</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item class="item">
+                <q-item-section>
+                  <q-item-label>Email</q-item-label>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label caption>{{ pt.profile.email }}</q-item-label>
+                </q-item-section>
+              </q-item>
+
+             
+              <q-item class="item">
+                <q-item-section>
+                  <q-item-label>Chiều cao</q-item-label>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label caption>{{ pt.height }} cm</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item class="item">
+                <q-item-section>
+                  <q-item-label>Cân nặng</q-item-label>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label caption>{{ pt.weight }} kg</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item class="item">
+                <q-item-section>
+                  <q-item-label>Vòng 1</q-item-label>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label caption>{{ pt.bust }} cm</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item class="item">
+                <q-item-section>
+                  <q-item-label>Vòng 2</q-item-label>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label caption>{{ pt.waist }} cm</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item class="item">
+                <q-item-section>
+                  <q-item-label>Vòng 3</q-item-label>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label caption>{{ pt.hips }} cm</q-item-label>
+                </q-item-section>
+              </q-item>
+        </q-tab-panel>
       </q-card>
     </q-dialog>
   </section>
@@ -115,7 +207,8 @@ const pts = ref([]);
 const search = ref();
 const openCreateDialog = ref(false);
 const openUpdateDialog = ref(false);
-const updateId = ref();
+const openDetailDialog = ref(false);
+const updateId = ref("");
 
 const pt = reactive({
   weight: "",
@@ -159,7 +252,6 @@ const handleOpenCreateDialog = () => {
   ptInput.waist = "";
   ptInput.hips = "";
   openCreateDialog.value = true;
-
 };
 
 const handleOpenUpdateDialog = async (id) => {
@@ -178,7 +270,7 @@ const handleAdd = async () => {
         password: ptInput.profile.password,
         phoneNumber: ptInput.profile.phoneNumber,
         fullName: ptInput.profile.fullName,
-        role: ptInput.profile.role,
+        role: "pt",
       },
       createPtDto: {
         weight: ptInput.weight,
@@ -205,9 +297,9 @@ const handleUpdate = async (id) => {
       waist: pt.waist,
       hips: pt.hips,
     };
-    console.log(id);
     const res = await ptsServices.update(id, payload);
-    pts.value.splice(updateId.value, 1, res);
+    const index = pts.value.findIndex((pt) => pt.id === id);
+    Object.assign(pts.value[index], res);
     openUpdateDialog.value = false;
   } catch (error) {
     console.log(error);
@@ -218,9 +310,7 @@ const filteredPts = computed(() => {
   if (!search.value) return pts.value;
 
   const searchName = search.value.toLowerCase();
-  return pts.value.filter((pt) =>
-    pt.profile.fullName.includes(searchName)
-  );
+  return pts.value.filter((pt) => pt.profile.fullName.includes(searchName));
 });
 const handleDelete = async (id) => {
   try {
@@ -234,6 +324,11 @@ const handleDelete = async (id) => {
 onBeforeMount(async () => {
   pts.value = await ptsServices.getAll();
 });
+const handleOpenDetailDialog = (id) => {
+  openDetailDialog.value = true;
+  const index = pts.value.findIndex((pt) => pt.id === id);
+  Object.assign(pt, pts.value[index]);
+};
 </script>
 
 <style>
@@ -249,7 +344,7 @@ h1 {
 }
 .input {
   width: 70%;
-  font-size: 18px;
+  font-size: 22px;
 }
 .add {
   width: 20%;
@@ -293,5 +388,18 @@ td {
 }
 td {
   text-align: center;
+}
+
+.avatar {
+  height: 180px;
+  width: 100%;
+}
+.card-img{
+  height: 180px;
+  width: 100%;
+}
+.panel {
+  height: 450px;
+  width: 700px;
 }
 </style>
