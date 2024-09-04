@@ -1,5 +1,4 @@
-<script setup>
-</script>
+<script setup></script>
 
 <template>
   <q-layout>
@@ -9,4 +8,15 @@
   </q-layout>
 </template>
 
-<style scoped></style>
+<style>
+* {
+  font-family: "K2D", sans-serif;
+}
+:root {
+  --layout-header-bg: #0c0c0c;
+  --drawer-bg: #800000;
+  --table-bg: #b41500; 
+  --icon-color: #f17e13;
+
+}
+</style>
