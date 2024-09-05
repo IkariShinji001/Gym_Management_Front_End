@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-3container">
     <div :class="['search-add-div', { centered: !drawerOpen1 }]">
       <q-input outlined v-model="searchText" label="Search" class="search-bar">
         <template v-slot:append>
@@ -107,7 +107,7 @@
       </q-btn-dropdown>
     </div>
 
-    <!-- PRODUCT ------------- -->
+    <!-- PRODUCT --------------->
     <div class="q-pa-md img-container">
       <div
         v-for="product in filteredSupplementProducts"

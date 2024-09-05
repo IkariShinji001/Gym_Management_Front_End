@@ -1,17 +1,26 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <q-header reveal elevated class="bg-primary text-white">
+    <q-header reveal elevated class="layout text-white">
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
+        <q-avatar size="100px" square>
+          <img src="./7 honlam.png" />
+        </q-avatar>
         <q-toolbar-title>Bờ Lốc</q-toolbar-title>
       </q-toolbar>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
-      <q-scroll-area class="fit">
+    <q-drawer
+      show-if-above
+      v-model="leftDrawerOpen"
+      side="left"
+      bordered
+      class="drawer"
+    >
+      <q-scroll-area class="fit drawer">
         <q-list>
           <template v-for="(menuItem, index) in menuList" :key="index">
-            <router-link :to="menuItem.path">
+            <router-link :to="menuItem.path" class="routerlink">
               <q-item clickable :active="menuItem.label === 'Outbox'">
                 <q-item-section avatar>
                   <q-icon :name="menuItem.icon" />
@@ -65,3 +74,18 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.layout {
+  background: var(--layout-header-bg);
+}
+.drawer {
+  background:var(--drawer-bg);
+}
+.routerlink {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  /* font-weight: bold; */
+}
+</style>
