@@ -5,7 +5,6 @@ const router = createRouter({
   routes: [
     {
       path: "/admins",
-      name: "admin",
       component: () => import("../views/AdminLayoutView.vue"),
       children: [
         {

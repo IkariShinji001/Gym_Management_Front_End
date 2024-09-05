@@ -17,6 +17,11 @@ class MaintenancesService {
         return (await api.delete(`/maintenances/${id}`)).data;
     }
 
+    async maintenanceHistory(idFacility) {
+        return (await api.get(`/maintenances/maintenanceHistory/${idFacility}`)).data;
+
+    }
+
 }
 
 export default new MaintenancesService();

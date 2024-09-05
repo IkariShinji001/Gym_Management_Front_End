@@ -162,8 +162,8 @@
   
   <script>
 import { ref, reactive, computed, onBeforeMount } from "vue";
-import maintenanceService from "../service/maintenance.service.js"; // Adjust the path to your service
-import facilitiesService from "../service/facilities.service.js";
+import maintenanceService from "../services/maintenance.service.js"; // Adjust the path to your service
+import facilitiesService from "../services/facilities.service.js";
 
 export default {
   setup() {
@@ -281,7 +281,6 @@ export default {
       console.log(maintenanceData);
       Object.assign(maintenanceToEdit, maintenanceData);
       console.log(maintenanceToEdit);
-
       showUpdateDialog.value = true;
     };
 
