@@ -5,7 +5,6 @@ const router = createRouter({
   routes: [
     {
       path: "/admins",
-      name: "admin",
       component: () => import("../views/AdminLayoutView.vue"),
       children: [
         {
@@ -17,6 +16,26 @@ const router = createRouter({
           path: "facilities",
           name: "facilities",
           component: () => import("../views/Facilities.vue"),
+        },
+        {
+          path: "pts",
+          name: "pts",
+          component: () => import("../views/Pts.vue"),
+        },
+        {
+          path: "employees",
+          name: "employees",
+          component: () => import("../views/Employees.vue"),
+        },
+        {
+          path: "managers",
+          name: "managers",
+          component: () => import("../views/Managers.vue"),
+        },
+        {
+          path: "services",
+          name: "services",
+          component: () => import("../views/ServicePackageView.vue"),
         },
       ],
     },

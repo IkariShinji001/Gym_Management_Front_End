@@ -5,6 +5,7 @@ const commonConfig = {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  withCredentials: true, // Cho phép gửi cookie
 };
 
 const api = axios.create({

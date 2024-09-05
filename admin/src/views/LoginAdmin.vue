@@ -11,9 +11,8 @@
         <input
           type="email"
           class="form-control"
-          id="email"
           placeholder="Nhập email"
-          name="email"
+          v-model="userInfo.email"
         />
       </div>
       <div class="form-group">
@@ -21,38 +20,72 @@
         <input
           type="password"
           class="form-control"
-          id="pwd"
           placeholder="Nhập mật khẩu"
-          name="pswd"
+          v-model="userInfo.password"
         />
       </div>
       <div>
-        <q-btn label="Đăng nhập" clo type="submit" class="btn btn-submit" />
+        <q-btn
+          @click="handleLogin"  
+          label="Đăng nhập"
+          class="btn btn-submit"
+        />
       </div>
     </form>
   </div>
 </template>
 
 <script>
-export default {};
+
+import authService from "../services/auth.service";
+import { reactive } from "vue";
+import { useRouter } from "vue-router";
+
+export default {
+  setup() {
+    const router = useRouter();
+    const userInfo = reactive({ email: "", password: "" });
+    const handleLogin = async () => {
+      try {
+        // check null
+        if(userInfo.email ==="" || userInfo.password === ""){
+          alert('Email or password is empty')
+        }
+
+        const response = await authService.login(userInfo.email, userInfo.password);
+          alert('Login successfully')
+          router.push("/admins");
+      } catch (error) {
+        alert('Login fail')
+        console.log(error);
+      }
+      
+    };
+
+
+    return { userInfo, handleLogin };
+  },
+};
+
+
 </script>
 
 <style>
 .container {
   width: 40%;
   margin-top: 50px;
-  margin-left: 5%;
+  margin-left: 13%;
   padding: 20px;
   border-radius: 10px;
 }
 
-.header-login{
+.header-login {
   margin-top: 0;
-    margin-bottom: 15%;
+  margin-bottom: 15%;
 }
 
 body {
-  background-image: url("../../public/assets/images/backgroundLogin.jpg");
+  background-image: url("../../assets/images/backgroundLogin.jpg");
   height: 550px;
   background-position: center;
   background-repeat: no-repeat;
@@ -60,11 +93,7 @@ body {
   position: relative;
   font-family: "Work Sans", sans-serif;
   font-optical-sizing: auto;
-  
-
 }
-
-
 
 .header {
   margin-bottom: 15px;
@@ -74,13 +103,13 @@ body {
 .header-child {
   font-size: 25px;
   margin-left: 45px;
-  margin-top: 0;}
+  margin-top: 0;
+}
 
 .label {
   font-size: 30px;
   display: block;
   text-align: left;
-  
 }
 .form-control {
   width: 70%;
