@@ -8,12 +8,13 @@
         v-model="search"
         label="Tìm kiếm nhân viên"
       />
+      <q-btn class="add" color="primary" @click="handleOpenCreateDialog"
+        >Thêm nhân viên</q-btn
+      >
     </div>
-    <q-btn class="add" color="primary" @click="handleOpenCreateDialog"
-      >Thêm nhân viên</q-btn
-    >
+
     <table>
-      <tr>
+      <tr class="heading-table">
         <th>STT</th>
         <th>Họ và tên</th>
         <th>Email</th>
@@ -21,8 +22,8 @@
         <th>Vị trí</th>
         <th>Chức năng</th>
       </tr>
-      
-      <tr  v-for="(manager, index) in filteredManager" :key="manager.id">
+
+      <tr v-for="(manager, index) in paginatedManagers" :key="manager.id">
         <td>{{ index + 1 }}</td>
         <td>{{ manager.profile.fullName }}</td>
         <td>{{ manager.profile.email }}</td>
@@ -41,6 +42,12 @@
           ></q-icon>
         </td>
       </tr>
+      <q-pagination
+        v-model="currentPage"
+        :max="totalPages"
+        :rows-per-page="rowsPerPage"
+        @update:model-value="updatePage"
+      />
     </table>
 
     <!-- Dialog cho thêm nhân viên -->
@@ -67,68 +74,66 @@
               label="Số điện thoại"
               outlined
             />
-         
+
             <q-input
               v-model="managerInput.profile.password"
               label="Mật khẩu"
               outlined
             />
-
           </q-card-section>
           {{ managerInput }}
-          <q-card-actions class="action" >
+          <q-card-actions class="action">
             <q-btn
               class="btn"
               color="primary"
               label="Lưu"
               @click="handleAdd"
             ></q-btn>
-           
           </q-card-actions>
         </q-card-section>
       </q-card>
     </q-dialog>
-<!-- Dialog cho cap nhat quan ly -->
-<q-dialog v-model="openUpdateDialog">
-    <q-card class="modal">
-      <q-card-section>
-        <q-card-title>
-          <q-icon name="update"></q-icon>
-          <span>Cập nhật quản lý</span>
-        </q-card-title>
+    <!-- Dialog cho cap nhat quan ly -->
+    <q-dialog v-model="openUpdateDialog">
+      <q-card class="modal">
         <q-card-section>
-          <q-input
-            v-model="managerInput.profile.fullName"
-            label="Họ và tên"
-            outlined
-          />
-          <q-input
-            v-model="managerInput.profile.email"
-            label="Email"
-            outlined
-          />
-          <q-input
-            v-model="managerInput.profile.phoneNumber"
-            label="Số điện thoại"
-            outlined
-          />
-          <q-input
-            v-model="managerInput.profile.password"
-            label="Mật khẩu"
-            outlined
-          />
+          <q-card-title>
+            <q-icon name="update"></q-icon>
+            <span>Cập nhật quản lý</span>
+          </q-card-title>
+          <q-card-section>
+            <q-input
+              v-model="managerInput.profile.fullName"
+              label="Họ và tên"
+              outlined
+            />
+            <q-input
+              v-model="managerInput.profile.email"
+              label="Email"
+              outlined
+            />
+            <q-input
+              v-model="managerInput.profile.phoneNumber"
+              label="Số điện thoại"
+              outlined
+            />
+            <q-input
+              v-model="managerInput.profile.password"
+              label="Mật khẩu"
+              outlined
+            />
+          </q-card-section>
+          <q-card-actions class="action">
+            <q-btn
+              class="btn"
+              color="primary"
+              label="Lưu"
+              @click="handleUpdate"
+            ></q-btn>
+          </q-card-actions>
         </q-card-section>
-        <q-card-actions class="action">
-          <q-btn
-            class="btn"
-            color="primary"
-            label="Lưu"
-            @click="handleUpdate"
-          ></q-btn>
-        </q-card-actions>
-      </q-card-section>
-    </q-card>
-</q-dialog>
+      </q-card>
+    </q-dialog>
   </section>
 </template>
 
@@ -139,6 +144,8 @@ import managersService from "../services/managers.service";
 const search = ref("");
 const openCreateDialog = ref(false);
 const openUpdateDialog = ref(false);
+const currentPage = ref(1);
+const rowsPerPage = ref(10);
 
 const managers = ref([]);
 const managerInput = ref({
@@ -151,7 +158,7 @@ const managerInput = ref({
   },
 });
 const managerUpdate = ref({
-  id:"",
+  id: "",
   profile: {
     fullName: "",
     email: "",
@@ -174,25 +181,34 @@ const handleAdd = async () => {
 const handleOpenUpdateDialog = (id) => {
   console.log(id);
 };
-const handleUpdate = async() => {
-
-};
+const handleUpdate = async () => {};
 const handleDelete = async (id) => {
   await managersService.deleteManager(id);
   managers.value = managers.value.filter((manager) => manager.id !== id);
 };
-const filteredManager = computed(() => {
-  if(!search.value) return managers.value;
+const filteredManagers = computed(() => {
+  if (!search.value) return managers.value;
   return managers.value.filter((manager) => {
-    return (
-      manager.profile.fullName.toLowerCase().includes(search.value.toLowerCase())
-    );
+    return manager.profile.fullName
+      .toLowerCase()
+      .includes(search.value.toLowerCase());
   });
 });
+const totalPages = computed(() => {
+  return Math.ceil(filteredManagers.value.length / rowsPerPage.value);
+});
 
+const paginatedManagers = computed(() => {
+  const start = (currentPage.value - 1) * rowsPerPage.value;
+  const end = start + rowsPerPage.value;
+  return filteredManagers.value.slice(start, end);
+});
+
+const updatePage = (page) => {
+  currentPage.value = page;
+};
 </script>
-
-
+<!-- 
 <style>
 h1 {
   text-align: center;
@@ -256,7 +272,7 @@ td {
   height: 180px;
   width: 100%;
 }
-.card-img{
+.card-img {
   height: 180px;
   width: 100%;
 }
@@ -264,6 +280,89 @@ td {
   height: 450px;
   width: 700px;
 }
-</style>
- 
+</style> -->
 
+<style>
+h1 {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 20px;
+}
+
+.input-search {
+  display: flex;
+  margin: 0 50px;
+  justify-content: space-around;
+}
+.input {
+  width: 70%;
+  font-size: 22px;
+}
+.add {
+  width: 18%;
+}
+
+table {
+  width: 85%;
+  margin: 30px auto;
+  border-collapse: collapse;
+}
+tr:nth-child(even) {
+  background-color: aliceblue;
+}
+
+.modal {
+  min-width: 700px;
+}
+
+.icons {
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+.heading-table th {
+  background-color: #f5f5f5;
+  padding: 10px;
+  text-align: center;
+}
+th {
+  font-size: 20px;
+  padding: 0 10px;
+  border-bottom: 1px solid #ddd;
+}
+td {
+  font-size: 18px;
+  padding: 0 10px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+.action {
+  display: flex;
+  justify-content: center;
+}
+.btn {
+  display: flex;
+  margin: 0 auto;
+  padding: 10px 60px;
+  margin-top: 20px;
+}
+td {
+  text-align: center;
+}
+
+.avatar {
+  height: 180px;
+  width: 100%;
+}
+.card-img {
+  height: 180px;
+  width: 100%;
+}
+.panel {
+  height: 450px;
+  width: 700px;
+}
+.dia-input {
+  margin: 5px;
+}
+</style>

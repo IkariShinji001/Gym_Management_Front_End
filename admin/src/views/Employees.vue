@@ -8,10 +8,10 @@
         v-model="search"
         label="Tìm kiếm nhân viên"
       />
+      <q-btn class="add" color="primary" @click="handleOpenCreateDialog"
+        >Thêm nhân viên</q-btn
+      >
     </div>
-    <q-btn class="add" color="primary" @click="handleOpenCreateDialog"
-      >Thêm nhân viên</q-btn
-    >
     <table>
       <tr class="heading-table">
         <th>STT</th>
@@ -22,8 +22,8 @@
         <th>Ngày bắt đầu làm việc</th>
         <th>Chức năng</th>
       </tr>
-      <tr v-for="(employee, index) in filteredEmployees" :key="employee.id">
-        <td>{{ index + 1 }}</td>
+      <tr v-for="(employee, index) in paginatedEmployees" :key="employee.id">
+        <td>{{ index + 1 + (currentPage - 1) * rowsPerPage }}</td>
         <td>{{ employee.profile.fullName }}</td>
         <td>{{ employee.profile.email }}</td>
         <td>{{ employee.profile.phoneNumber }}</td>
@@ -40,9 +40,14 @@
             @click="handleDelete(employee.id)"
             name="delete"
           ></q-icon>
-          
         </td>
       </tr>
+      <q-pagination
+        v-model="currentPage"
+        :max="totalPages"
+        :rows-per-page="rowsPerPage"
+        @update:model-value="updatePage"
+      />
     </table>
 
     <!-- Dialog cho thêm nhân viên -->
@@ -55,27 +60,37 @@
           </q-card-title>
           <q-card-section>
             <q-input
+              class="dia-input"
               v-model="employeeInput.profile.fullName"
               label="Họ và tên"
               outlined
             />
             <q-input
+              class="dia-input"
               v-model="employeeInput.profile.email"
               label="Email"
               outlined
             />
             <q-input
+              class="dia-input"
               v-model="employeeInput.profile.password"
               label="Password"
               outlined
             />
             <q-input
+              class="dia-input"
               v-model="employeeInput.profile.phoneNumber"
               label="Số điện thoại"
               outlined
             />
-            <q-input v-model="employeeInput.position" label="Vị trí" outlined />
             <q-input
+              class="dia-input"
+              v-model="employeeInput.position"
+              label="Vị trí"
+              outlined
+            />
+            <q-input
+              class="dia-input"
               v-model="employeeInput.hireDate"
               label="Ngày vào làm"
               type="date"
@@ -96,7 +111,7 @@
     </q-dialog>
 
     <!-- Dialog cho cập nhật nhân viên -->
-     <q-dialog v-model="openUpdateDialog">
+    <q-dialog v-model="openUpdateDialog">
       <q-card class="modal">
         <q-card-section>
           <q-card-title>
@@ -105,22 +120,31 @@
           </q-card-title>
           <q-card-section>
             <q-input
+              class="dia-input"
               v-model="employeeUpdate.profile.fullName"
               label="Họ và tên"
               outlined
             />
             <q-input
+              class="dia-input"
               v-model="employeeUpdate.profile.email"
               label="Email"
               outlined
             />
             <q-input
+              class="dia-input"
               v-model="employeeUpdate.profile.phoneNumber"
               label="Số điện thoại"
               outlined
             />
-            <q-input v-model="employeeUpdate.position" label="Vị trí" outlined />
             <q-input
+              class="dia-input"
+              v-model="employeeUpdate.position"
+              label="Vị trí"
+              outlined
+            />
+            <q-input
+              class="dia-input"
               v-model="employeeUpdate.hireDate"
               label="Ngày vào làm"
               type="date"
@@ -135,12 +159,15 @@
           </q-card-section>
         </q-card-section>
         <q-card-actions class="action">
-          <q-btn class="btn" color="primary" label="Lưu" @click="handleUpdate" />
+          <q-btn
+            class="btn"
+            color="primary"
+            label="Lưu"
+            @click="handleUpdate"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    
   </section>
 </template>
 
@@ -187,6 +214,9 @@ const employeeUpdate = ref({
     managerId: "",
   },
 });
+const currentPage = ref(1);
+const rowsPerPage = ref(10);
+
 const handleOpenCreateDialog = () => {
   openCreateDialog.value = true;
 };
@@ -197,28 +227,31 @@ const handleOpenUpdateDialog = (id) => {
   updateId.value = id;
 };
 const handleUpdate = async () => {
-  try{
+  try {
     const payloadProfile = {
-        fullName: employeeUpdate.value.profile.fullName,
-        email: employeeUpdate.value.profile.email,
-        phoneNumber: employeeUpdate.value.profile.phoneNumber,
+      fullName: employeeUpdate.value.profile.fullName,
+      email: employeeUpdate.value.profile.email,
+      phoneNumber: employeeUpdate.value.profile.phoneNumber,
     };
     const payloadEmployee = {
-        position: employeeUpdate.value.position,
-        hireDate: employeeUpdate.value.hireDate,
-        manager: employeeUpdate.value.managerId.managerId,
+      position: employeeUpdate.value.position,
+      hireDate: employeeUpdate.value.hireDate,
+      manager: employeeUpdate.value.managerId.managerId,
     };
     await employeesService.updateEmployee(updateId.value, payloadEmployee);
-    await profileService.updatedProfile(employeeUpdate.value.profile.id, payloadProfile);
+    await profileService.updatedProfile(
+      employeeUpdate.value.profile.id,
+      payloadProfile
+    );
     openUpdateDialog.value = false;
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 onBeforeMount(async () => {
   employees.value = await employeesService.getAllEmployee();
-  managers.value = (await managersService.getManagers());
+  managers.value = await managersService.getAllManager();
   managersOptions.value = await managers.value.map((manager) => {
     return {
       label: manager.profile.fullName,
@@ -264,17 +297,26 @@ const handleDelete = async (id) => {
 // };
 
 const filteredEmployees = computed(() => {
- if(!search.value) return employees.value;
-
- const searchValue = search.value.toLowerCase();
- return employees.value.filter((employee) => {
-   return employee.profile.fullName.includes(searchValue);
- });
+  if (!search.value) return employees.value;
+  const searchValue = search.value.toLowerCase();
+  return employees.value.filter((employee) => {
+    return employee.profile.fullName.includes(searchValue);
+  });
+});
+const totalPages = computed(() => {
+  return Math.ceil(filteredEmployees.value.length / rowsPerPage.value);
 });
 
+const paginatedEmployees = computed(() => {
+  const start = (currentPage.value - 1) * rowsPerPage.value;
+  const end = start + rowsPerPage.value;
+  return filteredEmployees.value.slice(start, end);
+});
 
+const updatePage = (page) => {
+  currentPage.value = page;
+};
 </script>
-
 
 <style>
 h1 {
@@ -282,6 +324,7 @@ h1 {
   font-size: 30px;
   margin-bottom: 20px;
 }
+
 .input-search {
   display: flex;
   margin: 0 50px;
@@ -289,7 +332,7 @@ h1 {
 }
 .input {
   width: 70%;
-  font-size: 18px;
+  font-size: 22px;
 }
 .add {
   width: 18%;
@@ -297,8 +340,8 @@ h1 {
 
 table {
   width: 85%;
-  margin-top: 20px;
-  margin-left: 20px;
+  margin: 30px auto;
+  border-collapse: collapse;
 }
 tr:nth-child(even) {
   background-color: aliceblue;
@@ -312,14 +355,22 @@ tr:nth-child(even) {
   margin: 0 10px;
   cursor: pointer;
 }
+
+.heading-table th {
+  background-color: #f5f5f5;
+  padding: 10px;
+  text-align: center;
+}
 th {
   font-size: 20px;
   padding: 0 10px;
+  border-bottom: 1px solid #ddd;
 }
 td {
   font-size: 18px;
   padding: 0 10px;
   padding: 10px;
+  border-bottom: 1px solid #ddd;
 }
 .action {
   display: flex;
@@ -339,7 +390,7 @@ td {
   height: 180px;
   width: 100%;
 }
-.card-img{
+.card-img {
   height: 180px;
   width: 100%;
 }
@@ -347,5 +398,7 @@ td {
   height: 450px;
   width: 700px;
 }
+.dia-input {
+  margin: 5px;
+}
 </style>
- 
