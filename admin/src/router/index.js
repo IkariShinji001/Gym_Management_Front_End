@@ -18,11 +18,16 @@ const router = createRouter({
           component: () => import("../views/Facilities.vue"),
         },
         {
-<<<<<<< HEAD
           path: "maintenances",
           name: "maintenances",
           component: () => import("../views/MaintenanceView.vue"),
-=======
+        },
+        {
+          path: "branches",
+          name: "branches",
+          component: () => import("../views/BranchesView.vue"),
+        },
+        {
           path: "pts",
           name: "pts",
           component: () => import("../views/Pts.vue"),
@@ -41,7 +46,6 @@ const router = createRouter({
           path: "services",
           name: "services",
           component: () => import("../views/ServicePackageView.vue"),
->>>>>>> bb4c00b266ed8734ce65f6db7acea80005e26892
         },
       ],
     },

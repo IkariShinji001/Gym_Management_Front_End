@@ -12,6 +12,10 @@ class UploadService {
       },
     })).data
   }
+
+  async deleteImage(publicId) {
+    (await api.delete(`${this.path}/${publicId}`)).data
+  }
 }
 
 export default new UploadService()

@@ -2,7 +2,6 @@
   <div>
     <h3>Quản lý thiết bị dụng cụ</h3>
     <div class="equipment-management">
-      <h4>Danh sách Thiết bị dụng cụ</h4>
       <div class="search-bar">
         <q-input
           class="input-search"
@@ -16,7 +15,7 @@
             label="Thêm thiết bị"
             icon="add"
             color="primary"
-            @click="showAddDialog = true"
+            @click="OpenAddDialog"
           />
         </div>
       </div>
@@ -43,16 +42,21 @@
             <tr v-for="(facility, id) in filteredFacilities" :key="facility.id">
               <td width="4%" scope="row">{{ id + 1 }}</td>
               <td>{{ facility.name }}</td>
-              <td>
-                <img :src="facility.imageUrl" alt="Hình ảnh thiết bị" />
+              <td style="width: 15%">
+                <img
+                  :src="facility.imageUrl"
+                  alt="Hình ảnh thiết bị"
+                  style="width: 150px; height: 100px"
+                />
               </td>
-              <td>{{ facility.purchaseDate }}</td>
+              <td>{{ formatDate(facility.purchaseDate) }}</td>
               <td>
                 <q-btn
                   style="border-radius: 10px"
                   icon="add"
                   color="primary"
                   @click="addMaintenance(facility.id)"
+                  title="Thêm bảo trì"
                 />
               </td>
               <td width="8%">
@@ -61,6 +65,7 @@
                     v-model="facility.isActive"
                     color="blue"
                     @update:model-value="updateFacility(facility.id, facility)"
+                    title="Cập nhật trạng thái hoạt động"
                   />
                 </div>
               </td>
@@ -69,20 +74,24 @@
                   class="btn-update"
                   icon="visibility"
                   @click="viewFacilityDetails(facility)"
+                  title="Xem chi tiết thiết bị"
                 /><q-btn
                   class="btn-update"
                   icon="list"
                   @click="viewMaintenanceHistory(facility.id)"
+                  title="Xem lịch sử bảo trì"
                 />
                 <q-btn
                   class="btn-update"
                   icon="update"
                   @click="editFacility(facility)"
+                  title="Chỉnh sửa thiết bị"
                 />
                 <q-btn
                   class="btn-delete"
                   icon="delete"
                   @click="deleteFacility(facility.id)"
+                  title="Xóa thiết bị"
                 />
               </td>
             </tr>
@@ -170,7 +179,7 @@
       <q-dialog v-model="showMaintenanceHistory" persistent>
         <q-card style="width: 1000px !important">
           <q-card-section>
-            <h4>Lịch sử bảo trì</h4>
+            <h4>Lịch sử bảo trì: {{ facility.name }}</h4>
           </q-card-section>
           <q-card-section>
             <div>
@@ -178,7 +187,6 @@
                 <thead>
                   <tr>
                     <th>STT</th>
-                    <th>Tên thiết bị</th>
                     <th>Mô tả</th>
                     <th>Ngày bảo trì</th>
                     <th>Hoàn thành</th>
@@ -190,23 +198,23 @@
                       No data available
                     </td>
                   </tr>
+
                   <tr
                     v-for="(
-                      maintennanceOfFacility, id
+                      maintenanceOfFacility, id
                     ) in listMaintenancesOfFacility"
-                    :key="maintennanceOfFacility.id"
+                    :key="maintenanceOfFacility.id"
                   >
                     <td width="3%" scope="row">{{ id + 1 }}</td>
-                    <td>{{ maintennanceOfFacility.facility.name }}</td>
                     <td>
-                      {{ maintennanceOfFacility.description }}
+                      {{ maintenanceOfFacility.description }}
                     </td>
-                    <td>{{ maintennanceOfFacility.date }}</td>
+                    <td>{{ formatDate(maintenanceOfFacility.date) }}</td>
                     <td>
                       <div class="q-pa-md">
                         <q-checkbox
-                          v-model="maintennanceOfFacility.isFinished"
-                          :disable="maintennanceOfFacility.isFinished"
+                          v-model="maintenanceOfFacility.isFinished"
+                          :disable="maintenanceOfFacility.isFinished"
                         />
                       </div>
                     </td>
@@ -236,7 +244,13 @@
           <q-card-section>
             <q-form @submit="addFacility">
               <q-input v-model="facility.name" label="Tên thiết bị" />
-              <q-input v-model="facility.imageUrl" label="URL hình ảnh" />
+              <q-file
+                v-model="facility.imageUrl"
+                label="chọn ảnh cho thiết bị"
+                filled
+                :counter-label="file ? file.name : 'Chưa chọn tệp nào'"
+                style="margin: 10px 0px 10px 0px"
+              />
               <q-input v-model="facility.description" label="Mô tả" />
               <q-input v-model="facility.branchId" label="Chi nhánh" />
               <q-input
@@ -281,9 +295,12 @@
               "
             >
               <q-input v-model="facilityIsSelected.name" label="Tên thiết bị" />
-              <q-input
+              <q-file
                 v-model="facilityIsSelected.imageUrl"
-                label="URL hình ảnh"
+                label="chọn ảnh cho thiết bị"
+                filled
+                :counter-label="file ? file.name : 'Chưa chọn tệp nào'"
+                style="margin: 10px 0px 10px 0px"
               />
               <q-input v-model="facilityIsSelected.description" label="Mô tả" />
               <q-input
@@ -323,11 +340,14 @@
 
 <script>
 import { ref, reactive, onBeforeMount, computed } from "vue";
+import { useToast } from "vue-toastification";
 import facilitiesService from "../services/facilities.service";
 import maintenancesService from "../services/maintenance.service";
+import uploadFileService from "../services/uploadFile.service";
 
 export default {
   setup() {
+    const toast = useToast();
     const facilities = ref([]);
     const searchQuery = ref("");
     const showAddMaintenance = ref(false);
@@ -336,6 +356,7 @@ export default {
     const showFacilityDetails = ref(false);
     const showMaintenanceHistory = ref(false);
     const listMaintenancesOfFacility = ref([]);
+    const publicIdOld = ref("");
 
     const facility = reactive({
       name: "",
@@ -367,7 +388,6 @@ export default {
     onBeforeMount(async () => {
       try {
         facilities.value = await facilitiesService.findAll();
-        console.log(facilities.value);
       } catch (error) {
         console.log(error);
       }
@@ -375,22 +395,66 @@ export default {
 
     // Use computed to filter facilities based on searchQuery
     const filteredFacilities = computed(() => {
-      if (searchQuery.value.trim() === "") {
-        return facilities.value; // Show all facilities when search is empty
-      } else {
-        return facilities.value.filter((facility) =>
-          facility.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-        );
+      // Hàm loại bỏ dấu tiếng Việt
+      const removeAccents = (str) => {
+        return str
+          .normalize("NFD") // Chuyển đổi ký tự có dấu thành các ký tự và dấu tách biệt
+          .replace(/[\u0300-\u036f]/g, ""); // Loại bỏ các dấu kết hợp
+      };
+
+      // Chuẩn hóa searchQuery để tìm kiếm
+      const normalizedQuery = removeAccents(
+        searchQuery.value.trim().toLowerCase()
+      );
+
+      if (normalizedQuery === "") {
+        return facilities.value; // Hiển thị tất cả cơ sở khi tìm kiếm trống
       }
+
+      return facilities.value.filter((facility) =>
+        removeAccents(facility.name.toLowerCase()).includes(normalizedQuery)
+      );
     });
+
+    const formatDate = (date) => {
+      date = new Date(date);
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
+      const day = date.getDate().toString().padStart(2, "0");
+      return `${day}-${month}-${year}`;
+    };
+
+    const formatDateInput = (date) => {
+      date = new Date(date);
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
+      const day = date.getDate().toString().padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const OpenAddDialog = () => {
+      (facility.name = ""),
+        (facility.description = ""),
+        (facility.imageUrl = ""),
+        (facility.branchId = ""),
+        (facility.purchaseDate = ""),
+        (facility.warrantyStartDate = ""),
+        (facility.warrantyEndDate = ""),
+        (showAddDialog.value = true);
+    };
 
     const addFacility = async () => {
       try {
-        await facilitiesService.create(facility);
-        // await fetchFacilities(); // Refresh the list after adding
-        // await resetFacility();
+        const formData = new FormData();
+        formData.append("file", facility.imageUrl);
+        const res = await uploadFileService.uploadFile(formData);
+        console.log(res);
+        facility.imageUrl = res.secure_url;
+        const newFacility = await facilitiesService.create(facility);
+        facilities.value.push(newFacility);
+
         showAddDialog.value = false;
-        window.location.reload();
+        toast.success("Thêm thiết bị thành công");
       } catch (error) {
         console.error("Error adding facility:", error);
       }
@@ -398,23 +462,24 @@ export default {
 
     const addMaintenance = (id) => {
       maintenance.facilityIds.push(id);
+      maintenance.description = "";
+      maintenance.date = "";
       showAddMaintenance.value = true;
     };
 
     const submitAddMaintenance = async () => {
       try {
-        console.log(maintenance.value);
         const id = maintenance.facilityIds[0];
-        console.log(id);
         const facility = await facilitiesService.checkFacilityIsFinishedIsFalse(
           id
         );
         if (!facility) {
+          console.log(maintenance);
           await maintenancesService.create(maintenance);
-          showAddDialog.value = false;
-          window.location.reload();
+          showAddMaintenance.value = false;
+          toast.success("Thêm bảo trì thành công");
         } else {
-          window.location.reload();
+          toast.error("Thiết bị đang bảo trì");
         }
       } catch (error) {
         console.error("Error adding maintenance:", error);
@@ -424,24 +489,65 @@ export default {
     const viewMaintenanceHistory = async (idFacility) => {
       listMaintenancesOfFacility.value =
         await maintenancesService.maintenanceHistory(idFacility);
+      const facilityIsFound = await facilitiesService.findById(idFacility);
+      console.log(facilityIsFound);
+      facility.name = facilityIsFound.name;
+      console.log(listMaintenancesOfFacility.value);
       showMaintenanceHistory.value = true;
     };
 
     const viewFacilityDetails = (facility) => {
+      facility.purchaseDate = formatDateInput(facility.purchaseDate);
+      facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
+      facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
       Object.assign(facilityIsSelected, facility);
       showFacilityDetails.value = true;
     };
 
+    const getPublicId = (url) => {
+      // Tách chuỗi URL bằng dấu "/"
+      const parts = url.split("/");
+      // Lấy phần tử cuối trước phần mở rộng file để có public_id
+      const publicIdWithExtension = parts[parts.length - 1];
+      // Loại bỏ phần mở rộng file (.jpg, .png, v.v.)
+      const publicId = publicIdWithExtension.split(".")[0];
+      return publicId;
+    };
+
     const editFacility = (facility) => {
+      facility.purchaseDate = formatDateInput(facility.purchaseDate);
+      facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
+      facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
       Object.assign(facilityIsSelected, facility);
+      publicIdOld.value = getPublicId(facilityIsSelected.imageUrl);
       showEditDialog.value = true;
     };
 
     const updateFacility = async (id, facilityIsSelected) => {
       try {
-        await facilitiesService.update(id, facilityIsSelected);
-        window.location.reload();
+        if (facilityIsSelected.imageUrl instanceof File) {
+          console.log(facilityIsSelected.imageUrl)
+          const formData = new FormData();
+          formData.append("file", facilityIsSelected.imageUrl);
+          const res = await uploadFileService.uploadFile(formData);
+          console.log(res);
+          facilityIsSelected.imageUrl = res.secure_url;
+          await uploadFileService.deleteImage(publicIdOld);
+        } else {
+          console.log(facilityIsSelected.imageUrl)
+        }
+        const facilityToUpdate = await facilitiesService.update(
+          id,
+          facilityIsSelected
+        );
+
+        const index = facilities.value.findIndex(
+          (facility) => facility.id == id
+        );
+        Object.assign(facilities.value[index], facilityToUpdate);
+
         showEditDialog.value = false;
+        toast.success("Cập nhật thiết bị thành công");
       } catch (error) {
         console.error("Error updating facility:", error);
       }
@@ -449,9 +555,13 @@ export default {
 
     const deleteFacility = async (id) => {
       try {
+        const facilityToUpdate = await facilitiesService.findById(id);
+        const publicId = getPublicId(facilityToUpdate.imageUrl);
+        await uploadFileService.deleteImage(publicId);
         await facilitiesService.delete(id);
-        window.location.reload();
-        // await fetchFacilities(); // Refresh the list after deleting
+        const index = facilities.value.findIndex((item) => item.id === id);
+        facilities.value.splice(index, 1);
+        toast.success("Xóa thiết bị thành công");
       } catch (error) {
         console.error("Error deleting facility:", error);
       }
@@ -469,6 +579,9 @@ export default {
       facilityIsSelected,
       showMaintenanceHistory,
       listMaintenancesOfFacility,
+      publicIdOld,
+      formatDate,
+      OpenAddDialog,
       addFacility,
       addMaintenance,
       submitAddMaintenance,
@@ -476,6 +589,7 @@ export default {
       viewMaintenanceHistory,
       editFacility,
       updateFacility,
+      getPublicId,
       deleteFacility,
       filteredFacilities,
     };
@@ -493,22 +607,20 @@ h3 {
   margin: 0px;
   padding: 15px;
   margin: 20px;
-  background: #0c66ec;
 }
 h4 {
   margin: 20px 20px 0px 20px;
   padding: 20px;
 }
 .table {
-  margin-left: 40px !important;
-  width: 94.5% !important;
+  width: 100% !important;
   table-layout: auto;
   overflow-y: auto;
   height: 370px;
   border: 1px solid #959599;
 }
 .search-bar {
-  margin: 0px 0px 10px 40px;
+  margin-bottom: 10px;
   width: 94%;
   display: flex;
 }
@@ -525,7 +637,7 @@ h4 {
   padding: 0px !important;
 }
 .btn-update {
-  margin-right: 10px;
+  margin-right: 14px;
   background: rgb(241, 241, 37) !important;
   color: black !important;
   border-radius: 10px;

@@ -22,6 +22,14 @@ class MaintenancesService {
 
     }
 
+    async findMaintenanceIsFinished(){
+        return (await api.get("/maintenances/findMaintenanceIsFinished"));
+    }
+    
+    async findMaintenanceIsNotFinished(){
+        return (await api.get("/maintenances/findMaintenanceIsNotFinished"))
+    }
+
 }
 
 export default new MaintenancesService();
