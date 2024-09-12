@@ -38,7 +38,7 @@ const router = createRouter({
           component: () => import("../views/ServicePackageView.vue"),
         },
         {
-          path: "chart",
+          path: "supplement-products/charts",
           name: "chart",
           component: () => import("../views/testChartView.vue"),
         },
