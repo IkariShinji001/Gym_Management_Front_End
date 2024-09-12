@@ -57,6 +57,10 @@ const router = createRouter({
           name: "benefits",
           component: () => import("../views/BenefitView.vue"),
         },
+        {
+          path: "testChart",
+          component: () => import("../views/testChart1.vue"),
+        },
       ],
     },
     {

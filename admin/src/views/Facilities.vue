@@ -69,7 +69,7 @@
                   />
                 </div>
               </td>
-              <td width="24%">
+              <td width="26%">
                 <q-btn
                   class="btn-update"
                   icon="visibility"
@@ -80,7 +80,7 @@
                   icon="list"
                   @click="viewMaintenanceHistory(facility.id)"
                   title="Xem lịch sử bảo trì"
-                />
+                />  
                 <q-btn
                   class="btn-update"
                   icon="update"
@@ -526,7 +526,7 @@ export default {
     const updateFacility = async (id, facilityIsSelected) => {
       try {
         if (facilityIsSelected.imageUrl instanceof File) {
-          console.log(facilityIsSelected.imageUrl)
+          console.log(facilityIsSelected.imageUrl);
           const formData = new FormData();
           formData.append("file", facilityIsSelected.imageUrl);
           const res = await uploadFileService.uploadFile(formData);
@@ -534,7 +534,7 @@ export default {
           facilityIsSelected.imageUrl = res.secure_url;
           await uploadFileService.deleteImage(publicIdOld);
         } else {
-          console.log(facilityIsSelected.imageUrl)
+          console.log(facilityIsSelected.imageUrl);
         }
         const facilityToUpdate = await facilitiesService.update(
           id,
@@ -637,7 +637,7 @@ h4 {
   padding: 0px !important;
 }
 .btn-update {
-  margin-right: 14px;
+  margin-right: 20px;
   background: rgb(241, 241, 37) !important;
   color: black !important;
   border-radius: 10px;
