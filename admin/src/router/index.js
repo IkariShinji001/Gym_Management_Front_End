@@ -40,7 +40,7 @@ const router = createRouter({
         {
           path: "supplement-products/charts",
           name: "chart",
-          component: () => import("../views/testChartView.vue"),
+          component: () => import("../views/SoldProductChartView.vue"),
         },
         {
           path: "package-benefits",
