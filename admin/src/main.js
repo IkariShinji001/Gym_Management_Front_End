@@ -1,7 +1,8 @@
 // FILE: main.js
 
 import { createApp } from "vue";
-import { Quasar } from "quasar";
+import { Quasar, Loading, Notify } from "quasar";
+import {  QSpinnerCube } from 'quasar'
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 // Import icon libraries
@@ -20,12 +21,18 @@ const options = {
 const myApp = createApp(App);
 
 myApp.use(Quasar, {
-  plugins: {}, // import Quasar plugins and add here
+  plugins: {
+    Loading,
+  },
+  config: {
+    loading: {
+      spinner: QSpinnerCube,
+      message: "Loading...",
+    },
+  },
 });
-
-myApp.use(router)
-myApp.use(Toast, options)
-
+myApp.use(router);
+myApp.use(Toast, options);
 
 // Assumes you have a <div id="app"></div> in your index.html
 myApp.mount("#app");

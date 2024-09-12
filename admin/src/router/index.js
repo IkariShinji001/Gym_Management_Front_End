@@ -47,6 +47,16 @@ const router = createRouter({
           name: "services",
           component: () => import("../views/ServicePackageView.vue"),
         },
+        {
+          path: "chart",
+          name: "chart",
+          component: () => import("../views/testChartView.vue"),
+        },
+        {
+          path: "package-benefits",
+          name: "benefits",
+          component: () => import("../views/BenefitView.vue"),
+        },
       ],
     },
     {

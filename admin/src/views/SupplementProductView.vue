@@ -345,7 +345,6 @@ export default {
       soldProductPayload.quantity =  amounts.value[productId];
       soldProductPayload.price = soldProductPayload.quantity * product.price
 
-      console.log(soldProductPayload)
       const soldPro = await soldProductService.createSoldProduct(soldProductPayload);
     }
     return {

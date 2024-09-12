@@ -10,13 +10,14 @@ export default defineConfig({
     vue({
       template: { transformAssetUrls },
     }),
-
     // @quasar/plugin-vite options list:
     // https://github.com/quasarframework/quasar/blob/dev/vite-plugin/index.d.ts
     quasar({
       sassVariables: "src/quasar-variables.sass",
     }),
-
   ],
-  server: {port: 6868}
+  server: {
+    port: 8989,
+    host: true,
+  },
 });
