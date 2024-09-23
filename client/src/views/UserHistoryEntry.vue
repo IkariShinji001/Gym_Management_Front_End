@@ -9,7 +9,6 @@
 
 
   <table>
-
     <thead>
       <tr>
         <th class="stt">STT</th>
