@@ -1,5 +1,7 @@
 <template>
+
   <div class="container">
+
     <div class="q-pa-md">
       <q-carousel animated v-model="slide" arrows navigation infinite class="carousel">
         <q-carousel-slide :name="1"
@@ -13,24 +15,37 @@
       </q-carousel>
     </div>
 
+
     <div class="q-pa-md icons">
       <div class="div">
-        <div class="icon-container"><q-icon name="badge" class="icon"> </q-icon></div>
+        <div class="icon-container">
+          <q-icon name="badge" class="icon"></q-icon>
+        </div>
       </div>
       <div class="div">
-        <div class="icon-container"><q-icon name="apps" class="icon"> </q-icon></div>
+        <div class="icon-container">
+          <q-icon name="apps" class="icon"></q-icon>
+        </div>
       </div>
       <div class="div">
-        <div class="icon-container"><q-icon name="terminal" class="icon"> </q-icon></div>
+        <div class="icon-container">
+          <q-icon name="terminal" class="icon"></q-icon>
+        </div>
       </div>
       <div class="div">
-        <div class="icon-container"><q-icon name="rocket_launch" class="icon"></q-icon></div>
+        <div class="icon-container">
+          <q-icon name="rocket_launch" class="icon"></q-icon>
+        </div>
       </div>
       <div class="div">
-        <div class="icon-container"><q-icon name="thunderstorm" class="icon"></q-icon></div>
+        <div class="icon-container">
+          <q-icon name="thunderstorm" class="icon"></q-icon>
+        </div>
       </div>
       <div class="div">
-        <div class="icon-container"><q-icon name="badge" class="icon"></q-icon></div>
+        <div class="icon-container">
+          <q-icon name="badge" class="icon"></q-icon>
+        </div>
       </div>
     </div>
   </div>
@@ -39,7 +54,7 @@
 
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref } from 'vue';
   const slide = ref(1);
 
 </script>
@@ -68,8 +83,6 @@
   }
 
 
-
-
   .div {
     width: 100%;
     height: 60px;
@@ -90,6 +103,5 @@
     align-items: center;
     text-align: center;
   }
-
 
 </style>

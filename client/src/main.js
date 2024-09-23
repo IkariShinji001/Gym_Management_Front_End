@@ -1,7 +1,7 @@
 // FILE: main.js
 
 import { createApp } from "vue";
-import { Quasar, Loading } from "quasar";
+import { Quasar, Loading, Dialog } from "quasar";
 
 // Import icon libraries
 import "@quasar/extras/material-icons/material-icons.css";
@@ -23,6 +23,7 @@ myApp
   .use(Quasar, {
     plugins: {
       Loading,
+      Dialog,
     }, // import Quasar plugins and add here
   })
   .use(router)

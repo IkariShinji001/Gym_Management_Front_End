@@ -17,7 +17,9 @@
             <q-icon name="fitness_center" class="icons"></q-icon>
           </div>
           <div>
-            <q-icon name="home" class="icons"></q-icon>
+            <router-link to="/">
+              <q-icon name="home" class="icons"></q-icon>
+            </router-link>
           </div>
           <div>
             <q-icon name="schedule" class="icons"></q-icon>
