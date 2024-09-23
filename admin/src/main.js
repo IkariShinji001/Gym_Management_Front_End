@@ -1,7 +1,8 @@
 // FILE: main.js
 
 import { createApp } from "vue";
-import { Quasar } from "quasar";
+import { Quasar, Loading, Notify } from "quasar";
+import { QSpinnerCube } from "quasar";
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 import "@quasar/extras/material-icons/material-icons.css";
@@ -20,6 +21,18 @@ myApp.use(Quasar, {
   plugins: {}, // import Quasar plugins and add here
 });
 
+myApp.use(router);
+myApp.use(Toast, options);
+  plugins: {
+    Loading,
+  },
+  config: {
+    loading: {
+      spinner: QSpinnerCube,
+      message: "Loading...",
+    },
+  },
+});
 myApp.use(router);
 myApp.use(Toast, options);
 

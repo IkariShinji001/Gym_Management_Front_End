@@ -34,6 +34,13 @@
         </q-list>
       </q-btn-dropdown>
       <!-- btn-drop -->
+
+      <q-btn class="update-btn">
+        <router-link class="login-pw" to="supplement-products/charts">
+          <q-icon name="query_stats" class="add-icon" />
+          <q-item-label>Thống kê</q-item-label>
+        </router-link>
+      </q-btn>
     </div>
     <q-dialog v-model="isAddProductFormVisible">
       <q-card>
@@ -146,7 +153,12 @@
             </div>
           </q-card-section>
           <q-card-section class="q-pt-none hmm">
-            <div class="text-subtitle1">Giá: {{ product.price }}</div>
+            <div class="cost-sold">
+              <div class="text-subtitle1">Giá: {{ product.price }}</div>
+              <i class="text-subtitle1" style="color: gray; text-decoration: ">
+                Đã bán: {{ product.totalSold }}
+              </i>
+            </div>
             <div class="sell-amount-div">
               <div class="amount-edit">
                 <q-btn class="btn-amount" @click="decreaseAmount(product.id)">
@@ -256,7 +268,6 @@ export default {
         supplementProducts.value =
           await supplementProductService.getAllSupplementProduct();
 
-          console.log(supplementProducts.value)
         filteredSupplementProducts.value = supplementProducts.value;
 
         supplementProducts.value.forEach((product) => {
@@ -340,13 +351,21 @@ export default {
     }
 
     async function sellFunction(productId, product) {
-      soldProductPayload.profileId = 1;
-      soldProductPayload.supplementProductId = productId;
-      soldProductPayload.quantity =  amounts.value[productId];
-      soldProductPayload.price = soldProductPayload.quantity * product.price
+      try {
+        soldProductPayload.profileId = 1;
+        soldProductPayload.supplementProductId = productId;
+        soldProductPayload.quantity = amounts.value[productId];
+        soldProductPayload.price = soldProductPayload.quantity * product.price;
 
-      console.log(soldProductPayload)
-      const soldPro = await soldProductService.createSoldProduct(soldProductPayload);
+        product.totalSold += amounts.value[productId];
+        const soldPro = await soldProductService.createSoldProduct(
+          soldProductPayload
+        );
+        toast.success("Đã bán");
+      } catch (e) {
+        console.log(e);
+        toast.error("Lỗi bán");
+      }
     }
     return {
       drawerOpen1,
@@ -475,6 +494,11 @@ export default {
 .amount-icon {
   /* border: 1px solid black; */
   margin: 0 0;
+}
+
+.cost-sold {
+  display: flex;
+  justify-content: space-between;
 }
 /* 
 .q-card-action-class {

@@ -1,6 +1,6 @@
 <template>
   <section>
-    <h1>Quản lý</h1>
+    <h1>Quản lý Managers</h1>
     <div class="input-search">
       <q-input
         class="input"
