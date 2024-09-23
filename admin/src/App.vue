@@ -17,6 +17,5 @@
   --drawer-bg: #800000;
   --table-bg: #b41500; 
   --icon-color: #f17e13;
-
 }
 </style>
