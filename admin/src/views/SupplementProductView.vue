@@ -36,7 +36,7 @@
       <!-- btn-drop -->
 
       <q-btn class="update-btn">
-        <router-link class="login-pw" to="supplement-products/charts">
+        <router-link class="chart-link" to="supplement-products/charts">
           <q-icon name="query_stats" class="add-icon" />
           <q-item-label>Thống kê</q-item-label>
         </router-link>
@@ -64,6 +64,7 @@
         </AddTypeForm>
       </q-card>
     </q-dialog>
+
     <q-dialog v-model="isRemoveTypeFormVisible">
       <q-card>
         <UpdateTypeForm
@@ -129,7 +130,7 @@
                 {{ product.name }}
               </div>
               <button
-                class="btn-product-edit"
+                class="product-edit-btn"
                 @click="confirmRemoveProduct(product.id)"
               >
                 <q-icon
@@ -140,7 +141,7 @@
                 ></q-icon>
               </button>
               <button
-                class="btn-product-edit"
+                class="product-edit-btn"
                 @click="openUpdateProductForm(product)"
               >
                 <q-icon
@@ -159,27 +160,32 @@
                 Đã bán: {{ product.totalSold }}
               </i>
             </div>
-            <div class="sell-amount-div">
-              <div class="amount-edit">
-                <q-btn class="btn-amount" @click="decreaseAmount(product.id)">
+            <div class="sell-container">
+              <div class="amount-edit-btns-container">
+                <button class="amount-btn" @click="decreaseAmount(product.id)">
                   <q-icon
                     name="remove"
                     color="black"
                     size="20px"
                     class="amount-icon"
                   ></q-icon>
-                </q-btn>
-                <h6 class="btn-amount">{{ amounts[product.id] }}</h6>
-                <q-btn class="btn-amount" @click="increaseAmount(product.id)">
+                </button>
+                <h6 class="amount-btn">{{ amounts[product.id] }}</h6>
+                <button class="amount-btn" @click="increaseAmount(product.id)">
                   <q-icon
                     name="add"
                     color="black"
                     size="20px"
                     class="amount-icon"
                   ></q-icon>
-                </q-btn>
+                </button>
               </div>
-              <q-btn @click="sellFunction(product.id, product)"> Bán </q-btn>
+              <button
+                class="sell-btn"
+                click="sellFunction(product.id, product)"
+              >
+                <q-icon name="shopping_cart" size="24px"> </q-icon>
+              </button>
             </div>
           </q-card-section>
         </q-card>
@@ -409,18 +415,22 @@ export default {
 .search-add-div {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Default alignment */
-  transition: justify-content 0.3s; /* Smooth transition */
+  justify-content: flex-start;
+  /* Default alignment */
+  transition: justify-content 0.3s;
+  /* Smooth transition */
 }
 
 .centered {
   display: flex;
   align-items: center;
-  justify-content: center; /* Center alignment when drawer is open */
+  justify-content: center;
+  /* Center alignment when drawer is open */
 }
 
 .search-bar {
-  width: 40%; /* Default width */
+  width: 40%;
+  /* Default width */
   margin-right: 15px;
   background-color: white;
 }
@@ -430,11 +440,19 @@ export default {
   height: 52px;
   margin-right: 10px;
 }
+
+.update-btn .chart-link {
+  text-decoration: none;
+  color: black;
+}
+
 .add-icon {
   color: blue;
 }
-.remove-icon {
-  color: red;
+
+.remove-icon,
+.update-icon {
+  color: var(--icon-color) !important;
 }
 
 /* product-type */
@@ -446,11 +464,13 @@ export default {
   flex-wrap: wrap;
   gap: 10px;
 }
+
 .btn-type {
   min-width: 100px;
   border-radius: 0;
   width: fit-content;
 }
+
 .product-type-drawer-open {
   display: flex;
   align-items: center;
@@ -473,24 +493,65 @@ export default {
   margin-right: 10px;
   margin-top: 15px;
 }
+
+.q-card-class .product-edit-btn {
+  border: none;
+  background: none;
+  color: var(--icon-color);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 2px;
+}
+
+.q-card-class .product-edit-btn:hover {
+  border: 1px solid var(--icon-color);
+}
+
 .q-img-class {
   height: 100px;
   border-radius: 5px;
 }
 
-.sell-amount-div {
+.sell-container {
   display: flex;
   justify-content: space-between;
+  margin-top: 5px;
 }
-.amount-edit {
+
+.sell-container .amount-edit-btns-container {
   display: flex;
 }
-.btn-amount {
+
+.sell-container .amount-edit-btns-container .amount-btn {
+  background: none;
+  border: 1px solid rgb(201, 201, 201);
   width: 35px;
   margin: 0 0;
   text-align: center;
   padding: 0 0;
+  cursor: pointer;
 }
+
+.sell-container .amount-edit-btns-container .amount-btn:hover {
+  border: 1px solid rgb(120, 120, 120);
+}
+
+.sell-container .sell-btn {
+  border: none;
+  border-radius: 2px;
+  background: var(--icon-color);
+  width: 50px;
+}
+
+.sell-container .sell-btn:hover {
+  background: #ff8225;
+}
+
 .amount-icon {
   /* border: 1px solid black; */
   margin: 0 0;
@@ -500,6 +561,7 @@ export default {
   display: flex;
   justify-content: space-between;
 }
+
 /* 
 .q-card-action-class {
   height: 45px;
