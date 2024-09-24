@@ -1,5 +1,10 @@
 <template>
   <div class="container" v-if="fitnessBenefits && servicePackagePrices && fitnessPackage">
+    <div class="back-button">
+      <q-btn flat icon="arrow_back" size="md" @click="$router.go(-1)">
+      </q-btn>
+    </div>
+
     <div v-if="fitnessPackage.servicePackage.name">
       <h5 class="container-header ">Gói {{ fitnessPackage.servicePackage.name }}</h5>
       <q-card-section>
@@ -13,7 +18,8 @@
             @click="getPrice(servicePackagePrice.id)">
             <!-- Hiển thị badge chỉ khi giá trị của nút đó được chọn -->
             <q-badge color="red" floating v-if="selectPriceId === servicePackagePrice.id"></q-badge>
-            {{ servicePackagePrice.packageDuration?.duration +" "+ formatDurationType(servicePackagePrice.packageDuration?.durationType) }}
+            {{ servicePackagePrice.packageDuration?.duration + " " +
+              formatDurationType(servicePackagePrice.packageDuration?.durationType) }}
           </q-btn>
         </div>
       </div>
@@ -111,13 +117,27 @@ function formatPrice(price) {
 
 </script>
 
-<style>
+<style scoped>
 .container {
   background-color: #edf2f4;
-  min-height: 150vh;
+  min-height: 100vh;
+  padding: 10px;
 }
 
-
+.back-button {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 1;
+  background-color: #D90429;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+  
 .container-header {
   text-align: center;
   font-size: 30px;
@@ -125,6 +145,7 @@ function formatPrice(price) {
   padding: 10px;
   margin: 0;
   background-color: #edf2f4;
+  color: #D90429;
 }
 
 .duration {

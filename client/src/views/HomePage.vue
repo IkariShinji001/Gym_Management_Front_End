@@ -1,4 +1,4 @@
-<template>
+  <template>
   <div class="container">
     <div class="q-pa-md">
       <q-carousel animated v-model="slide" arrows navigation infinite class="carousel">

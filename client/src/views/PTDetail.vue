@@ -1,11 +1,17 @@
 <template>
     <div class="container">
+        <div class="back-button">
+            <q-btn flat icon="arrow_back" size="md" @click="$router.go(-1)">
+            </q-btn>
+        </div>
         <div v-if="ptPackage?.servicePackage.name">
-            <h5 class="container-header ">Gói {{ ptPackage.servicePackage.name }}</h5>
+            <!-- <h5 class="container-header ">Gói {{ ptPackage.servicePackage.name }}</h5> -->
+            <h4 class="container-header "></h4>
             <q-card-section>
-                <q-carousel v-if="ptPackage?.pt.images.length > 0" animated v-model="slide" arrows infinite swipeable thumbnails>
-                    <q-carousel-slide v-for="(image, imgIndex) in ptPackage?.pt.images" :key="image.id"
-                        :name="imgIndex" :img-src="image.imageUrl" />
+                <q-carousel v-if="ptPackage?.pt.images.length > 0" animated v-model="slide" arrows infinite swipeable
+                    thumbnails>
+                    <q-carousel-slide v-for="(image, imgIndex) in ptPackage?.pt.images" :key="image.id" :name="imgIndex"
+                        :img-src="image.imageUrl" />
                 </q-carousel>
             </q-card-section>
         </div>
@@ -34,7 +40,7 @@
                 <div><strong>Số đo 3 vòng:</strong> {{ ptPackage.pt.bust }} - {{ ptPackage.pt.waist }} - {{
                     ptPackage.pt.hips }} </div>
                 <div><strong>Link facebook: </strong>
-                    <a :href="ptPackage.pt.fbLink">{{ptPackage.pt.fbLink}}</a>
+                    <a :href="ptPackage.pt.fbLink">{{ ptPackage.pt.fbLink }}</a>
                 </div>
             </div>
         </div>
@@ -118,6 +124,20 @@ function formatPrice(price) {
     min-height: 150vh;
 }
 
+.back-button {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 1;
+    background-color: #D90429;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
 .container-header {
     text-align: center;
     font-size: 30px;
@@ -191,29 +211,28 @@ function formatPrice(price) {
 
 
 .buy {
-  width: 100%;
-  display: flex;
-  justify-content: right;
-  position: fixed;
-  bottom: 60px;
-  text-decoration: none;
+    width: 100%;
+    display: flex;
+    justify-content: right;
+    position: fixed;
+    bottom: 60px;
+    text-decoration: none;
 }
 
 .icon {
-  width: 250px;
-  height: 70px;
-  font-size: 30px;
-  color: white;
-  display: flex;
-  background-color: #D90429;
-  align-items: center;
-  text-align: center;
-  border-radius: 10px;
+    width: 250px;
+    height: 70px;
+    font-size: 30px;
+    color: white;
+    display: flex;
+    background-color: #D90429;
+    align-items: center;
+    text-align: center;
+    border-radius: 10px;
 
 }
 
 .icon-text {
-  margin-top: 10px;
+    margin-top: 10px;
 }
-
 </style>
