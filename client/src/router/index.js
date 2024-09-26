@@ -58,10 +58,15 @@ const router = createRouter({
           component: () => import("../views/PTDetail.vue"),
         },
         {
-          path:"chatbot",
+          path: "chatbot",
           name: "chatbot",
           component: () => import("../components/chatbotcom.vue"),
-        }
+        },
+        {
+          path: "checkout",
+          name: "checkout",
+          component: () => import("../views/CheckOut.vue"),
+        },
         {
           path: "pay/success/checkout/session",
           component: () => import("../views/SuccessCheckout.vue"),
