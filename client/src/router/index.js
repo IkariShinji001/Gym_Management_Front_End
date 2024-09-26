@@ -4,6 +4,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: "/login", component: () => import("../views/LoginPage.vue") },
+    { path: "/register", component: () => import("../views/Register.vue") },
     {
       path: "/",
       children: [
@@ -18,6 +19,14 @@ const router = createRouter({
         {
           path: "users",
           component: () => import("../views/User.vue"),
+        },
+        {
+          path: "users/detail",
+          component: () => import("../views/UserDetail.vue"),
+        },
+        {
+          path: "active-package",
+          component: () => import("../views/ActivePackage.vue"),
         },
         {
           path: "entry-times",
@@ -49,10 +58,23 @@ const router = createRouter({
           component: () => import("../views/PTDetail.vue"),
         },
         {
-          path:"chatbot",
+          path: "chatbot",
           name: "chatbot",
           component: () => import("../components/chatbotcom.vue"),
-        }
+        },
+        {
+          path: "checkout",
+          name: "checkout",
+          component: () => import("../views/CheckOut.vue"),
+        },
+        {
+          path: "pay/success/checkout/session",
+          component: () => import("../views/SuccessCheckout.vue"),
+        },
+        {
+          path: "pay/failed/checkout/session",
+          component: () => import("../views/FailedCheckout.vue"),
+        },
       ],
       component: () => import("../views/Layout.vue"),
     },
