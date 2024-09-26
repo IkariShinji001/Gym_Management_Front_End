@@ -1,13 +1,22 @@
 <template>
     <div class="container">
+        <div class="back-button">
+            <q-btn flat icon="arrow_back" size="md" @click="$router.go(-1)">
+            </q-btn>
+        </div>
         <div v-if="ptPackage?.servicePackage.name">
-            <h5 class="container-header ">Gói {{ ptPackage.servicePackage.name }}</h5>
+            <!-- <h5 class="container-header ">Gói {{ ptPackage.servicePackage.name }}</h5> -->
+            <h4 class="container-header "></h4>
             <q-card-section>
                 <q-carousel v-if="ptPackage?.pt.images.length > 0" animated v-model="slide" arrows infinite swipeable
                     thumbnails>
                     <q-carousel-slide v-for="(image, imgIndex) in ptPackage?.pt.images" :key="image.id" :name="imgIndex"
                         :img-src="image.imageUrl" />
-                </q-carousel>
+                    <q-carousel v-if="ptPackage?.pt.images.length > 0" animated v-model="slide" arrows infinite
+                        swipeable thumbnails>
+                        <q-carousel-slide v-for="(image, imgIndex) in ptPackage?.pt.images" :key="image.id"
+                            :name="imgIndex" :img-src="image.imageUrl" />
+                    </q-carousel>
             </q-card-section>
         </div>
         <div class="duration" v-if="ptPackage?.servicePackage?.servicePackagePrices?.length > 0">

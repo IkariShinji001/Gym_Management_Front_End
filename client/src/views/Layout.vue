@@ -14,7 +14,9 @@
             </router-link>
           </div>
           <div>
-            <q-icon name="fitness_center" class="icons"></q-icon>
+            <router-link to="/fitness-package-type-service">
+              <q-icon name="fitness_center" class="icons"></q-icon>
+            </router-link>
           </div>
           <div>
             <router-link to="/">
@@ -37,28 +39,27 @@
 </template>
 
 <style scoped>
-  .footer {
-    background-color: #2b2d42;
-    position: fixed;
-    bottom: 0;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-  }
+.footer {
+  background-color: #2b2d42;
+  position: fixed;
+  bottom: 0;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
 
-  .tool-bar {
-    display: flex;
-    height: 60px;
-    align-items: center;
-    justify-content: center;
-  }
+.tool-bar {
+  display: flex;
+  height: 60px;
+  align-items: center;
+  justify-content: center;
+}
 
-  .icons {
-    margin: 0 15px;
-    font-size: 35px;
-  }
+.icons {
+  margin: 0 15px;
+  font-size: 35px;
+}
 
-  a {
-    color: white;
-  }
-
+a {
+  color: white;
+}
 </style>

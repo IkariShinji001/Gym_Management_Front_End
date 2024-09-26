@@ -1,56 +1,55 @@
-<template>
+  <template>
+    <div class="container">
 
-  <div class="container">
+      <div class="q-pa-md">
+        <q-carousel animated v-model="slide" arrows navigation infinite class="carousel">
+          <q-carousel-slide :name="1"
+            img-src="https://cdnb.artstation.com/p/assets/images/images/077/911/955/large/wlop-4se.jpg?1720679230" />
+          <q-carousel-slide :name="2"
+            img-src="https://cdna.artstation.com/p/assets/images/images/077/097/020/large/wlop-6se.jpg?1718603887" />
+          <q-carousel-slide :name="3"
+            img-src="https://cdnb.artstation.com/p/assets/images/images/047/969/347/large/wlop-46se.jpg?1648879300" />
+          <q-carousel-slide :name="4"
+            img-src="https://cdna.artstation.com/p/assets/images/images/017/609/282/large/wl-op-3s.jpg?1556677761" />
+        </q-carousel>
+      </div>
 
-    <div class="q-pa-md">
-      <q-carousel animated v-model="slide" arrows navigation infinite class="carousel">
-        <q-carousel-slide :name="1"
-          img-src="https://cdnb.artstation.com/p/assets/images/images/077/911/955/large/wlop-4se.jpg?1720679230" />
-        <q-carousel-slide :name="2"
-          img-src="https://cdna.artstation.com/p/assets/images/images/077/097/020/large/wlop-6se.jpg?1718603887" />
-        <q-carousel-slide :name="3"
-          img-src="https://cdnb.artstation.com/p/assets/images/images/047/969/347/large/wlop-46se.jpg?1648879300" />
-        <q-carousel-slide :name="4"
-          img-src="https://cdna.artstation.com/p/assets/images/images/017/609/282/large/wl-op-3s.jpg?1556677761" />
-      </q-carousel>
+
+      <div class="q-pa-md icons">
+        <div class="div">
+          <div class="icon-container">
+            <q-icon name="badge" class="icon"></q-icon>
+          </div>
+        </div>
+        <div class="div">
+          <div class="icon-container">
+            <q-icon name="apps" class="icon"></q-icon>
+          </div>
+        </div>
+        <div class="div">
+          <div class="icon-container">
+            <q-icon name="terminal" class="icon"></q-icon>
+          </div>
+        </div>
+        <div class="div">
+          <div class="icon-container">
+            <q-icon name="rocket_launch" class="icon"></q-icon>
+          </div>
+        </div>
+        <div class="div">
+          <div class="icon-container">
+            <q-icon name="thunderstorm" class="icon"></q-icon>
+          </div>
+        </div>
+        <div class="div">
+          <div class="icon-container">
+            <q-icon name="badge" class="icon"></q-icon>
+          </div>
+        </div>
+      </div>
     </div>
 
-
-    <div class="q-pa-md icons">
-      <div class="div">
-        <div class="icon-container">
-          <q-icon name="badge" class="icon"></q-icon>
-        </div>
-      </div>
-      <div class="div">
-        <div class="icon-container">
-          <q-icon name="apps" class="icon"></q-icon>
-        </div>
-      </div>
-      <div class="div">
-        <div class="icon-container">
-          <q-icon name="terminal" class="icon"></q-icon>
-        </div>
-      </div>
-      <div class="div">
-        <div class="icon-container">
-          <q-icon name="rocket_launch" class="icon"></q-icon>
-        </div>
-      </div>
-      <div class="div">
-        <div class="icon-container">
-          <q-icon name="thunderstorm" class="icon"></q-icon>
-        </div>
-      </div>
-      <div class="div">
-        <div class="icon-container">
-          <q-icon name="badge" class="icon"></q-icon>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</template>
+  </template>
 
 
 <script setup>

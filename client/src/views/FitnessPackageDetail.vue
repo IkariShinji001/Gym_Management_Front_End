@@ -1,5 +1,10 @@
 <template>
   <div class="container" v-if="fitnessBenefits && servicePackagePrices && fitnessPackage">
+    <div class="back-button">
+      <q-btn flat icon="arrow_back" size="md" @click="$router.go(-1)">
+      </q-btn>
+    </div>
+
     <div v-if="fitnessPackage.servicePackage.name">
       <h5 class="container-header ">Gói {{ fitnessPackage.servicePackage.name }}</h5>
       <q-card-section>
@@ -14,7 +19,7 @@
             <!-- Hiển thị badge chỉ khi giá trị của nút đó được chọn -->
             <q-badge color="red" floating v-if="selectPriceId === servicePackagePrice.id"></q-badge>
             {{ servicePackagePrice.packageDuration?.duration + " " +
-              formatDurationType(servicePackagePrice.packageDuration?.durationType) }}
+            formatDurationType(servicePackagePrice.packageDuration?.durationType) }}
           </q-btn>
         </div>
       </div>

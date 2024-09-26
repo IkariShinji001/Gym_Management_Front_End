@@ -1,17 +1,22 @@
 <template>
   <div class="container">
-    <div>
-      <h5>Gói huấn luyện viên cá nhân</h5>
+    <div class="back-button">
+      <q-btn flat icon="arrow_back" size="md" @click="$router.go(-1)">
+      </q-btn>
     </div>
-    <div class="package" v-if="allPtPackages.length > 0">
+    <h4 class="container-header">Gói huấn luyện viên cá nhân</h4>
+    <div class="packages" v-if="allPtPackages.length > 0">
       <div class="package-item" v-for="(ptPackage, index) in allPtPackages" :key="index">
-        <router-link class="link" :to="`${priceId}/pt-packages/${ptPackage.id}`">
+        <div class="card">
           <div v-if="ptPackage.pt.images.length > 0">
-            <img :src="ptPackage.pt.images[0].imageUrl" alt="ptPackage.name" class="package-img" />
-            <h5>{{ ptPackage.pt.profile.fullName }}</h5>
+            <router-link class="link" :to="`${priceId}/pt-packages/${ptPackage.id}`">
+              <img :src="ptPackage.pt.images[0].imageUrl" alt="ptPackage.name" class="package-img" />
+            </router-link>
+            <div class="card-body">
+              <h5>{{ ptPackage.pt.profile.fullName }}</h5>
+            </div>
           </div>
-        </router-link>
-
+        </div>
       </div>
     </div>
 
