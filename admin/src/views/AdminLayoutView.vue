@@ -2,17 +2,22 @@
   <q-layout view="hHh lpR fFf">
     <q-header reveal elevated class="layout text-white">
       <q-toolbar>
-        <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
-        <q-avatar size="100px" square>
-          <img src="./7 honlam.png" />
-        </q-avatar>
-        <q-toolbar-title>Bờ Lốc</q-toolbar-title>
+        <q-btn dense flat round icon="menu" @click="toggleLeftDrawerFunc" />
+
+        <q-btn flat no-caps no-wrap>
+          <q-avatar size="40px">
+            <img src="./7 honlam.png" />
+          </q-avatar>
+          <q-toolbar-title shrink class="text-weight-bold">
+            4GYM
+          </q-toolbar-title>
+        </q-btn>
       </q-toolbar>
     </q-header>
 
     <q-drawer
       show-if-above
-      v-model="leftDrawerOpen"
+      v-model="isLeftDrawerOpen"
       side="left"
       bordered
       class="drawer"
@@ -37,7 +42,7 @@
     </q-drawer>
 
     <q-page-container>
-      <router-view :drawerOpen="leftDrawerOpen" />
+      <router-view :drawerOpen="isLeftDrawerOpen" />
     </q-page-container>
   </q-layout>
 </template>
@@ -47,15 +52,15 @@ import { ref } from "vue";
 
 export default {
   setup() {
-    const leftDrawerOpen = ref(false);
+    const isLeftDrawerOpen = ref(false);
 
-    const toggleLeftDrawer = () => {
-      leftDrawerOpen.value = !leftDrawerOpen.value;
+    const toggleLeftDrawerFunc = () => {
+      isLeftDrawerOpen.value = !isLeftDrawerOpen.value;
     };
 
     return {
-      leftDrawerOpen,
-      toggleLeftDrawer,
+      isLeftDrawerOpen,
+      toggleLeftDrawerFunc,
       menuList: [
         {
           icon: "post_add",
@@ -77,15 +82,15 @@ export default {
 
 <style scoped>
 .layout {
+  padding: 6px;
   background: var(--layout-header-bg);
 }
 .drawer {
-  background:var(--drawer-bg);
+  background: var(--drawer-bg);
 }
 .routerlink {
   color: white;
   text-decoration: none;
   font-size: 18px;
-  /* font-weight: bold; */
 }
 </style>

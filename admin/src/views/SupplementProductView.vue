@@ -1,5 +1,5 @@
 <template>
-  <div class="page-3container">
+  <div class="page-container">
     <div :class="['search-add-div', { centered: !drawerOpen1 }]">
       <q-input outlined v-model="searchText" label="Search" class="search-bar">
         <template v-slot:append>
@@ -7,7 +7,7 @@
         </template>
       </q-input>
 
-      <q-btn class="update-btn" @click="createProduct">
+      <q-btn class="update-btn" @click="isAddProductFormVisible = true">
         <q-icon name="add" class="add-icon" />
         <q-item-label>Thêm sản phẩm</q-item-label>
       </q-btn>
@@ -15,7 +15,7 @@
       <!-- btn-drop -->
       <q-btn-dropdown class="update-btn" label="Loại" icon="settings">
         <q-list>
-          <q-item clickable v-close-popup @click="createType">
+          <q-item clickable v-close-popup @click="isAddTypeFormVisible = true">
             <q-item-section side>
               <q-icon name="add_circle" class="add-icon" />
             </q-item-section>
@@ -23,7 +23,11 @@
               <q-item-label>Thêm loại</q-item-label>
             </q-item-section>
           </q-item>
-          <q-item clickable v-close-popup @click="removeType">
+          <q-item
+            clickable
+            v-close-popup
+            @click="isRemoveTypeFormVisible = true"
+          >
             <q-item-section side>
               <q-icon name="build_circle" class="remove-icon" />
             </q-item-section>
@@ -42,47 +46,13 @@
         </router-link>
       </q-btn>
     </div>
-    <q-dialog v-model="isAddProductFormVisible">
-      <q-card>
-        <AddProductForm
-          v-if="isAddProductFormVisible"
-          @createProduct="createProduct"
-          @getNewProduct="getNewProduct"
-        >
-        </AddProductForm>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="isAddTypeFormVisible">
-      <q-card>
-        <AddTypeForm
-          v-if="isAddTypeFormVisible"
-          @createType="createType"
-          @getNewType="getNewType"
-          :typeList="types"
-        >
-        </AddTypeForm>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="isRemoveTypeFormVisible">
-      <q-card>
-        <UpdateTypeForm
-          v-if="isRemoveTypeFormVisible"
-          @removeType="removeType"
-          :typeList="types"
-          @deletedType="deletedType"
-        >
-        </UpdateTypeForm>
-      </q-card>
-    </q-dialog>
 
     <div
       :class="['product-type', { 'product-type-drawer-open': !drawerOpen1 }]"
     >
       <q-btn
         class="btn-type"
-        @click="fileterProductsByTypeId(-1)"
+        @click="fileterProductsByTypeIdHandler(-1)"
         style="background-color: teal; color: white"
       >
         Tất cả
@@ -92,7 +62,7 @@
         :key="index"
         class="btn-type-container"
       >
-        <q-btn class="btn-type" @click="fileterProductsByTypeId(type)">
+        <q-btn class="btn-type" @click="fileterProductsByTypeIdHandler(type)">
           {{ type.name }}
         </q-btn>
       </div>
@@ -105,7 +75,7 @@
             v-close-popup
             :key="index"
             :value="type.name"
-            @click="fileterProductsByTypeId(type)"
+            @click="fileterProductsByTypeIdHandler(type)"
           >
             <q-item-section>
               <q-item-label>{{ type.name }}</q-item-label>
@@ -115,15 +85,16 @@
       </q-btn-dropdown>
     </div>
 
-    <!-- PRODUCT --------------->
-    <div class="q-pa-md img-container">
+    <!-- ====== PRODUCT -==========---->
+    <!-- ====== PRODUCT -==========---->
+    <div class="q-pa-md product-card-container">
       <div
         v-for="product in filteredSupplementProducts"
         :key="product.id"
-        class="list-items"
+        class="product-card"
       >
-        <q-card class="q-card-class">
-          <q-img :src="product.imageUrl" class="q-img-class" />
+        <q-card>
+          <q-img :src="product.imageUrl" class="product-card-img" />
           <q-card-section>
             <div class="row no-wrap items-center">
               <div class="col text-h6 ellipsis">
@@ -182,7 +153,7 @@
               </div>
               <button
                 class="sell-btn"
-                click="sellFunction(product.id, product)"
+                @click="sellFunction(product.id, product)"
               >
                 <q-icon name="shopping_cart" size="24px"> </q-icon>
               </button>
@@ -191,13 +162,39 @@
         </q-card>
       </div>
     </div>
+    <q-dialog v-model="isAddProductFormVisible">
+      <q-card>
+        <AddProductForm @getNewProduct="getNewProduct"> </AddProductForm>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="isAddTypeFormVisible">
+      <q-card>
+        <AddTypeForm
+          v-if="isAddTypeFormVisible"
+          @getNewType="getNewType"
+          :typeList="types"
+        >
+        </AddTypeForm>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="isRemoveTypeFormVisible">
+      <q-card>
+        <UpdateTypeForm
+          v-if="isRemoveTypeFormVisible"
+          :typeList="types"
+          @deletedType="deletedType"
+        >
+        </UpdateTypeForm>
+      </q-card>
+    </q-dialog>
     <q-dialog v-model="isUpdateProductFormVisible">
       <q-card>
         <UpdateProductForm
           v-if="isUpdateProductFormVisible"
           :productData="selectedProduct"
           @filterAfterUpdate="filterAfterUpdate"
-          @openUpdateProductForm="openUpdateProductForm"
         ></UpdateProductForm>
       </q-card>
     </q-dialog>
@@ -249,15 +246,15 @@ export default {
     const toast = useToast();
     const searchText = ref("");
     const drawerOpen1 = ref(props.drawerOpen);
-    const supplementProducts = ref([]);
     const selectedProduct = ref(null);
     const isAddProductFormVisible = ref(false);
     const isAddTypeFormVisible = ref(false);
     const isRemoveTypeFormVisible = ref(false);
     const isUpdateProductFormVisible = ref(false);
+    const showConfirmDialog = ref(false);
+    const supplementProducts = ref([]);
     const types = ref([]);
     const filteredSupplementProducts = ref([]);
-    const showConfirmDialog = ref(false);
     const selectedProductId = ref(null);
     const soldProductPayload = reactive({
       supplementProductId: 0,
@@ -274,11 +271,10 @@ export default {
         supplementProducts.value =
           await supplementProductService.getAllSupplementProduct();
 
-        filteredSupplementProducts.value = supplementProducts.value;
-
         supplementProducts.value.forEach((product) => {
           amounts.value[product.id] = 0;
         });
+        filteredSupplementProducts.value = supplementProducts.value;
       } catch (e) {
         console.log(e);
       }
@@ -293,7 +289,21 @@ export default {
       });
     });
 
-    async function fileterProductsByTypeId(type) {
+    watchEffect(() => {
+      filterProductsBySearchText();
+    });
+    function filterProductsBySearchText() {
+      if (!searchText.value) {
+        filteredSupplementProducts.value = supplementProducts.value;
+      } else {
+        filteredSupplementProducts.value = supplementProducts.value.filter(
+          (product) =>
+            product.name.toLowerCase().includes(searchText.value.toLowerCase())
+        );
+      }
+    }
+
+    async function fileterProductsByTypeIdHandler(type) {
       if (type < 0) {
         filteredSupplementProducts.value = supplementProducts.value;
       } else {
@@ -301,23 +311,18 @@ export default {
           await supplementProductService.getAllByType(type.id);
       }
     }
-    function createProduct() {
-      isAddProductFormVisible.value = !isAddProductFormVisible.value;
+
+    function filterAfterUpdate(product) {
+      isUpdateProductFormVisible.value = false;
+      filteredSupplementProducts.value =
+        filteredSupplementProducts.value.filter((pro) => pro.id != product.id);
+
+      filteredSupplementProducts.value.push(product);
     }
-    function createType() {
-      isAddTypeFormVisible.value = !isAddTypeFormVisible.value;
-    }
-    function removeType() {
-      isRemoveTypeFormVisible.value = !isRemoveTypeFormVisible.value;
-    }
+
     function openUpdateProductForm(product) {
       isUpdateProductFormVisible.value = !isUpdateProductFormVisible.value;
       selectedProduct.value = product;
-    }
-
-    function filterAfterUpdate(product) {
-      filteredSupplementProducts.value =
-        filteredSupplementProducts.value.filter((pro) => pro.id != product.id);
     }
 
     function confirmRemoveProduct(id) {
@@ -332,9 +337,11 @@ export default {
         );
     }
     function getNewProduct(product) {
+      isAddProductFormVisible.value = false;
       supplementProducts.value.push(product);
     }
     function getNewType(type) {
+      isAddTypeFormVisible.value = false;
       types.value.push(type);
     }
     function deletedType(id) {
@@ -379,10 +386,7 @@ export default {
       supplementProducts,
       types,
       selectedProduct,
-      createProduct,
       openUpdateProductForm,
-      createType,
-      removeType,
       removeProduct,
       isAddProductFormVisible,
       isAddTypeFormVisible,
@@ -392,7 +396,7 @@ export default {
       getNewProduct,
       getNewType,
       deletedType,
-      fileterProductsByTypeId,
+      fileterProductsByTypeIdHandler,
       filteredSupplementProducts,
       filterAfterUpdate,
       confirmRemoveProduct,
@@ -416,21 +420,17 @@ export default {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  /* Default alignment */
   transition: justify-content 0.3s;
-  /* Smooth transition */
 }
 
 .centered {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Center alignment when drawer is open */
 }
 
 .search-bar {
   width: 40%;
-  /* Default width */
   margin-right: 15px;
   background-color: white;
 }
@@ -455,9 +455,9 @@ export default {
   color: var(--icon-color) !important;
 }
 
-/* product-type */
+/* =======  Product Type  ===============
+==========  Product Type  ==================*/
 .product-type {
-  /* border: 1px solid green; */
   margin-top: 10px;
   display: flex;
   justify-content: center;
@@ -475,26 +475,23 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* padding: 10px; */
 }
 
-/* card--product */
-
-.img-container {
-  margin-top: 20px;
-  padding: 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: start;
+/* =======  Product Card  ===============
+==========  Product Card  ==================*/
+.product-card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, min(235px));
+  gap: 10px;
+  justify-content: center;
 }
 
-.q-card-class {
-  width: 244px;
+.product-card-container .product-card {
   margin-right: 10px;
   margin-top: 15px;
 }
 
-.q-card-class .product-edit-btn {
+.product-card-container .product-card .product-edit-btn {
   border: none;
   background: none;
   color: var(--icon-color);
@@ -508,11 +505,11 @@ export default {
   margin-right: 2px;
 }
 
-.q-card-class .product-edit-btn:hover {
+.product-card .product-edit-btn:hover {
   border: 1px solid var(--icon-color);
 }
 
-.q-img-class {
+.product-card-img {
   height: 100px;
   border-radius: 5px;
 }
@@ -537,6 +534,10 @@ export default {
   cursor: pointer;
 }
 
+.amount-icon {
+  margin: 0 0;
+}
+
 .sell-container .amount-edit-btns-container .amount-btn:hover {
   border: 1px solid rgb(120, 120, 120);
 }
@@ -545,16 +546,16 @@ export default {
   border: none;
   border-radius: 2px;
   background: var(--icon-color);
-  width: 50px;
+  width: 60px;
+  cursor: pointer;
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 
 .sell-container .sell-btn:hover {
-  background: #ff8225;
-}
-
-.amount-icon {
-  /* border: 1px solid black; */
-  margin: 0 0;
+  background: #ff882d;
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 2px,
+    rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.1) 0px -3px 0px inset;
 }
 
 .cost-sold {

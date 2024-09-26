@@ -25,18 +25,13 @@
         />
       </div>
       <div>
-        <q-btn
-          @click="handleLogin"  
-          label="Đăng nhập"
-          class="btn btn-submit"
-        />
+        <q-btn @click="handleLogin" label="Đăng nhập" class="btn btn-submit" />
       </div>
     </form>
   </div>
 </template>
 
 <script>
-
 import authService from "../services/auth.service";
 import { reactive } from "vue";
 import { useRouter } from "vue-router";
@@ -48,32 +43,31 @@ export default {
     const handleLogin = async () => {
       try {
         // check null
-        if(userInfo.email ==="" || userInfo.password === ""){
-          alert('Email or password is empty')
+        if (userInfo.email === "" || userInfo.password === "") {
+          alert("Email or password is empty");
         }
 
-        const response = await authService.login(userInfo.email, userInfo.password);
-          alert('Login successfully')
-          router.push("/admins");
+        const response = await authService.login(
+          userInfo.email,
+          userInfo.password
+        );
+        alert("Login successfully");
+        router.push("/admins");
       } catch (error) {
-        alert('Login fail')
+        alert("Login fail");
         console.log(error);
       }
-      
     };
-
 
     return { userInfo, handleLogin };
   },
 };
-
-
 </script>
 
 <style>
 .container {
   width: 40%;
-  margin-top: 50px;
+  /* margin-top: 50px; */
   margin-left: 13%;
   padding: 20px;
   border-radius: 10px;
@@ -86,7 +80,7 @@ export default {
 
 body {
   background-image: url("../../assets/images/backgroundLogin.jpg");
-  height: 550px;
+  height: 100vh;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;

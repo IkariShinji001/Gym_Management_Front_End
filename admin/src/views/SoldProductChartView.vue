@@ -92,9 +92,7 @@
           </div>
         </q-card-section>
         <q-card-section>
-          <div class="bill-footer">
-           Tổng hóa đơn: {{ dateRevenue }} VND
-          </div>
+          <div class="bill-footer">Tổng hóa đơn: {{ dateRevenue }} VND</div>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -129,7 +127,7 @@ ChartJS.register(
 export default {
   components: { Bar },
   setup() {
-    const dateInput = ref();
+    const dateInput = ref("");
     const dateRevenue = ref();
     const allDayOfMonthRevenue = ref([]);
     const currentYear = ref(new Date().getFullYear());
@@ -250,7 +248,6 @@ export default {
             selectedMonth.value,
             selectedYear.value
           );
-        console.log(allDayOfMonthRevenue.value);
       } catch (e) {
         console.log(e);
       }
@@ -261,7 +258,6 @@ export default {
         allMonthOfYearRevenue.value = await soldProductService.getYearlyRevenue(
           selectedYear.value
         );
-        console.log(allMonthOfYearRevenue.value);
         allDayOfMonthRevenue.value = [];
       } catch (e) {
         console.log(e);
@@ -285,8 +281,6 @@ export default {
 
           soldProductOnDateList.value =
             await soldProductService.getAllSoldProductOnDate(dateInput.value);
-          console.log(soldProductOnDateList.value);
-          console.log(dateRevenue.value);
           showBillOfDate.value = true;
         }
       } catch (e) {
@@ -382,7 +376,7 @@ export default {
   min-width: 400px;
 }
 
-.dialog-card .bill-header{
+.dialog-card .bill-header {
   font-weight: bold;
   font-size: 16px;
 }
@@ -390,20 +384,20 @@ export default {
   display: flex;
 }
 
-.dialog-card .one-sold-product-container .product-name, .product-price {
+.dialog-card .one-sold-product-container .product-name,
+.product-price {
   flex-basis: 40%;
   display: flex;
   justify-content: center;
 }
 
-
 .dialog-card .one-sold-product-container .product-quantity {
   flex-basis: 20%;
   display: flex;
   justify-content: center;
-}         
+}
 
-.dialog-card .bill-footer{
+.dialog-card .bill-footer {
   font-size: 16px;
   color: rgb(65, 65, 65);
   display: flex;
