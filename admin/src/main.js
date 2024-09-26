@@ -18,11 +18,6 @@ const options = {
 const myApp = createApp(App);
 
 myApp.use(Quasar, {
-  plugins: {}, // import Quasar plugins and add here
-});
-
-myApp.use(router);
-myApp.use(Toast, options);
   plugins: {
     Loading,
   },
@@ -33,6 +28,7 @@ myApp.use(Toast, options);
     },
   },
 });
+
 myApp.use(router);
 myApp.use(Toast, options);
 
