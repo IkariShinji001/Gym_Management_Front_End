@@ -28,12 +28,16 @@
 import { ref, onBeforeMount } from "vue";
 import { useRoute } from "vue-router";
 import FitnessPackageService from "../services/fitnessPackage.service";
+import userService from "../services/user.service";
+const userId = localStorage.getItem("userId");
 
 const fitnessPackages = ref([]);
 const route = useRoute();
 const typeId = ref(route.params.typeId);
+
 onBeforeMount(async () => {
   fitnessPackages.value = await FitnessPackageService.getByType(typeId.value);
+
 });
 </script>
 
