@@ -19,15 +19,24 @@ import router from "./router";
 
 const myApp = createApp(App);
 
-myApp
-  .use(Quasar, {
-    plugins: {
-      Loading,
-      Dialog,
-    }, // import Quasar plugins and add here
-  })
-  .use(router)
-  .use(Toast);
+myApp.use(Quasar, {
+  plugins: {}, // import Quasar plugins and add here
+});
+
+myApp.use(router);
+myApp.use(Toast, options);
+  plugins: {
+    Loading,
+  },
+  config: {
+    loading: {
+      spinner: QSpinnerCube,
+      message: "Loading...",
+    },
+  },
+});
+myApp.use(router);
+myApp.use(Toast, options);
 
 // Assumes you have a <div id="app"></div> in your index.html
 myApp.mount("#app");
