@@ -40,7 +40,7 @@
 
 
     <li id="signout">
-      <p class="sign-out-btn">Đăng xuất</p>
+      <p class="sign-out-btn" @click="signOut" >Đăng xuất</p>
     </li>
   </ul>
 
@@ -104,6 +104,12 @@
     } finally {
       $q.loading.hide();
     }
+  }
+
+  const signOut = () => {
+    localStorage.removeItem('user_access_token');
+    localStorage.removeItem('userId');
+    router.push('/login');
   }
 
 </script>

@@ -4,7 +4,7 @@ class BillService {
     this.path = "bills";
   }
 
-  async getPackageActice(userId) {
+  async getPackageActive(userId) {
     return (await api.get(`${this.path}/users/${userId}`)).data;
   }
 

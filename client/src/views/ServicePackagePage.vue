@@ -21,6 +21,24 @@
         </q-card>
       </div>
     </div>
+    <q-btn @click="currentPackage = true" > 
+      gói hiện tại {{  }}
+    </q-btn>
+    <q-dialog v-model="currentPackage">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">gói hiện tại</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum repellendus sit voluptate voluptas eveniet porro. Rerum blanditiis perferendis totam, ea at omnis vel numquam exercitationem aut, natus minima, porro labore.
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -28,16 +46,21 @@
 import { ref, onBeforeMount } from "vue";
 import { useRoute } from "vue-router";
 import FitnessPackageService from "../services/fitnessPackage.service";
+import billService from "../services/bill.service";
 import userService from "../services/user.service";
 const userId = localStorage.getItem("userId");
 
 const fitnessPackages = ref([]);
 const route = useRoute();
 const typeId = ref(route.params.typeId);
+const packageActive = ref([]);
+const currentPackage = ref(false);
 
 onBeforeMount(async () => {
   fitnessPackages.value = await FitnessPackageService.getByType(typeId.value);
-
+  packageActive.value = await billService.getPackageActive(userId);
+  console.log(packageActive.value);
+  
 });
 </script>
 

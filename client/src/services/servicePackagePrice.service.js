@@ -8,7 +8,7 @@ class ServicePackagePriceService {
     return (await api.get(`/service-package-prices/${id}`)).data;
   }
   async getPackagePriceByIdServicePackage(id) {
-    return (await api.get(`/service-package-prices/${id}`)).data;
+    return (await api.get(`/service-package-prices/id/${id}`)).data;
   }
   
   async getPackagePriceByListIds(listIds) {

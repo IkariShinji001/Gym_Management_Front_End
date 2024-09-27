@@ -7,7 +7,7 @@
         <q-input label="Mật khẩu" outlined class="input" v-model="user.password"></q-input>
 
         <q-btn class="btn" @click="handleLogin">ĐĂNG NHẬP</q-btn>
-        <!-- <router-link class="register">Chưa có tài khoản?</router-link> -->
+        <router-link class="register" to="/register">Chưa có tài khoản?</router-link>
       </q-card-section>
     </q-card>
   </div>
