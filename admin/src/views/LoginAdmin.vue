@@ -60,10 +60,10 @@
 
 </script>
 
-<style>
+<style scoped>
   .container {
     width: 40%;
-    margin-top: 50px;
+    /* margin-top: 50px; */
     margin-left: 13%;
     padding: 20px;
     border-radius: 10px;
@@ -75,8 +75,8 @@
   }
 
   body {
-    background-image: url("../../assets/images/backgroundLogin.jpg");
-    height: 550px;
+    /* background-image: url("../../assets/images/backgroundLogin.jpg"); */
+    height: 100vh;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;

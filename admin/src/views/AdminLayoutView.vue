@@ -2,7 +2,7 @@
   <q-layout view="hHh lpR fFf">
     <q-header reveal elevated class="layout text-white">
       <q-toolbar>
-        <q-btn dense flat round icon="menu" @click="toggleLeftDrawerFunc" />
+        <q-btn dense flat round icon="menu" @click="toggleLeftDrawerHandler" />
 
         <q-btn flat no-caps no-wrap>
           <q-avatar size="40px">
@@ -25,8 +25,12 @@
       <q-scroll-area class="fit drawer">
         <q-list>
           <template v-for="(menuItem, index) in menuList" :key="index">
-            <router-link :to="menuItem.path" class="routerlink">
-              <q-item clickable :active="menuItem.label === 'Outbox'">
+            <router-link :to="basePath + menuItem.path" class="routerlink">
+              <q-item
+                clickable
+                :active="menuItem.label === 'Outbox'"
+                :class="{ 'separator-true': menuItem.separator }"
+              >
                 <q-item-section avatar>
                   <q-icon :name="menuItem.icon" />
                 </q-item-section>
@@ -34,7 +38,7 @@
                   {{ menuItem.label }}
                 </q-item-section>
               </q-item>
-              <q-separator :key="'sep' + index" v-if="menuItem.separator" />
+              <!-- <q-separator :key="'sep' + index" v-if="menuItem.separator" /> -->
             </router-link>
           </template>
         </q-list>
@@ -48,33 +52,75 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, onBeforeMount } from "vue";
 
 export default {
   setup() {
     const isLeftDrawerOpen = ref(false);
+    const role = ref("");
+    const basePath = ref("/admins");
+    const menuList = ref([
+      {
+        icon: "mail",
+        label: "Gửi mail",
+        separator: false,
+        path: "/emails",
+        role: ["manager", "employee"],
+      },
+      {
+        icon: "construction",
+        label: "Bảo trì thiết bị",
+        separator: false,
+        path: "",
+        role: ["manager", "employee"],
+      },
 
-    const toggleLeftDrawerFunc = () => {
+      {
+        icon: "fitness_center",
+        label: "Gói dịch vụ",
+        separator: false ,
+        path: "",
+        role: ["manager", "employee"],
+      },
+      {
+        icon: "shopping_bag",
+        label: "Sản phẩm hỗ trợ",
+        separator: true,
+        path: "",
+        role: ["manager"],
+      },
+      {
+        icon: "groups",
+        label: "Quản lý nhân sự",
+        separator: false,
+        path: "",
+        role: ["manager"],
+      },
+      {
+        icon: "savings",
+        label: "Doanh thu",
+        separator: false,
+        path: "",
+        role: ["manager"],
+      },
+    ]);
+
+    onBeforeMount(() => {
+      role.value = localStorage.getItem("role");
+      // console.log(role.value);
+    });
+
+    function toggleLeftDrawerHandler() {
       isLeftDrawerOpen.value = !isLeftDrawerOpen.value;
-    };
+    }
 
     return {
       isLeftDrawerOpen,
-      toggleLeftDrawerFunc,
-      menuList: [
-        {
-          icon: "post_add",
-          label: "Quản lý bài đăng",
-          separator: false,
-          path: "posts",
-        },
-        {
-          icon: "style",
-          label: "Quản lý tags",
-          separator: false,
-          path: "tags",
-        },
-      ],
+      basePath,
+
+      menuList,
+
+      toggleLeftDrawerHandler,
     };
   },
 };
@@ -92,5 +138,10 @@ export default {
   color: white;
   text-decoration: none;
   font-size: 18px;
+}
+
+.separator-true{
+  border-bottom: 2px solid white;
+  padding-bottom: 20px;
 }
 </style>
