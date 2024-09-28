@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-md form-container">
-    <q-btn flat round class="cancel-btn" @click="closeModal">
+    <q-btn flat round class="cancel-btn" v-close-popup>
       <q-icon
         name="cancel"
         class="cancel-icon"
@@ -42,7 +42,8 @@
         class="q-select"
         lazy-rules
         :rules="[
-          (val) => (val !== null && val !== '') || 'Vui lòng chọn loại sản phẩm',
+          (val) =>
+            (val !== null && val !== '') || 'Vui lòng chọn loại sản phẩm',
         ]"
       />
 
@@ -74,9 +75,12 @@ import { ref, onBeforeMount, reactive } from "vue";
 import typeService from "../services/type.service";
 import uploadFileService from "../services/uploadFile.service";
 import supplementProductService from "../services/supplementProduct.service";
+import { useQuasar, QSpinnerCube } from "quasar";
 
 export default {
   setup(props, { emit }) {
+    const $q = useQuasar();
+
     const fileUploaded = ref(null);
     const imageUrl = ref("");
     const types = ref([]);
@@ -97,10 +101,6 @@ export default {
       }
     });
 
-    function closeModal() {
-      emit("createProduct");
-    }
-
     function handleFileChange(event) {
       if (fileUploaded.value) {
         imageUrl.value = URL.createObjectURL(fileUploaded.value);
@@ -111,6 +111,10 @@ export default {
       e.preventDefault();
 
       try {
+        $q.loading.show({
+          spinner: QSpinnerCube,
+          message: "Đang tạo sản phẩm mới...",
+        });
         const formData = new FormData();
         formData.append("file", fileUploaded.value);
 
@@ -124,9 +128,10 @@ export default {
         );
 
         emit("getNewProduct", createdProduct);
-        closeModal()
       } catch (e) {
         console.log(e);
+      } finally {
+        $q.loading.hide();
       }
     }
     return {
@@ -135,7 +140,6 @@ export default {
       fileUploaded,
       selectedType,
       types,
-      closeModal,
       handleFileChange,
       createProduct,
     };

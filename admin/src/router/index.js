@@ -47,6 +47,11 @@ const router = createRouter({
           name: "benefits",
           component: () => import("../views/BenefitView.vue"),
         },
+        {
+          path: "emails",
+          name: "email",
+          component: () => import("../views/SendMailView.vue"),
+        },
       ],
     },
     {

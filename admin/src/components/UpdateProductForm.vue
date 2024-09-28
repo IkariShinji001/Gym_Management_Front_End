@@ -1,6 +1,6 @@
 <template>
-  <div class="q-pa-md form-container">
-    <q-btn flat round class="cancel-btn" @click="closeModal">
+  <div class="q-pa-md dialog-container">
+    <q-btn flat round class="cancel-btn" v-close-popup>
       <q-icon
         name="cancel"
         class="cancel-icon"
@@ -8,7 +8,7 @@
         color="red"
       ></q-icon>
     </q-btn>
-    <q-form class="form-create" @submit="updateProduct">
+    <q-form class="form-update-container" @submit="updateProduct">
       <q-input
         required
         filled
@@ -43,12 +43,12 @@
         label="Loại sản phẩm"
         class="q-select"
         :rules="[
-          (val) => (val !== null && val !== '') || 'Vui lòng chọn loại sản phẩm',
+          (val) =>
+            (val !== null && val !== '') || 'Vui lòng chọn loại sản phẩm',
         ]"
       />
 
       <q-file
-        required
         filled
         bottom-slots
         v-model="fileUploaded"
@@ -60,7 +60,11 @@
           <q-icon name="cloud_upload" />
         </template>
       </q-file>
-      
+
+      <div v-if="newImage" class="image-preview">
+        <img :src="newImage" alt="Image preview" class="preview-img" />
+      </div>
+
       <div class="btn">
         <q-btn label="Cập nhật sản phẩm" type="submit" color="primary" />
       </div>
@@ -73,63 +77,70 @@ import { ref, onBeforeMount, reactive } from "vue";
 import typeService from "../services/type.service";
 import uploadFileService from "../services/uploadFile.service";
 import supplementProductService from "../services/supplementProduct.service";
+import { useQuasar, QSpinnerCube } from "quasar";
 
 export default {
   props: {
     productData: Object,
   },
   setup(props, { emit }) {
+    const $q = useQuasar();
     const types = ref([]);
-    const fileUploaded = ref(null);
+    const fileUploaded = ref();
     const selectedType = ref(null);
-    const product = reactive({ ...props.productData, typeId:0});
+    const product = reactive({ ...props.productData, typeId: 0 });
+    const newImage = ref("");
 
     onBeforeMount(async () => {
       try {
         types.value = await typeService.getAllType();
+        newImage.value = product.imageUrl;
       } catch (error) {
         console.log(error);
       }
     });
 
-    function closeModal() {
-      emit("openUpdateProductForm");
-    }
-
-    function handleFileChange(event) {
+    function handleFileChange() {
       if (fileUploaded.value) {
-        product.imageUrl = URL.createObjectURL(fileUploaded.value);
+        newImage.value = URL.createObjectURL(fileUploaded.value);
       }
     }
 
-    async function updateProduct(e) {
-      console.log(product.type)
+    async function updateProduct() {
       try {
+        $q.loading.show({
+          spinner: QSpinnerCube,
+          message: "Đang cập nhật sản phẩm...",
+        });
         const formData = new FormData();
-        formData.append("file", fileUploaded.value);
-        const res = await uploadFileService.uploadFile(formData);
-        product.imageUrl = res.secure_url;
-        product.typeId = product.type.id
+        if (fileUploaded.value) {
+          formData.append("file", fileUploaded.value);
+          const res = await uploadFileService.uploadFile(formData);
+          product.imageUrl = res.secure_url;
+        }
 
-        const updatedPro = await supplementProductService.updateProduct(product.id, product)
+        product.typeId = product.type.id;
+        const updatedPro = await supplementProductService.updateProduct(
+          product.id,
+          product
+        );
+
         emit("filterAfterUpdate", updatedPro);
-        closeModal()
       } catch (e) {
         console.log(e);
+      } finally {
+        $q.loading.hide();
       }
     }
-    function onReset() {
-      selectedType.value = null;
-    }
+
     return {
       product,
       types,
       selectedType,
-      closeModal,
       fileUploaded,
       updateProduct,
       handleFileChange,
-      onReset,
+      newImage,
     };
   },
 };
@@ -146,12 +157,12 @@ export default {
   color: rgb(206, 32, 32) !important;
 }
 
-.form-container {
+.dialog-container {
   width: fit-content;
   height: fit-content;
   padding: 30px 40px;
 }
-.form-create {
+.form-update-container {
   padding: 0 0;
   margin: 0 0;
   width: 450px;

@@ -1,6 +1,6 @@
 <template>
   <div class="update-type-container">
-    <q-btn flat round class="cancel-btn" @click="closeModal">
+    <q-btn flat round class="cancel-btn" v-close-popup>
       <q-icon
         name="cancel"
         class="cancel-icon"
@@ -65,8 +65,6 @@
   </div>
 </template>
 
-<!-- HMM denis -->
-
 <script>
 import { ref, reactive } from "vue";
 import typeService from "../services/type.service";
@@ -102,10 +100,6 @@ export default {
     const showConfirmDialog = ref(false);
     const selectedTypeId = ref(null);
 
-    function closeModal() {
-      emit("removeType");
-    }
-
     function confirmRemove(id) {
       selectedTypeId.value = id;
       showConfirmDialog.value = true;
@@ -139,7 +133,6 @@ export default {
     return {
       type,
       types,
-      closeModal,
       removeType,
       confirmRemove,
       showConfirmDialog,
