@@ -4,6 +4,9 @@
             <q-btn flat icon="arrow_back" size="md" @click="$router.go(-1)">
             </q-btn>
         </div>
+        <q-badge color="blue" v-if="currentPackage" class="current">
+            Đang sử dụng
+        </q-badge>
         <div v-if="ptPackage?.servicePackage.name">
             <!-- <h5 class="container-header ">Gói {{ ptPackage.servicePackage.name }}</h5> -->
             <h4 class="container-header "></h4>
@@ -17,6 +20,7 @@
                         <q-carousel-slide v-for="(image, imgIndex) in ptPackage?.pt.images" :key="image.id"
                             :name="imgIndex" :img-src="image.imageUrl" />
                     </q-carousel>
+                </q-carousel>
             </q-card-section>
         </div>
         <div class="duration" v-if="ptPackage?.servicePackage?.servicePackagePrices?.length > 0">
@@ -64,166 +68,210 @@
 
 
 <script setup>
-    import { onBeforeMount, ref } from "vue";
-    import ptPackageService from "../services/ptPackage.service";
-    import { useRoute } from "vue-router";
+import { onBeforeMount, ref } from "vue";
+import ptPackageService from "../services/ptPackage.service";
+import billService from "../services/bill.service";
+import { useRoute } from "vue-router";
 
 
-    const ptPackage = ref();
-    const ptPackageId = ref(0);
-    const route = useRoute();
-    const slide = ref(0);
-    const selectPriceId = ref(0);
-    const price = ref(0);
+const ptPackage = ref();
+const ptPackageId = ref(0);
+const route = useRoute();
+const slide = ref(0);
+const selectPriceId = ref(0);
+const price = ref(0);
+const currentPackage = ref(false);
+const packageActive = ref([]);
+const userId = localStorage.getItem("userId");
 
 
-
-    onBeforeMount(async () => {
-        try {
-            ptPackageId.value = route.params.ptPackageId;
-            ptPackage.value = await ptPackageService.getPtPackageById(ptPackageId.value);
-            if (ptPackage.value.servicePackage.servicePackagePrices.length > 0) {
-                selectPriceId.value = ptPackage.value.servicePackage.servicePackagePrices[0].id;
-                price.value = ptPackage.value.servicePackage.servicePackagePrices[0].price;
-            }
-        } catch (error) {
-            console.error("Error loading PT package data:", error);
+onBeforeMount(async () => {
+    try {
+        ptPackageId.value = route.params.ptPackageId;
+        ptPackage.value = await ptPackageService.getPtPackageById(ptPackageId.value);
+        if (ptPackage.value.servicePackage.servicePackagePrices.length > 0) {
+            selectPriceId.value = ptPackage.value.servicePackage.servicePackagePrices[0].id;
+            price.value = ptPackage.value.servicePackage.servicePackagePrices[0].price;
         }
-    });
 
+        // Check if user has active package
+        packageActive.value = await billService.getPackageActive(userId);
 
+        let packageActiveIdList = [];
+        packageActive.value.forEach((element) => {
+            packageActiveIdList.push(element.servicePackagePriceId);
+        });
 
-
-    const getPrice = (id) => {
-        selectPriceId.value = id;
         ptPackage.value.servicePackage.servicePackagePrices.forEach((servicePackagePrice) => {
-            if (servicePackagePrice.id === selectPriceId.value) {
-                price.value = servicePackagePrice.price;
+            if (packageActiveIdList.includes(servicePackagePrice.id)) {
+                currentPackage.value = true;
             }
         });
-    };
 
-    const formatDurationType = (durationType) => {
-        if (durationType === "month") {
-            return "Tháng";
-        } else if (durationType === "week") {
-            return "Tuần";
-        } else if (durationType === "day") {
-            return "Ngày";
-        } else if (durationType === "year") {
-            return "Năm";
+
+    } catch (error) {
+        console.error("Error loading PT package data:", error);
+    }
+});
+
+
+
+
+const getPrice = (id) => {
+    selectPriceId.value = id;
+    ptPackage.value.servicePackage.servicePackagePrices.forEach((servicePackagePrice) => {
+        if (servicePackagePrice.id === selectPriceId.value) {
+            price.value = servicePackagePrice.price;
         }
-    }
+    });
+};
 
-    function formatPrice(price) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+const formatDurationType = (durationType) => {
+    if (durationType === "month") {
+        return "Tháng";
+    } else if (durationType === "week") {
+        return "Tuần";
+    } else if (durationType === "day") {
+        return "Ngày";
+    } else if (durationType === "year") {
+        return "Năm";
     }
+}
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+}
 
 
 </script>
 
 <style>
-    .container {
-        background-color: #edf2f4;
-        min-height: 150vh;
-    }
+.container {
+    background-color: #edf2f4;
+    min-height: 150vh;
+}
 
-    .container-header {
-        text-align: center;
-        font-size: 30px;
-        font-weight: bold;
-        padding: 10px;
-        margin: 0;
-        background-color: #edf2f4;
-    }
+.back-button {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 1;
+    background-color: #D90429;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
 
-    .duration {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        margin: 10px;
-    }
-
-    .button.selected {
-        background-color: #D90429;
-        /* Màu nền khi nút được chọn */
-        color: white;
-        /* Màu chữ khi nút được chọn */
-    }
-
-    .button {
-        margin: 10px;
-        width: 70%;
-        height: 50px;
-        font-size: 15px;
-        color: #D90429;
-        border-color: #D90429;
-        background-color: white;
-        font-weight: bold;
-        text-align: center;
-        padding: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    .container-body {
-        margin: 20px;
-    }
-
-    .price {
-        font-size: 30px;
-        color: rgb(197, 38, 38);
-        font-weight: bold;
-        text-align: center;
-
-    }
-
-    .pt-info {
-        font-size: 18px;
-        margin: 20px;
-        padding: 10px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-    }
-
-    .pt-info div {
-        margin-bottom: 10px;
-    }
-
-    .price {
-        font-size: 30px;
-        color: rgb(197, 38, 38);
-        font-weight: bold;
-        text-align: center;
-    }
+.current {
+    position: absolute;
+    top: 10px;
+    right: 5px;
+    z-index: 1;
+    /* background-color: #D90429; */
+    /* color: white; */
+    height: 30px;
+}
 
 
-    .buy {
-        width: 100%;
-        display: flex;
-        justify-content: right;
-        position: fixed;
-        bottom: 60px;
-        text-decoration: none;
-    }
 
-    .icon {
-        width: 250px;
-        height: 70px;
-        font-size: 30px;
-        color: white;
-        display: flex;
-        background-color: #D90429;
-        align-items: center;
-        text-align: center;
-        border-radius: 10px;
+.container-header {
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    padding: 10px;
+    margin: 0;
+    background-color: #edf2f4;
+}
 
-    }
+.duration {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 10px;
+}
 
-    .icon-text {
-        margin-top: 10px;
-    }
+.button.selected {
+    background-color: #D90429;
+    /* Màu nền khi nút được chọn */
+    color: white;
+    /* Màu chữ khi nút được chọn */
+}
 
+.button {
+    margin: 10px;
+    width: 70%;
+    height: 50px;
+    font-size: 15px;
+    color: #D90429;
+    border-color: #D90429;
+    background-color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.container-body {
+    margin: 20px;
+}
+
+.price {
+    font-size: 30px;
+    color: rgb(197, 38, 38);
+    font-weight: bold;
+    text-align: center;
+
+}
+
+.pt-info {
+    font-size: 18px;
+    margin: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.pt-info div {
+    margin-bottom: 10px;
+}
+
+.price {
+    font-size: 30px;
+    color: rgb(197, 38, 38);
+    font-weight: bold;
+    text-align: center;
+}
+
+
+.buy {
+    width: 100%;
+    display: flex;
+    justify-content: right;
+    position: fixed;
+    bottom: 60px;
+    text-decoration: none;
+}
+
+.icon {
+    width: 250px;
+    height: 70px;
+    font-size: 30px;
+    color: white;
+    display: flex;
+    background-color: #D90429;
+    align-items: center;
+    text-align: center;
+    border-radius: 10px;
+
+}
+
+.icon-text {
+    margin-top: 10px;
+}
 </style>

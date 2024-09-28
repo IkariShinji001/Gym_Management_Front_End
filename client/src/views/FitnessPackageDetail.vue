@@ -4,6 +4,9 @@
       <q-btn flat icon="arrow_back" size="md" @click="$router.go(-1)">
       </q-btn>
     </div>
+    <q-badge color="blue" v-if="currentPackage" class="current">
+      Đang sử dụng
+    </q-badge>
 
     <div v-if="fitnessPackage.servicePackage.name">
       <h5 class="container-header ">Gói {{ fitnessPackage.servicePackage.name }}</h5>
@@ -19,12 +22,11 @@
             <!-- Hiển thị badge chỉ khi giá trị của nút đó được chọn -->
             <q-badge color="red" floating v-if="selectPriceId === servicePackagePrice.id"></q-badge>
             {{ servicePackagePrice.packageDuration?.duration + " " +
-            formatDurationType(servicePackagePrice.packageDuration?.durationType) }}
+              formatDurationType(servicePackagePrice.packageDuration?.durationType) }}
           </q-btn>
         </div>
       </div>
     </div>
-
     <div class="price">
       <div> {{ formatPrice(price) }}</div>
     </div>
@@ -54,164 +56,203 @@
 </template>
 
 <script setup>
-  import { onBeforeMount, ref } from "vue";
-  import benefitPackageService from "../services/benefitPackage.service";
-  import servicePackagePrice from "../services/servicePackagePrice.service";
-  import FitnessPackageService from "../services/fitnessPackage.service";
-  import { useRoute } from "vue-router";
+import { onBeforeMount, ref } from "vue";
+import benefitPackageService from "../services/benefitPackage.service";
+import servicePackagePrice from "../services/servicePackagePrice.service";
+import FitnessPackageService from "../services/fitnessPackage.service";
+import { useRoute } from "vue-router";
+import billService from "../services/bill.service";
 
-  const fitnessPackage = ref();
-  const fitnessBenefits = ref([]);
-  const servicePackagePrices = ref([1]);
-  const route = useRoute();
-  const fitnessPackageId = ref(route.params.fitnessPackageId);
-  const typeId = ref(route.params.typeId);
-  const openBuyDialog = ref(false);
-  const selectPriceId = ref(0);
-  const price = ref(0);
+const fitnessPackage = ref();
+const fitnessBenefits = ref([]);
+const servicePackagePrices = ref([1]);
+const route = useRoute();
+const fitnessPackageId = ref(route.params.fitnessPackageId);
+const selectPriceId = ref(0);
+const price = ref(0);
+const packageActive = ref([]);
+const currentPackage = ref(false);
+const userId = localStorage.getItem("userId");
 
-  const handleOpenBuyDialog = () => {
-    openBuyDialog.value = true;
+
+
+onBeforeMount(async () => {
+  fitnessBenefits.value = await benefitPackageService.findBenefitByFitnessPackageId(fitnessPackageId.value);
+  fitnessPackage.value = await FitnessPackageService.getById(fitnessPackageId.value);
+
+  servicePackagePrices.value = await servicePackagePrice.getPackagePriceByIdServicePackage(fitnessPackage.value.servicePackage.id);
+  // price.value=servicePackagePrices.value[0].price;
+  // Đặt mặc định giá trị của selectPriceId và price
+
+  if (servicePackagePrices.value.length > 0) {
+    selectPriceId.value = servicePackagePrices.value[0].id;
+    price.value = servicePackagePrices.value[0].price;
   }
+  packageActive.value = await billService.getPackageActive(userId);
+  console.log("packageActive:", packageActive.value); // Kiểm tra dữ liệu gói đang active
 
-  onBeforeMount(async () => {
-    fitnessBenefits.value = await benefitPackageService.findBenefitByFitnessPackageId(fitnessPackageId.value);
-    fitnessPackage.value = await FitnessPackageService.getById(fitnessPackageId.value);
+  let packageActiveIdList = [];
+  packageActive.value.forEach((element) => {
+    packageActiveIdList.push(element.servicePackagePriceId);
+  });
 
-    servicePackagePrices.value = await servicePackagePrice.getPackagePriceByIdServicePackage(fitnessPackage.value.servicePackage.id);
-    // price.value=servicePackagePrices.value[0].price;
-    // Đặt mặc định giá trị của selectPriceId và price
+  console.log("Active Package IDs:", packageActiveIdList); // Kiểm tra danh sách ID active
 
-    if (servicePackagePrices.value.length > 0) {
-      selectPriceId.value = servicePackagePrices.value[0].id;
-      price.value = servicePackagePrices.value[0].price;
+  servicePackagePrices.value.forEach((servicePackagePrice) => {
+    if (packageActiveIdList.includes(servicePackagePrice.id)) {
+      currentPackage.value = true;
     }
   });
-  const testFunc = () => {
-    console.log(selectPriceId.value);
-  }
-  const getPrice = (id) => {
-    selectPriceId.value = id;
-    servicePackagePrices.value.forEach((servicePackagePrice) => {
-      if (servicePackagePrice.id === selectPriceId.value) {
-        price.value = servicePackagePrice.price;
-      }
-    });
-  }
-  const formatDurationType = (durationType) => {
-    if (durationType === "month") {
-      return "Tháng";
-    } else if (durationType === "week") {
-      return "Tuần";
-    } else if (durationType === "day") {
-      return "Ngày";
-    } else if (durationType === "year") {
-      return "Năm";
+});
+const testFunc = () => {
+  console.log(selectPriceId.value);
+}
+const getPrice = (id) => {
+  selectPriceId.value = id;
+  servicePackagePrices.value.forEach((servicePackagePrice) => {
+    if (servicePackagePrice.id === selectPriceId.value) {
+      price.value = servicePackagePrice.price;
     }
+  });
+}
+const formatDurationType = (durationType) => {
+  if (durationType === "month") {
+    return "Tháng";
+  } else if (durationType === "week") {
+    return "Tuần";
+  } else if (durationType === "day") {
+    return "Ngày";
+  } else if (durationType === "year") {
+    return "Năm";
   }
+}
 
-  function formatPrice(price) {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-  }
+function formatPrice(price) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+}
 
 
 </script>
 
 <style>
-  .container {
-    background-color: #edf2f4;
-    min-height: 150vh;
-  }
+.container {
+  background-color: #edf2f4;
+  min-height: 150vh;
+}
+
+.back-button {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 1;
+  background-color: #D90429;
+  color: white;
+  border: none;
+  font-size: 16px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
 
 
-  .container-header {
-    text-align: center;
-    font-size: 30px;
-    font-weight: bold;
-    padding: 10px;
-    margin: 0;
-    background-color: #edf2f4;
-  }
+.current {
+  position: absolute;
+  top: 40px;
+  right: 5px;
+  z-index: 1;
+  /* background-color: #D90429; */
+  /* color: white; */
+  height: 30px;
+}
 
-  .duration {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    margin: 10px;
-  }
 
-  .button.selected {
-    background-color: #D90429;
-    /* Màu nền khi nút được chọn */
-    color: white;
-    /* Màu chữ khi nút được chọn */
-  }
+.container-header {
+  text-align: center;
+  font-size: 30px;
+  font-weight: bold;
+  padding: 10px;
+  margin: 0;
+  background-color: #edf2f4;
+}
 
-  .button {
-    margin: 10px;
-    width: 70%;
-    height: 50px;
-    font-size: 15px;
-    color: #D90429;
-    border-color: #D90429;
-    background-color: white;
-    font-weight: bold;
-    text-align: center;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.3s;
-  }
+.duration {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 10px;
+}
 
-  .my-card {
-    margin: 10px;
-    width: 95%;
-    margin: 0 auto;
-    padding: 10px;
-    background-color: #edf2f4;
-  }
+.button.selected {
+  background-color: #D90429;
+  /* Màu nền khi nút được chọn */
+  color: white;
+  /* Màu chữ khi nút được chọn */
+}
 
-  .container-body {
-    margin: 20px;
-  }
+.button {
+  margin: 10px;
+  width: 70%;
+  height: 50px;
+  font-size: 15px;
+  color: #D90429;
+  border-color: #D90429;
+  background-color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.3s;
+}
 
-  .buy {
-    width: 100%;
-    display: flex;
-    justify-content: right;
-    position: fixed;
-    bottom: 60px;
-    text-decoration: none;
-  }
+.my-card {
+  margin: 10px;
+  width: 95%;
+  margin: 0 auto;
+  padding: 10px;
+  background-color: #edf2f4;
+}
 
-  .icon {
-    width: 250px;
-    height: 70px;
-    font-size: 30px;
-    color: white;
-    display: flex;
-    background-color: #D90429;
-    align-items: center;
-    text-align: center;
-    border-radius: 10px;
+.container-body {
+  margin: 20px;
+}
 
-  }
+.buy {
+  width: 100%;
+  display: flex;
+  justify-content: right;
+  position: fixed;
+  bottom: 60px;
+  text-decoration: none;
+}
 
-  .icon-text {
-    margin-top: 10px;
-  }
+.icon {
+  width: 250px;
+  height: 70px;
+  font-size: 30px;
+  color: white;
+  display: flex;
+  background-color: #D90429;
+  align-items: center;
+  text-align: center;
+  border-radius: 10px;
 
-  .chat {
-    background-color: #8D99AE;
-    width: 70px;
-  }
+}
 
-  .price {
-    font-size: 30px;
-    color: rgb(197, 38, 38);
-    font-weight: bold;
-    text-align: center;
+.icon-text {
+  margin-top: 10px;
+}
 
-  }
+.chat {
+  background-color: #8D99AE;
+  width: 70px;
+}
+
+.price {
+  font-size: 30px;
+  color: rgb(197, 38, 38);
+  font-weight: bold;
+  text-align: center;
+
+}
 </style>

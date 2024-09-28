@@ -73,7 +73,7 @@
     return daysDiff;
   }
   onBeforeMount(async () => {
-    activePackages.value = await billService.getPackageActice(userId);
+    activePackages.value = await billService.getPackageActive(userId);
     console.log(activePackages.value);
   })
 </script>
