@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-md form-container">
-    <q-btn flat round class="cancel-btn" @click="closeModal">
+    <q-btn flat round class="cancel-btn" v-close-popup>
       <q-icon
         name="cancel"
         class="cancel-icon"
@@ -45,10 +45,6 @@ export default {
     });
     const types = ref(props.typeList);
 
-    function closeModal() {
-      emit("createType");
-    }
-
     async function createType(e) {
       e.preventDefault();
       try {
@@ -57,7 +53,7 @@ export default {
 
         const existedType = types.value.find(
           (t) => t.name.toLowerCase() === name
-        ); 
+        );
         if (existedType) {
           console.log("da ton tai: " + name);
           return;
@@ -66,14 +62,13 @@ export default {
         const createdType = await typeService.createType(type);
 
         emit("getNewType", createdType);
-        closeModal()
+        closeModal();
       } catch (e) {
         console.log(e);
       }
     }
     return {
       type,
-      closeModal,
       createType,
     };
   },

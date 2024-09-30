@@ -58,6 +58,11 @@ const router = createRouter({
           component: () => import("../views/BenefitView.vue"),
         },
         {
+          path: "emails",
+          name: "email",
+          component: () => import("../views/SendMailView.vue"),
+        },
+        {
           path: "count-maintenances",
           name: "countMaintenance",
           component: () => import("../views/CountMaintenances.vue"),

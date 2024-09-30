@@ -262,7 +262,7 @@ onBeforeMount(async () => {
 
 const formatDate = (date) => {
   return format(new Date(date), "dd/MM/yyyy");
-};
+};  
 const formatDateTime = (Date) => {
   return formatDate(Date);
 };
