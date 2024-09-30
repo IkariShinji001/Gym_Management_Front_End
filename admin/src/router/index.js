@@ -58,9 +58,41 @@ const router = createRouter({
           component: () => import("../views/BenefitView.vue"),
         },
         {
-          path: "testChart",
-          component: () => import("../views/testChart1.vue"),
+          path: "count-maintenances",
+          name: "countMaintenance",
+          component: () => import("../views/CountMaintenances.vue"),
         },
+        {
+          path: "daily-bill-statistics",
+          name: "weeklyBillStatistics",
+          component: () => import("../views/WeeklyBillStatistics.vue"),
+        },
+        {
+          path: "yearly-bill-statistics",
+          name: "yearlyBillStatistics",
+          component: () => import("../views/YearlyBillStatistics.vue"),
+        },
+        {
+          path: "top-spent-users-statistics-in-month",
+          name: "TopSpentUsersStatisticsInMonth",
+          component: () => import("../views/TopSpentUsersStatisticsInMonth.vue"),
+        },
+        {
+          path: "top-spent-users-statistics-in-year",
+          name: "TopSpentUsersStatisticsInYear",
+          component: () => import("../views/TopSpentUsersStatisticsInYear.vue"),
+        },
+        {
+          path: "top-purchased-packages-statistics-in-month",
+          name: "TopPurchasedPackagesStatisticsInMonth",
+          component: () => import("../views/TopPurchasedPackagesStatisticsInMonth.vue"),
+        },
+        {
+          path: "top-purchased-packages-statistics-in-year",
+          name: "TopPurchasedPackagesStatisticsInYear",
+          component: () => import("../views/TopPurchasedPackagesStatisticsInYear.vue"),
+        },
+        
       ],
     },
     {

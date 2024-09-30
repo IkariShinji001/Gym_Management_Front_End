@@ -177,7 +177,7 @@
   
   <script>
 import { ref, reactive, computed, onBeforeMount } from "vue";
-import { useToast } from "vue-toastification"
+import { useToast } from "vue-toastification";
 import maintenanceService from "../services/maintenance.service.js"; // Adjust the path to your service
 import facilitiesService from "../services/facilities.service.js";
 
@@ -189,13 +189,12 @@ export default {
     const showAddDialog = ref(false);
     const showUpdateDialog = ref(false);
     const facilities = ref([]);
-    const nameFacilities = ref([]);
     const filterFacilities = ref([]);
     const facilitySelected = ref([]);
     const statusSelected = ref("");
     const statusOptions = ref([
-      {label: "hoàn thành", value: "completed"},
-      {label: "chưa hoàn thành", value: "notCompleted"}
+      { label: "hoàn thành", value: "completed" },
+      { label: "chưa hoàn thành", value: "notCompleted" },
     ]);
 
     const maintenance = reactive({
@@ -205,7 +204,7 @@ export default {
     });
 
     const maintenanceToEdit = reactive({
-      facilityId: "",
+      id: "",
       description: "",
       date: "",
       isFinished: "",
@@ -213,7 +212,6 @@ export default {
     });
 
     const columns = [
-      { name: "id", label: "ID", align: "center", field: "id" },
       {
         name: "facility.name",
         label: "Tên Thiết Bị",
@@ -242,7 +240,8 @@ export default {
       { name: "action", label: "Hành Động", align: "center" },
     ];
 
-    const openAddDialog = () => {
+    const openAddDialog = async () => {
+      facilities.value = await facilitiesService.findFacilityIsFinishedTrue();
       showAddDialog.value = true;
       facilitySelected.value = [];
       maintenance.description = "";
@@ -251,16 +250,10 @@ export default {
 
     onBeforeMount(async () => {
       try {
-        const response = await maintenanceService.findMaintenanceIsNotFinished();
-        console.log(response.data)
-        // Lấy dữ liệu từ response
+        const response =
+          await maintenanceService.findMaintenanceIsNotFinished();
         maintenances.value = response.data;
-        console.log(maintenances.value);
         facilities.value = await facilitiesService.findFacilityIsFinishedTrue();
-        console.log(facilities.value);
-        nameFacilities.value = facilities.value.map((obj) => {
-          return { name: obj.name, id: obj.id };
-        });
       } catch (error) {
         console.error(error);
       }
@@ -291,16 +284,14 @@ export default {
     });
 
     const filterMaintenances = async () => {
-      if(statusSelected.value === "completed") {
-        const res = await maintenanceService.findMaintenanceIsFinished()
-        maintenances.value = res.data
-        console.log(maintenances.value)
-      } else if (statusSelected.value === "notCompleted"){
-          const res = await maintenanceService.findMaintenanceIsNotFinished()
-          maintenances.value = res.data
-          console.log(maintenances.value)
+      if (statusSelected.value === "completed") {
+        const res = await maintenanceService.findMaintenanceIsFinished();
+        maintenances.value = res.data;
+      } else if (statusSelected.value === "notCompleted") {
+        const res = await maintenanceService.findMaintenanceIsNotFinished();
+        maintenances.value = res.data;
       }
-    }
+    };
 
     const formatDate = (date) => {
       date = new Date(date);
@@ -321,11 +312,10 @@ export default {
     const filterFn = (valueInput, update) => {
       update(async () => {
         if (valueInput === "") {
-          console.log(facilities.value);
-          return (filterFacilities.value = nameFacilities.value);
+          return (filterFacilities.value = facilities.value);
         } else {
           const needle = valueInput.toLowerCase();
-          filterFacilities.value = nameFacilities.value.filter(
+          filterFacilities.value = facilities.value.filter(
             (facility) => facility.name.toLowerCase().indexOf(needle) > -1
           );
         }
@@ -339,16 +329,13 @@ export default {
           ...maintenance,
         };
         const res = await maintenanceService.create(newMaintenance);
+        console.log(res);
         res.forEach((element) => {
           maintenances.value.push(element);
         });
-        facilities.value = await facilitiesService.findFacilityIsFinishedTrue();
-        console.log(facilities.value);
-        nameFacilities.value = facilities.value.map((obj) => {
-          return { name: obj.name, id: obj.id };
-        });
+        // facilities.value = await facilitiesService.findFacilityIsFinishedTrue();
         showAddDialog.value = false;
-        toast.success('thêm bảo trì thành công')
+        toast.success("thêm bảo trì thành công");
       } catch (error) {
         console.error("Error add maintenance: " + error);
       }
@@ -362,26 +349,37 @@ export default {
 
     const updateMaintenance = async (id, maintenanceToEdit) => {
       try {
-        console.log(maintenanceToEdit)
-        const facilityIds = [];
-        facilityIds.push(maintenanceToEdit.facilityId)
-        const maintenanceToUpdate = {
-          facilityIds: facilityIds,
-          ... maintenanceToEdit
-        };
-        console.log(maintenanceToUpdate);
-        const maintenanceIsUpdated = await maintenanceService.update(id, maintenanceToUpdate);
+        console.log(maintenanceToEdit);
+        // const facilityIds = [];
+        // facilityIds.push(maintenanceToEdit.facilityId);
+        // const maintenanceToUpdate = {
+        //   facilityIds: facilityIds,
+        //   ...maintenanceToEdit,
+        // };
+        // console.log(maintenanceToUpdate);
+        const maintenanceIsUpdated = await maintenanceService.update(
+          id,
+          maintenanceToEdit
+        );
         // const facilityNew = await facilitiesService.findById(res.facilityId);
         // facilities.value.push(facilityNew);
         // nameFacilities.value = facilities.value.map((obj) => {
         //   return { name: obj.name, id: obj.id };
         // });
-        const index = filteredMaintenances.value.findIndex((item) => item.isFinished == true);
-        filteredMaintenances.value.splice(index, 1);
-        const indexId = maintenances.value.findIndex((maintenance) => maintenance.id == id)
-        Object.assign(maintenances.value[indexId], maintenanceIsUpdated);
-        showUpdateDialog.value = false;
-        toast.success("Cập nhật lịch bảo trì thành công")
+        const index = maintenances.value.findIndex(
+          (item) => item.isFinished === true
+        );
+        console.log(index);
+        if (index >= 0) {
+          maintenances.value.splice(index, 1);
+        } else {
+          const indexId = maintenances.value.findIndex(
+            (maintenance) => maintenance.id == id
+          );
+          Object.assign(maintenances.value[indexId], maintenanceIsUpdated);
+          showUpdateDialog.value = false;
+          toast.success("Cập nhật lịch bảo trì thành công");
+        }
       } catch (error) {
         console.error("Error update maintenance: " + error);
       }
@@ -392,7 +390,7 @@ export default {
         await maintenanceService.delete(id);
         const index = maintenances.value.findIndex((item) => item.id === id);
         maintenances.value.splice(index, 1);
-        toast.success("Xóa lịch bảo trì thành công")
+        toast.success("Xóa lịch bảo trì thành công");
       } catch (error) {
         console.error("Error deleting maintenance:", error);
       }
@@ -401,7 +399,6 @@ export default {
     return {
       maintenances,
       facilities,
-      nameFacilities,
       filterFacilities,
       formatDate,
       facilitySelected,
@@ -448,7 +445,7 @@ h4 {
 
 .add-button {
   height: 52px;
-  border-radius: 15px;
+  border-radius: 10px;
 }
 
 .maintenance-table {

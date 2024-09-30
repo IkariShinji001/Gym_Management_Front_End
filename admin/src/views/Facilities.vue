@@ -9,15 +9,27 @@
           label="Tìm kiếm thiết bị"
           filled
         />
-        <div class="btn-add q-pa-md q-gutter-sm">
-          <q-btn
-            style="height: 50px; border-radius: 10px"
-            label="Thêm thiết bị"
-            icon="add"
-            color="primary"
-            @click="OpenAddDialog"
-          />
-        </div>
+        <q-btn class="btn-all" label="TẤT CẢ" @click="getAllFacilities" />
+        <q-select
+          class="search-bar-q-select"
+          filled
+          v-model="branchIdIsSelected"
+          :options="branches"
+          label="Chọn chi nhánh"
+          map-options
+          emit-value
+          option-value="id"
+          option-label="name"
+          @update:model-value="filterFacilities"
+          @click="updateBranches"
+        />
+        <q-btn
+          class="btn-add"
+          label="Thêm thiết bị"
+          icon="add"
+          color="primary"
+          @click="OpenAddDialog"
+        />
       </div>
 
       <div class="table">
@@ -49,7 +61,7 @@
                   style="width: 150px; height: 100px"
                 />
               </td>
-              <td>{{ formatDate(facility.purchaseDate) }}</td>
+              <td width="13%">{{ formatDate(facility.purchaseDate) }}</td>
               <td>
                 <q-btn
                   style="border-radius: 10px"
@@ -69,7 +81,7 @@
                   />
                 </div>
               </td>
-              <td width="26%">
+              <td width="29%">
                 <q-btn
                   class="btn-update"
                   icon="visibility"
@@ -80,7 +92,7 @@
                   icon="list"
                   @click="viewMaintenanceHistory(facility.id)"
                   title="Xem lịch sử bảo trì"
-                />  
+                />
                 <q-btn
                   class="btn-update"
                   icon="update"
@@ -135,33 +147,49 @@
           <q-card-section>
             <h4>Xem chi tiết thông tin thiết bị</h4>
           </q-card-section>
+          {{ facilityIsSelected }}
+          <q-card-section class="flex justify-center items-center">
+            <q-img
+              :src="facilityIsSelected.imageUrl"
+              alt="Hình ảnh thiết bị"
+              style="max-width: 300px; height: 150px"
+            />
+          </q-card-section>
 
           <q-card-section>
             <q-form>
-              <q-input v-model="facilityIsSelected.name" label="Tên thiết bị" />
               <q-input
-                v-model="facilityIsSelected.imageUrl"
-                label="URL hình ảnh"
+                v-model="facilityIsSelected.name"
+                label="Tên thiết bị"
+                readonly
               />
-              <q-input v-model="facilityIsSelected.description" label="Mô tả" />
+              <q-input
+                v-model="facilityIsSelected.description"
+                label="Mô tả"
+                readonly
+              />
               <q-input
                 v-model="facilityIsSelected.branchId"
                 label="Chi nhánh"
+                readonly
               />
               <q-input
                 type="date"
                 v-model="facilityIsSelected.purchaseDate"
                 label="Ngày mua"
+                readonly
               />
               <q-input
                 type="date"
                 v-model="facilityIsSelected.warrantyStartDate"
                 label="Ngày bắt đầu bảo hành"
+                readonly
               />
               <q-input
                 type="date"
                 v-model="facilityIsSelected.warrantyEndDate"
                 label="Ngày kết thúc bảo hành"
+                readonly
               />
               <q-btn
                 class="btn-cancel"
@@ -198,7 +226,6 @@
                       No data available
                     </td>
                   </tr>
-
                   <tr
                     v-for="(
                       maintenanceOfFacility, id
@@ -245,14 +272,25 @@
             <q-form @submit="addFacility">
               <q-input v-model="facility.name" label="Tên thiết bị" />
               <q-file
+                class="q-select"
                 v-model="facility.imageUrl"
                 label="chọn ảnh cho thiết bị"
                 filled
                 :counter-label="file ? file.name : 'Chưa chọn tệp nào'"
-                style="margin: 10px 0px 10px 0px"
               />
               <q-input v-model="facility.description" label="Mô tả" />
-              <q-input v-model="facility.branchId" label="Chi nhánh" />
+              <div class="q-select q-gutter-md">
+                <q-select
+                  filled
+                  v-model="facility.branchId"
+                  :options="branches"
+                  label="Chọn chi nhánh"
+                  map-options
+                  emit-value
+                  option-value="id"
+                  option-label="name"
+                />
+              </div>
               <q-input
                 type="date"
                 v-model="facility.purchaseDate"
@@ -288,6 +326,14 @@
             <h4>Sửa thông tin thiết bị</h4>
           </q-card-section>
 
+          <q-card-section class="flex justify-center items-center">
+            <q-img
+              :src="facilityIsSelected.imageUrl"
+              alt="Hình ảnh thiết bị"
+              style="max-width: 300px; height: 150px"
+            />
+          </q-card-section>
+
           <q-card-section>
             <q-form
               @submit="
@@ -300,12 +346,19 @@
                 label="chọn ảnh cho thiết bị"
                 filled
                 :counter-label="file ? file.name : 'Chưa chọn tệp nào'"
-                style="margin: 10px 0px 10px 0px"
+                class="q-select"
+                @update:model-value="updateImg"
               />
               <q-input v-model="facilityIsSelected.description" label="Mô tả" />
-              <q-input
+              <q-select
+                filled
                 v-model="facilityIsSelected.branchId"
-                label="Chi nhánh"
+                :options="branches"
+                label="chọn chi nhánh"
+                map-options
+                emit-value
+                option-value="id"
+                option-label="name"
               />
               <q-input
                 type="date"
@@ -338,262 +391,263 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onBeforeMount, computed } from "vue";
 import { useToast } from "vue-toastification";
 import facilitiesService from "../services/facilities.service";
+import branchesService from "../services/branches.service";
 import maintenancesService from "../services/maintenance.service";
 import uploadFileService from "../services/uploadFile.service";
 
-export default {
-  setup() {
-    const toast = useToast();
-    const facilities = ref([]);
-    const searchQuery = ref("");
-    const showAddMaintenance = ref(false);
-    const showAddDialog = ref(false);
-    const showEditDialog = ref(false);
-    const showFacilityDetails = ref(false);
-    const showMaintenanceHistory = ref(false);
-    const listMaintenancesOfFacility = ref([]);
-    const publicIdOld = ref("");
+const toast = useToast();
+const facilities = ref([]);
+const branches = ref([]);
+const searchQuery = ref("");
+const showAddMaintenance = ref(false);
+const showAddDialog = ref(false);
+const showEditDialog = ref(false);
+const showFacilityDetails = ref(false);
+const showMaintenanceHistory = ref(false);
+const listMaintenancesOfFacility = ref([]);
+const publicIdOld = ref("");
+const branchIdIsSelected = ref("");
 
-    const facility = reactive({
-      name: "",
-      description: "",
-      imageUrl: "",
-      branchId: "",
-      purchaseDate: "",
-      warrantyStartDate: "",
-      warrantyEndDate: "",
-    });
+const facility = reactive({
+  name: "",
+  description: "",
+  imageUrl: "",
+  nameBranch: "",
+  branchId: "",
+  nameBranch: "",
+  purchaseDate: "",
+  warrantyStartDate: "",
+  warrantyEndDate: "",
+});
 
-    const facilityIsSelected = reactive({
-      name: "",
-      description: "",
-      imageUrl: "",
-      branchId: "",
-      purchaseDate: "",
-      warrantyStartDate: "",
-      warrantyEndDate: "",
-      isActive: "",
-    });
+const facilityIsSelected = reactive({
+  name: "",
+  description: "",
+  imageUrl: "",
+  nameBranch: "",
+  branchId: "",
+  purchaseDate: "",
+  warrantyStartDate: "",
+  warrantyEndDate: "",
+  isActive: "",
+});
 
-    const maintenance = reactive({
-      facilityIds: [],
-      date: "",
-      description: "",
-    });
+const maintenance = reactive({
+  facilityIds: [],
+  date: "",
+  description: "",
+});
 
-    onBeforeMount(async () => {
-      try {
-        facilities.value = await facilitiesService.findAll();
-      } catch (error) {
-        console.log(error);
-      }
-    });
+onBeforeMount(async () => {
+  try {
+    facilities.value = await facilitiesService.findAll();
+    console.log(facilities.value)
+    branches.value = await branchesService.findAll();
+  } catch (error) {
+    console.log(error);
+  }
+});
 
-    // Use computed to filter facilities based on searchQuery
-    const filteredFacilities = computed(() => {
-      // Hàm loại bỏ dấu tiếng Việt
-      const removeAccents = (str) => {
-        return str
-          .normalize("NFD") // Chuyển đổi ký tự có dấu thành các ký tự và dấu tách biệt
-          .replace(/[\u0300-\u036f]/g, ""); // Loại bỏ các dấu kết hợp
-      };
+// Use computed to filter facilities based on searchQuery
+const filteredFacilities = computed(() => {
+  // Hàm loại bỏ dấu tiếng Việt
+  const removeAccents = (str) => {
+    return str
+      .normalize("NFD") // Chuyển đổi ký tự có dấu thành các ký tự và dấu tách biệt
+      .replace(/[\u0300-\u036f]/g, ""); // Loại bỏ các dấu kết hợp
+  };
 
-      // Chuẩn hóa searchQuery để tìm kiếm
-      const normalizedQuery = removeAccents(
-        searchQuery.value.trim().toLowerCase()
-      );
+  // Chuẩn hóa searchQuery để tìm kiếm
+  const normalizedQuery = removeAccents(searchQuery.value.trim().toLowerCase());
 
-      if (normalizedQuery === "") {
-        return facilities.value; // Hiển thị tất cả cơ sở khi tìm kiếm trống
-      }
+  if (normalizedQuery === "") {
+    return facilities.value; // Hiển thị tất cả cơ sở khi tìm kiếm trống
+  }
 
-      return facilities.value.filter((facility) =>
-        removeAccents(facility.name.toLowerCase()).includes(normalizedQuery)
-      );
-    });
+  return facilities.value.filter((facility) =>
+    removeAccents(facility.name.toLowerCase()).includes(normalizedQuery)
+  );
+});
 
-    const formatDate = (date) => {
-      date = new Date(date);
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
-      const day = date.getDate().toString().padStart(2, "0");
-      return `${day}-${month}-${year}`;
-    };
+const formatDate = (date) => {
+  date = new Date(date);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${day}-${month}-${year}`;
+};
 
-    const formatDateInput = (date) => {
-      date = new Date(date);
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
-      const day = date.getDate().toString().padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    };
+const formatDateInput = (date) => {
+  date = new Date(date);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
-    const OpenAddDialog = () => {
-      (facility.name = ""),
-        (facility.description = ""),
-        (facility.imageUrl = ""),
-        (facility.branchId = ""),
-        (facility.purchaseDate = ""),
-        (facility.warrantyStartDate = ""),
-        (facility.warrantyEndDate = ""),
-        (showAddDialog.value = true);
-    };
+const getAllFacilities = async () => {
+  facilities.value = await facilitiesService.findAll();
+}
 
-    const addFacility = async () => {
-      try {
-        const formData = new FormData();
-        formData.append("file", facility.imageUrl);
-        const res = await uploadFileService.uploadFile(formData);
-        console.log(res);
-        facility.imageUrl = res.secure_url;
-        const newFacility = await facilitiesService.create(facility);
-        facilities.value.push(newFacility);
+const filterFacilities = async () => {
+  facilities.value = await facilitiesService.findFacilitiesByBranchId(branchIdIsSelected.value);
+}
 
-        showAddDialog.value = false;
-        toast.success("Thêm thiết bị thành công");
-      } catch (error) {
-        console.error("Error adding facility:", error);
-      }
-    };
+const updateBranches = async () => {
+  branches.value = await branchesService.findAll();
+}
 
-    const addMaintenance = (id) => {
-      maintenance.facilityIds.push(id);
-      maintenance.description = "";
-      maintenance.date = "";
-      showAddMaintenance.value = true;
-    };
+const OpenAddDialog = async () => {
+  branches.value = await branchesService.findAll();
+  (facility.name = ""),
+    (facility.description = ""),
+    (facility.imageUrl = ""),
+    (facility.branchId = ""),
+    (facility.purchaseDate = ""),
+    (facility.warrantyStartDate = ""),
+    (facility.warrantyEndDate = ""),
+    (showAddDialog.value = true);
+};
 
-    const submitAddMaintenance = async () => {
-      try {
-        const id = maintenance.facilityIds[0];
-        const facility = await facilitiesService.checkFacilityIsFinishedIsFalse(
-          id
-        );
-        if (!facility) {
-          console.log(maintenance);
-          await maintenancesService.create(maintenance);
-          showAddMaintenance.value = false;
-          toast.success("Thêm bảo trì thành công");
-        } else {
-          toast.error("Thiết bị đang bảo trì");
-        }
-      } catch (error) {
-        console.error("Error adding maintenance:", error);
-      }
-    };
+const addFacility = async () => {
+  try {
+    const formData = new FormData();
+    formData.append("file", facility.imageUrl);
+    const res = await uploadFileService.uploadFile(formData);
+    facility.imageUrl = res.secure_url;
+    const newFacility = await facilitiesService.create(facility);
+    console.log(newFacility);
+    facilities.value.push(newFacility);
+    showAddDialog.value = false;
+    toast.success("Thêm thiết bị thành công");
+  } catch (error) {
+    console.error("Error adding facility:", error);
+  }
+};
 
-    const viewMaintenanceHistory = async (idFacility) => {
-      listMaintenancesOfFacility.value =
-        await maintenancesService.maintenanceHistory(idFacility);
-      const facilityIsFound = await facilitiesService.findById(idFacility);
-      console.log(facilityIsFound);
-      facility.name = facilityIsFound.name;
-      console.log(listMaintenancesOfFacility.value);
-      showMaintenanceHistory.value = true;
-    };
+const addMaintenance = (id) => {
+  maintenance.facilityIds = [];
+  maintenance.facilityIds.push(id);
+  maintenance.description = "";
+  maintenance.date = "";
+  showAddMaintenance.value = true;
+};
 
-    const viewFacilityDetails = (facility) => {
-      facility.purchaseDate = formatDateInput(facility.purchaseDate);
-      facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
-      facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
-      Object.assign(facilityIsSelected, facility);
-      showFacilityDetails.value = true;
-    };
+const submitAddMaintenance = async () => {
+  try {
+    const id = maintenance.facilityIds[0];
+    const facility = await facilitiesService.checkFacilityIsFinishedIsFalse(id);
+    if (!facility) {
+      console.log(maintenance);
+      await maintenancesService.create(maintenance);
+      showAddMaintenance.value = false;
+      toast.success("Thêm bảo trì thành công");
+    } else {
+      toast.error("Thiết bị đang bảo trì");
+    }
+  } catch (error) {
+    console.error("Error adding maintenance:", error);
+  }
+};
 
-    const getPublicId = (url) => {
-      // Tách chuỗi URL bằng dấu "/"
-      const parts = url.split("/");
-      // Lấy phần tử cuối trước phần mở rộng file để có public_id
-      const publicIdWithExtension = parts[parts.length - 1];
-      // Loại bỏ phần mở rộng file (.jpg, .png, v.v.)
-      const publicId = publicIdWithExtension.split(".")[0];
-      return publicId;
-    };
+const viewMaintenanceHistory = async (idFacility) => {
+  listMaintenancesOfFacility.value =
+    await maintenancesService.maintenanceHistory(idFacility);
+  const facilityIsFound = await facilitiesService.findById(idFacility);
+  console.log(facilityIsFound);
+  facility.name = facilityIsFound.name;
+  console.log(listMaintenancesOfFacility.value);
+  showMaintenanceHistory.value = true;
+};
 
-    const editFacility = (facility) => {
-      facility.purchaseDate = formatDateInput(facility.purchaseDate);
-      facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
-      facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
-      Object.assign(facilityIsSelected, facility);
-      publicIdOld.value = getPublicId(facilityIsSelected.imageUrl);
-      showEditDialog.value = true;
-    };
+const viewFacilityDetails = async (facility) => {
+  facility.purchaseDate = formatDateInput(facility.purchaseDate);
+  facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
+  facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
+  Object.assign(facilityIsSelected, facility);
+  const nameBranch = await branchesService.findOne(facilityIsSelected.branchId);
+  facilityIsSelected.branchId = nameBranch.name;
+  showFacilityDetails.value = true;
+};
 
-    const updateFacility = async (id, facilityIsSelected) => {
-      try {
-        if (facilityIsSelected.imageUrl instanceof File) {
-          console.log(facilityIsSelected.imageUrl);
-          const formData = new FormData();
-          formData.append("file", facilityIsSelected.imageUrl);
-          const res = await uploadFileService.uploadFile(formData);
-          console.log(res);
-          facilityIsSelected.imageUrl = res.secure_url;
-          await uploadFileService.deleteImage(publicIdOld);
-        } else {
-          console.log(facilityIsSelected.imageUrl);
-        }
-        const facilityToUpdate = await facilitiesService.update(
-          id,
-          facilityIsSelected
-        );
+// Lấy PublicId từ chuỗi string của image
+const getPublicId = (url) => {
+  // Tách chuỗi URL bằng dấu "/"
+  const parts = url.split("/");
+  // Lấy phần tử cuối trước phần mở rộng file để có public_id
+  const publicIdWithExtension = parts[parts.length - 1];
+  // Loại bỏ phần mở rộng file (.jpg, .png, v.v.)
+  const publicId = publicIdWithExtension.split(".")[0];
+  return publicId;
+};
 
-        const index = facilities.value.findIndex(
-          (facility) => facility.id == id
-        );
-        Object.assign(facilities.value[index], facilityToUpdate);
+const updateImg = async () => {
+  if (facilityIsSelected.imageUrl) {
+    await uploadFileService.deleteImage(publicIdOld);
+    const formData = new FormData();
+    formData.append("file", facilityIsSelected.imageUrl);
+    const res = await uploadFileService.uploadFile(formData);
+    facilityIsSelected.imageUrl = res.secure_url;
+    publicIdOld.value = getPublicId(facilityIsSelected.imageUrl);
+  }
+};
 
-        showEditDialog.value = false;
-        toast.success("Cập nhật thiết bị thành công");
-      } catch (error) {
-        console.error("Error updating facility:", error);
-      }
-    };
+const editFacility = async (facility) => {
+  branches.value = await branchesService.findAll()
+  facility.purchaseDate = formatDateInput(facility.purchaseDate);
+  facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
+  facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
+  Object.assign(facilityIsSelected, facility);
+  publicIdOld.value = getPublicId(facilityIsSelected.imageUrl);
+  showEditDialog.value = true;
+};
 
-    const deleteFacility = async (id) => {
-      try {
-        const facilityToUpdate = await facilitiesService.findById(id);
-        const publicId = getPublicId(facilityToUpdate.imageUrl);
-        await uploadFileService.deleteImage(publicId);
-        await facilitiesService.delete(id);
-        const index = facilities.value.findIndex((item) => item.id === id);
-        facilities.value.splice(index, 1);
-        toast.success("Xóa thiết bị thành công");
-      } catch (error) {
-        console.error("Error deleting facility:", error);
-      }
-    };
+const updateFacility = async (id, facilityIsSelected) => {
+  try {
+    // if (facilityIsSelected.imageUrl instanceof File) {
+    //   const formData = new FormData();
+    //   formData.append("file", facilityIsSelected.imageUrl);
+    //   const res = await uploadFileService.uploadFile(formData);
+    //   facilityIsSelected.imageUrl = res.secure_url;
+    //   await uploadFileService.deleteImage(publicIdOld);
+    // } else {
+    //   console.log(facilityIsSelected.imageUrl);
+    // }
 
-    return {
-      facilities,
-      searchQuery,
-      maintenance,
-      showAddMaintenance,
-      showAddDialog,
-      showEditDialog,
-      showFacilityDetails,
-      facility,
-      facilityIsSelected,
-      showMaintenanceHistory,
-      listMaintenancesOfFacility,
-      publicIdOld,
-      formatDate,
-      OpenAddDialog,
-      addFacility,
-      addMaintenance,
-      submitAddMaintenance,
-      viewFacilityDetails,
-      viewMaintenanceHistory,
-      editFacility,
-      updateFacility,
-      getPublicId,
-      deleteFacility,
-      filteredFacilities,
-    };
-  },
+    // Loại bỏ thuộc tính nameBranch
+    delete facilityIsSelected.nameBranch;
+
+    const facilityToUpdate = await facilitiesService.update(
+      id,
+      facilityIsSelected
+    );
+
+    const index = facilities.value.findIndex((facility) => facility.id == id);
+    Object.assign(facilities.value[index], facilityToUpdate);
+
+    showEditDialog.value = false;
+    toast.success("Cập nhật thiết bị thành công");
+  } catch (error) {
+    console.error("Error updating facility:", error);
+  }
+};
+
+const deleteFacility = async (id) => {
+  try {
+    const facilityToUpdate = await facilitiesService.findById(id);
+    const publicId = getPublicId(facilityToUpdate.imageUrl);
+    await uploadFileService.deleteImage(publicId);
+    await facilitiesService.delete(id);
+    const index = facilities.value.findIndex((item) => item.id === id);
+    facilities.value.splice(index, 1);
+    toast.success("Xóa thiết bị thành công");
+  } catch (error) {
+    console.error("Error deleting facility:", error);
+  }
 };
 </script>
 
@@ -621,25 +675,38 @@ h4 {
 }
 .search-bar {
   margin-bottom: 10px;
-  width: 94%;
+  width: 100%;
   display: flex;
 }
 .input-search {
   background: white;
-  width: 70%;
-  padding: 0px !important;
+  width: 50%;
+  margin-top: 8px;
+}
+.btn-all {
+  margin: auto;
+  height: 53px;
+  background: rgb(26, 127, 241);
+  color: white;
+}
+.search-bar-q-select {
+  padding: 0px;
+  margin: auto;
+  width: 250px;
+}
+.btn-add {
+  margin-top: 10px !important;
+  margin-left: 50px;
+  height: 53px;
+  border-radius: 6px;
 }
 .dialog {
   width: 500px;
 }
-.btn-add {
-  margin: auto;
-  padding: 0px !important;
-}
 .btn-update {
-  margin-right: 20px;
-  background: rgb(241, 241, 37) !important;
-  color: black !important;
+  margin-right: 15px;
+  background: rgb(241, 241, 37);
+  color: black;
   border-radius: 10px;
 }
 .btn-delete {
@@ -669,5 +736,9 @@ tr {
 }
 tr:hover {
   background: #e4dfdf;
+}
+
+.q-select {
+  margin: 10px 0px 10px 0px;
 }
 </style>

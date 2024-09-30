@@ -29,24 +29,21 @@
           @click="viewStatistics"
         />
       </div>
-
-      <!-- <div>
-        <q-btn
-          style="height: 52px"
-          icon="search"
-          label="Xem thống kê"
-          @click="viewStatistics"
-        />
-      </div> -->
     </div>
     <div>
-      <Bar style="height: 480px" v-if="loaded" :data="chartData" />
+      <Bar
+        style="height: 480px"
+        v-if="loaded"
+        :data="chartData"
+        :options="chartOptions"
+        plugins="[ChartDataLabels]" 
+      />
     </div>
   </div>
 </template>
-  
-  <script setup>
-import { onBeforeMount, ref, reactive, computed } from "vue";
+
+<script setup>
+import { onBeforeMount, ref, reactive, computed, watch } from "vue";
 import { Bar } from "vue-chartjs";
 import {
   Chart as ChartJS,
@@ -57,6 +54,7 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import facilitiesService from "../services/facilities.service";
 import maintenancesService from "../services/maintenance.service";
 
@@ -66,15 +64,15 @@ ChartJS.register(
   Legend,
   BarElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
+  ChartDataLabels // Đăng ký plugin
 );
 
 const facilityIsSelected = ref("");
 const facilities = ref([]);
 const yearIsSelected = ref("");
 const years = ref([]);
-const loaded = ref();
-const isClick = ref();
+const loaded = ref(false);
 
 const startYear = 2020;
 const endYear = 2030;
@@ -94,34 +92,12 @@ const chartData = reactive({
   ],
 });
 
-// Define the chart data using ref for reactivity
-// const chartData = ref({
-//   labels: ["January", "February", "March"],
-//   datasets: [
-//     {
-//       label: "Data One",
-//       backgroundColor: "#f87979",
-//       data: [40, 20, 12],
-//     },
-//   ],
-// });
-
+// Tải danh sách thiết bị
 onBeforeMount(async () => {
   facilities.value = await facilitiesService.findAll();
 });
 
-// const viewStatistics = async computed(() => {
-//   const response = await maintenancesService.countMaintenancesByMonth(
-//     facilityIsSelected.value,
-//     yearIsSelected.value
-//   );
-//   console.log(response);
-//   chartData.labels = [...response.labels];
-//   chartData.datasets[0].data = [...response.datasets[0].data];
-//   loaded.value = true;
-//   console.log(chartData);
-// });
-
+// Hàm xem thống kê
 const viewStatistics = computed(async () => {
   loaded.value = false;
   if (facilityIsSelected.value && yearIsSelected.value) {
@@ -132,13 +108,43 @@ const viewStatistics = computed(async () => {
     chartData.labels = [...response.labels];
     chartData.datasets[0].data = [...response.datasets[0].data];
     loaded.value = true;
-    return chartData;
   }
 });
-</script>
 
-<style scoped>
-.select {
-  height: 30px;
-}
-</style>
+// Tùy chọn biểu đồ
+const chartOptions = ref({
+  responsive: true,
+  scales: {
+    x: {
+      title: {
+        display: true,
+        text: "Năm " + yearIsSelected.value,
+      },
+    },
+    y: {
+      title: {
+        display: true,
+        text: "Số lần bảo trì",
+      },
+    },
+  },
+  plugins: {
+    datalabels: {
+      anchor: 'end', // Đặt vị trí của nhãn
+      align: 'end',  // Căn chỉnh với cột
+      color: '#000', // Màu của nhãn
+      font: {
+        weight: 'bold',
+      },
+      formatter: (value) => {
+        return value; // Hiển thị giá trị của cột
+      },
+    },
+  },
+});
+
+// Cập nhật title mỗi khi giá trị yearIsSelected thay đổi
+watch(yearIsSelected, (newValue) => {
+  chartOptions.value.scales.x.title.text = "Năm " + newValue;
+});
+</script>
