@@ -18,7 +18,7 @@ class SupplementProductService {
   }
 
   async updateProduct(id, product){
-    return (await api.patch(`${this.path}/${id}`, product)).data
+    return (await api.patch(`${this.path}/${id}`, product)).data;
   }
 
   async deleteProduct(id) {
