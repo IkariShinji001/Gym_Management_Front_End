@@ -344,6 +344,33 @@
         </div>
       </q-card>
     </q-dialog>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tên chi nhánh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="branch in branches" :key="branch.id">
+          <td>{{ branch.id }}</td>
+          <td>{{ branch.name }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Nút điều khiển phân trang -->
+    <div class="pagination">
+      <button @click="changePage(page - 1)" :disabled="page === 1">
+        Previous
+      </button>
+
+      <span>Page {{ page }} of {{ lastPage }}</span>
+
+      <button @click="changePage(page + 1)" :disabled="page === lastPage">
+        Next
+      </button>
+    </div>
   </div>
 </template>
     
