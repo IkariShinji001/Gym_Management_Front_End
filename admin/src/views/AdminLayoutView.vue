@@ -46,7 +46,7 @@
     </q-drawer>
 
     <q-page-container>
-      <router-view :drawerOpen="isLeftDrawerOpen" />
+      <router-view />
     </q-page-container>
   </q-layout>
 </template>
