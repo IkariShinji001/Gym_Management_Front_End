@@ -42,6 +42,7 @@
           const response = await authService.login(userInfo.email, userInfo.password);
           const payload = jwtDecode(response.access_token);
           localStorage.setItem("role", payload.role)
+          localStorage.setItem("id", payload.id)
           console.log(payload)
           alert('Login successfully')
           router.push("/admins");

@@ -40,13 +40,12 @@
               <h5>Thêm PT</h5>
             </q-card-title>
           </div>
-          
+
           <q-card-section>
             <q-input class="dia-input" v-model="ptInput.profile.fullName" label="Họ và tên" outlined />
             <q-input class="dia-input" v-model="ptInput.profile.email" label="Email" outlined />
             <q-input class="dia-input" v-model="ptInput.profile.password" label="Password" outlined />
             <q-input class="dia-input" v-model="ptInput.profile.phoneNumber" label="Số điện thoại" outlined />
-            <q-input class="dia-input" v-model="ptInput.profile.role" label="Vai trò" outlined />
             <q-input class="dia-input" v-model="ptInput.weight" label="Cân nặng" outlined />
             <q-input class="dia-input" v-model="ptInput.height" label="Chiều cao" outlined />
             <q-input class="dia-input" v-model="ptInput.bust" label="Vòng 1" outlined />
@@ -77,7 +76,6 @@
               <h5>Cập nhật Hình ảnh </h5>
             </q-card-title>
           </div>
-
           <q-card-section>
             <div class="list-image">
               <div v-for="(image) in pt.images" :key="image.id" class="image-item">
@@ -85,27 +83,26 @@
                   <img :src="image.imageUrl" alt="Image" class="image-preview" />
                   <!-- Nút xoá, hiển thị khi hover -->
                   <q-icon v-if="image.id" class="delete-icon" name="delete" color="red" size="md"
-                    @click="handleDeleteImage(image.id)" />
+                    @click="handleDeleteImage(image.id, pt.id)" />
                 </div>
               </div>
               <div class="add-image">
                 <!-- <q-icon name="add" padding="lg" color="primary" size="md" @click="handleAddImage" /> -->
-                <q-file required filled bottom-slots multiple v-model="fileUploaded" label="Hình ảnh" accept="image/*"
-                  >
+                <q-file required filled bottom-slots multiple v-model="fileUploaded" label="Hình ảnh" accept="image/*">
                   <!-- @update:model-value="handleFileChange" -->
                   <template v-slot:prepend>
                     <q-icon name="cloud_upload" />
                   </template>
                 </q-file>
-                <q-icon name="check" padding="lg" color="primary" size="md" @click="handleAddImage(pt.id)" />
+                <!-- <q-icon name="check" padding="lg" color="primary" size="md" @click="handleAddImage(pt.id)" /> -->
               </div>
             </div>
             <div class="header-card-title">
-            <q-card-title class="card-title">
-              <q-icon name="edit"></q-icon>
-              <h5>Cập nhật thông tin </h5>
-            </q-card-title>
-          </div>
+              <q-card-title class="card-title">
+                <q-icon name="edit"></q-icon>
+                <h5>Cập nhật thông tin </h5>
+              </q-card-title>
+            </div>
             <q-input class="dia-input" v-model="pt.weight" label="Cân nặng" outlined>
               <template v-slot:append>
                 <h6>kg</h6>
@@ -141,13 +138,14 @@
       </q-card>
     </q-dialog>
 
+
     <!-- Dialog cho xem chi tiết thông tin -->
     <q-dialog v-model="openDetailDialog">
       <q-card>
         <!-- <img v-if="pt.images.length" :src="pt.images[0].imageUrl" class="card-img" /> -->
-        <div v-if="pt.images.length">
+        <div v-if="pt.images?.length">
           <q-carousel animated v-model="slide" arrows infinite swipeable thumbnails>
-            <q-carousel-slide v-for="(image, index) in pt.images" :key="image.id" :name="index + 1"
+            <q-carousel-slide v-for="(image, index) in pt.images" :key="image.id" :name="index"
               :img-src="image.imageUrl" />
           </q-carousel>
         </div>
@@ -243,6 +241,7 @@ import { computed, onBeforeMount, reactive, ref } from "vue";
 import ptsServices from "../services/pts.service";
 import uploadFileService from "../services/uploadFile.service";
 import ptImagesService from "../services/ptImages.service"
+import managersService from "../services/managers.service";
 
 const pts = ref([]);
 const search = ref();
@@ -254,8 +253,11 @@ const currentPage = ref(1);
 const rowsPerPage = ref(10);
 const fileUploaded = ref([]);
 const secure_urlList = ref([]);
-const slide = ref(1);
+const slide = ref(0);
 const selectedImgId = ref(0);
+const profileId = localStorage.getItem("id");
+const manager = ref({});
+
 
 const pt = reactive({
   weight: "",
@@ -271,7 +273,7 @@ const pt = reactive({
     fullName: "",
     role: "",
   },
-
+  images: [],
 });
 
 const ptInput = reactive({
@@ -288,6 +290,7 @@ const ptInput = reactive({
     fullName: "",
     role: "",
   },
+  managerId: "",
 });
 
 const handleOpenCreateDialog = () => {
@@ -301,6 +304,8 @@ const handleOpenCreateDialog = () => {
   ptInput.bust = "";
   ptInput.waist = "";
   ptInput.hips = "";
+  ptInput.fbLink = "";
+  ptInput.managerId = "";
   openCreateDialog.value = true;
 };
 
@@ -308,7 +313,6 @@ const handleOpenUpdateDialog = async (id) => {
   openUpdateDialog.value = true;
   const index = pts.value.findIndex((pt) => pt.id === id);
   Object.assign(pt, pts.value[index]);
-  updateId.value = index;
   updateId.value = id;
 };
 
@@ -336,6 +340,7 @@ const handleAdd = async () => {
         waist: ptInput.waist,
         hips: ptInput.hips,
         fbLink: ptInput.fbLink,
+        managerId: manager.value.id,
       },
       createImagesDto: secure_urlList.value,
     };
@@ -358,6 +363,7 @@ const handleUpdate = async (id) => {
       fbLink: pt.fbLink,
     };
     const res = await ptsServices.update(id, payload);
+    handleAddImage(id);
     const index = pts.value.findIndex((pt) => pt.id === id);
     Object.assign(pts.value[index], res);
     openUpdateDialog.value = false;
@@ -366,7 +372,7 @@ const handleUpdate = async (id) => {
   }
 };
 
-const handleAddImage = async (id) => {
+const   handleAddImage = async (id) => {
   try {
     secure_urlList.value = []; // reset danh sách ảnh
     for (var i = 0; i < fileUploaded.value.length; i++) {
@@ -381,10 +387,10 @@ const handleAddImage = async (id) => {
       const newImage = await ptImagesService.createImage(secure_urlList.value[i].imageUrl, id);
       // pt.images.push(secure_urlList.value[i]);
       const ptIndex = pts.value.findIndex(pt => pt.id === id);
-      pts.value[ptIndex].images.push(newImage); // cập nhật vào danh sách ảnh của PT
+      pts.value[ptIndex].images.push(newImage); 
     }
-    fileUploaded.value = []; // Làm trống danh sách file sau khi xử lý
-    secure_urlList.value = []; // Làm trống danh sách URL sau khi xử
+
+    fileUploaded.value = [];
 
   } catch (error) {
     console.log(error);
@@ -398,7 +404,6 @@ const filteredPts = computed(() => {
 });
 const handleDelete = async (id) => {
   try {
-
     await ptsServices.delete(id);
     pts.value = pts.value.filter((pt) => pt.id !== id);
   } catch (error) {
@@ -407,8 +412,9 @@ const handleDelete = async (id) => {
 };
 
 onBeforeMount(async () => {
-  pts.value = await ptsServices.getAll();
-  // console.log(pts.value);
+  manager.value = await managersService.findByProfile(profileId);
+  pts.value = await managersService.getPtsByManagerId(manager.value.id);
+  console.log(pts.value);
 });
 const handleOpenDetailDialog = (id) => {
   openDetailDialog.value = true;
@@ -429,17 +435,18 @@ const updatePage = (page) => {
   currentPage.value = page;
 };
 
-const handleDeleteImage = async (imageId) => {
+const handleDeleteImage = async (imageId, ptId) => {
   try {
     await uploadFileService.deleteFile(imageId);
     await ptImagesService.deleteImage(imageId);
-
-    pt.images = pt.images.filter((image) => image.id !== imageId);
+    const index = pt.images.findIndex((image) => image.id === imageId);
+    if (index !== -1) {
+      pt.images.splice(index, 1);
+    }
   } catch (error) {
     console.log(error);
   }
 };
-
 
 </script>
 
@@ -590,8 +597,9 @@ td {
   align-items: center;
   text-align: center;
   height: 40px;
-  
+
 }
+
 .header-card-title {
   display: flex;
   justify-content: center;

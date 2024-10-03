@@ -8,7 +8,9 @@ class ManagersService {
   async getManager(id) {
     return (await api.get(`/managers/${id}`)).data;
   }
-
+  async findByProfile(id) {
+    return (await api.get(`/managers/profile/${id}`)).data;
+}
   async createManager(manager) {
     return (await api.post("/managers", manager)).data;
   }
@@ -18,6 +20,10 @@ class ManagersService {
   async getEmployeesByManagerId(id) {
     return (await api.get(`/managers/${id}/employees`)).data;
   }
+  async getPtsByManagerId(id) {
+    return (await api.get(`/managers/${id}/pts`)).data;
+  }
+
 }
 
 export default new ManagersService();

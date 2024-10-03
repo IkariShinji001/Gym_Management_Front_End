@@ -7,6 +7,9 @@ class ptsService {
     async find(id) {
         return (await api.get(`/pts/${id}`)).data;
     }
+    async findByProfile(id) {
+        return (await api.get(`/pts/profile/${id}`)).data;
+    }
     async create(data) {
         return (await api.post("/pts", data)).data;
     }

@@ -10,6 +10,9 @@ class ProfilesService {
   async updatedProfile(id, profile) {
     return (await api.patch(`/profiles/${id}`, profile)).data;
   }
+  async updatePassword(id, password, newPassword) {
+    return (await api.patch(`/profiles/password/${id}`, { password, newPassword })).data;
+  }
 }
 
 export default new ProfilesService();
