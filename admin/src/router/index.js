@@ -6,7 +6,19 @@ const router = createRouter({
     {
       path: "/admins",
       component: () => import("../views/AdminLayoutView.vue"),
+      meta: { requiresAuth: true },
       children: [
+        {
+          path: "blogs",
+          name:"blog",
+          component: ()=> import("../views/BlogView.vue")
+        },
+        {
+          path: "blogs/posts/:id",
+          name:"postDetails",
+          component: () => import("../views/PostDetailView.vue")
+        },
+
         {
           path: "supplement-products",
           name: "supplement",
@@ -59,7 +71,22 @@ const router = createRouter({
       name: "login",
       component: () => import("../views/LoginAdmin.vue"),
     },
+    
   ],
+});
+
+//  hukhan
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem("role");
+
+  if (
+    to.matched.some((record) => record.meta.requiresAuth) &&
+    !isAuthenticated
+  ) {
+    next("/login");
+  } else {
+    next();
+  }
 });
 
 export default router;
