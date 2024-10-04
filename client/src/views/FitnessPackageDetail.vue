@@ -19,7 +19,7 @@
             <!-- Hiển thị badge chỉ khi giá trị của nút đó được chọn -->
             <q-badge color="red" floating v-if="selectPriceId === servicePackagePrice.id"></q-badge>
             {{ servicePackagePrice.packageDuration?.duration + " " +
-            formatDurationType(servicePackagePrice.packageDuration?.durationType) }}
+              formatDurationType(servicePackagePrice.packageDuration?.durationType) }}
           </q-btn>
         </div>
       </div>
@@ -117,7 +117,7 @@
 
 </script>
 
-<style>
+<style scoped>
   .container {
     background-color: #edf2f4;
     min-height: 150vh;

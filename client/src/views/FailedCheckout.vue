@@ -6,6 +6,29 @@
 </template>
 
 
+<script setup>
+  import { onMounted } from 'vue';
+  import { useRoute } from 'vue-router';
+  import billService from '../services/bill.service';
+  const route = useRoute();
+  console.log(route.query)
+
+  onMounted(async () => {
+    const billId = route.query.bill_id; // Không cần optional chaining ở đây vì route đã được mounted
+    if (billId) {
+      try {
+        const res = await billService.updateBill(billId, "FAILED");
+        console.log(res);
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      console.error("Bill ID không tồn tại trong query parameters.");
+    }
+  });
+</script>
+
+
 <style scoped>
   .check {
     color: brown;

@@ -33,7 +33,7 @@
     </li>
     <router-link :to="`/active-package`">
       <li class="li">
-        <q-icon class="icons" name="exercise"></q-icon>
+        <q-icon class="icons" name="fitness_center"></q-icon>
         <p>Gói tập của tôi</p>
       </li>
     </router-link>

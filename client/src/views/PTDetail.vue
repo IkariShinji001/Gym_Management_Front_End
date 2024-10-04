@@ -17,6 +17,7 @@
                         <q-carousel-slide v-for="(image, imgIndex) in ptPackage?.pt.images" :key="image.id"
                             :name="imgIndex" :img-src="image.imageUrl" />
                     </q-carousel>
+                </q-carousel>
             </q-card-section>
         </div>
         <div class="duration" v-if="ptPackage?.servicePackage?.servicePackagePrices?.length > 0">
