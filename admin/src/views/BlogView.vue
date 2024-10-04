@@ -316,7 +316,7 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s;
   background-color: rgba(220, 220, 220, 0.15);
-  padding: 10px;
+  padding: 12px;
   border-radius: 8px;
 }
 

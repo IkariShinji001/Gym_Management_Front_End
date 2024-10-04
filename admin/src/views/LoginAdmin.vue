@@ -54,7 +54,7 @@ export default {
         const payload = jwtDecode(response.access_token);
         localStorage.setItem("role", payload.role);
         alert("Login successfully");
-        router.push({ path: "/admins" });
+        router.push({ path: "/admins/blogs" });
       } catch (error) {
         alert("Login fail");
         console.log(error);
