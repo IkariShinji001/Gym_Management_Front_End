@@ -18,7 +18,12 @@
               <q-carousel-slide v-for="(image, index) in profilePt.images" :key="image.id" :name="index"
                 :img-src="image?.imageUrl" img-class="carousel-image">
                 <q-icon v-if="image?.id" class="delete-icon" name="delete" color="red" size="md"
-                  @click="handleDeleteImage(image.id)" />
+                  @click="handleDeleteImage(image.id)">
+                  <q-tooltip>Xoá ảnh</q-tooltip>
+                </q-icon>
+                <q-icon class="add-icon" name="upload_file" color="blue" size="md" @click="handleAddImageDialog">
+                  <q-tooltip>Thêm ảnh</q-tooltip>
+                </q-icon>
               </q-carousel-slide>
             </q-carousel>
           </div>
@@ -80,7 +85,26 @@
           </q-card-section>
         </q-card>
       </q-dialog>
-
+      <q-dialog v-model="openAddImageDialog">
+        <q-card>
+          <q-card-section>
+            <q-card-title>
+              <h4>Thêm ảnh</h4>
+            </q-card-title>
+            <q-card-section>
+              <q-form @submit="handleAddImage">
+                <q-file required filled bottom-slots multiple v-model="fileUploaded" label="Hình ảnh" accept="image/*"
+                  @update:model-value="handleFileChange">
+                  <template v-slot:prepend>
+                    <q-icon name="cloud_upload" />
+                  </template>
+                </q-file>
+                <q-btn type="submit" label="Thêm ảnh" color="primary" />
+              </q-form>
+            </q-card-section>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
     </div>
   </template>
 
@@ -98,10 +122,13 @@ const role = localStorage.getItem('role');
 const slide = ref(0);
 const openUpdateDialog = ref(false);
 const openUpdatePasswordDialog = ref(false);
+const openAddImageDialog = ref(false);
 const oldPassword = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
 const originalProfile = ref({}); // lưu trữ bản sao của profile ban đầu
+const fileUploaded = ref([]);
+const secure_urlList = ref([]);
 
 const $q = useQuasar();
 
@@ -117,12 +144,37 @@ onBeforeMount(async () => {
     console.log(error);
   }
 });
+const handleAddImageDialog = () => {
+  openAddImageDialog.value = true;
+};
 const handleOpenUpdateDialog = () => {
   openUpdateDialog.value = true;
 };
 const handleOpenUpdatePassword = () => {
   openUpdatePasswordDialog.value = true;
 };
+
+const handleAddImage = async () => {
+  try {
+    secure_urlList.value = [];// reset danh sách ảnh
+    for (var i = 0; i < fileUploaded.value.length; i++) {
+      const formData = new FormData();
+      formData.append("file", fileUploaded.value[i]);
+      const fileRes = await uploadFileService.uploadFile(formData);
+      secure_urlList.value.push(
+        { imageUrl: fileRes.secure_url });
+    }
+    for( var i = 0; i< secure_urlList.value.length; i++){
+      const newImage = await ptImagesService.createImage(secure_urlList.value[i].imageUrl, profilePt.value.id);
+      profilePt.value.images.push(newImage);
+    }
+    fileUploaded.value = [];
+    openAddImageDialog.value = false;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 const handleUpdatePt = async () => {
   try {
     const updatedPt = {
@@ -201,6 +253,7 @@ const handleDeleteImage = async (imageId) => {
 };
 
 
+
 </script>
 
 <style scoped>
@@ -271,14 +324,23 @@ h2 {
   cursor: pointer;
 }
 
-.carousel-container:hover .delete-icon {
-  display: block;
+.add-icon {
+  position: absolute;
+  top: 60px;
+  right: 10px;
+  cursor: pointer;
 }
 
-.add-image {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 10px;
+.add-icon:hover {
+  filter: grayscale(100%);
+
+}
+
+.delete-icon:hover {
+  filter: grayscale(100%);
+}
+
+.carousel-container:hover .delete-icon .add-icon {
+  display: block;
 }
 </style>
