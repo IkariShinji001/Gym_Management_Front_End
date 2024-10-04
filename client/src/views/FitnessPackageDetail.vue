@@ -4,6 +4,9 @@
       <q-btn flat icon="arrow_back" size="md" @click="$router.go(-1)">
       </q-btn>
     </div>
+    <q-badge color="blue" v-if="currentPackage" class="current">
+      Đang sử dụng
+    </q-badge>
 
     <div v-if="fitnessPackage.servicePackage.name">
       <h5 class="container-header ">Gói {{ fitnessPackage.servicePackage.name }}</h5>
@@ -24,7 +27,6 @@
         </div>
       </div>
     </div>
-
     <div class="price">
       <div> {{ formatPrice(price) }}</div>
     </div>
@@ -59,26 +61,26 @@
   import servicePackagePrice from "../services/servicePackagePrice.service";
   import FitnessPackageService from "../services/fitnessPackage.service";
   import { useRoute } from "vue-router";
+  import billService from "../services/bill.service";
 
   const fitnessPackage = ref();
   const fitnessBenefits = ref([]);
   const servicePackagePrices = ref([1]);
   const route = useRoute();
   const fitnessPackageId = ref(route.params.fitnessPackageId);
-  const typeId = ref(route.params.typeId);
-  const openBuyDialog = ref(false);
   const selectPriceId = ref(0);
   const price = ref(0);
+  const packageActive = ref([]);
+  const currentPackage = ref(false);
+  const userId = localStorage.getItem("userId");
 
-  const handleOpenBuyDialog = () => {
-    openBuyDialog.value = true;
-  }
+
 
   onBeforeMount(async () => {
     fitnessBenefits.value = await benefitPackageService.findBenefitByFitnessPackageId(fitnessPackageId.value);
     fitnessPackage.value = await FitnessPackageService.getById(fitnessPackageId.value);
 
-    servicePackagePrices.value = await servicePackagePrice.getPackagePriceById(fitnessPackage.value.servicePackage.id);
+    servicePackagePrices.value = await servicePackagePrice.getPackagePriceByIdServicePackage(fitnessPackage.value.servicePackage.id);
     // price.value=servicePackagePrices.value[0].price;
     // Đặt mặc định giá trị của selectPriceId và price
 
@@ -86,6 +88,21 @@
       selectPriceId.value = servicePackagePrices.value[0].id;
       price.value = servicePackagePrices.value[0].price;
     }
+    packageActive.value = await billService.getPackageActive(userId);
+    console.log("packageActive:", packageActive.value); // Kiểm tra dữ liệu gói đang active
+
+    let packageActiveIdList = [];
+    packageActive.value.forEach((element) => {
+      packageActiveIdList.push(element.servicePackagePriceId);
+    });
+
+    console.log("Active Package IDs:", packageActiveIdList); // Kiểm tra danh sách ID active
+
+    servicePackagePrices.value.forEach((servicePackagePrice) => {
+      if (packageActiveIdList.includes(servicePackagePrice.id)) {
+        currentPackage.value = true;
+      }
+    });
   });
   const testFunc = () => {
     console.log(selectPriceId.value);
@@ -121,6 +138,30 @@
   .container {
     background-color: #edf2f4;
     min-height: 150vh;
+  }
+
+  .back-button {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 1;
+    background-color: #D90429;
+    color: white;
+    border: none;
+    font-size: 16px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+  }
+
+
+  .current {
+    position: absolute;
+    top: 40px;
+    right: 5px;
+    z-index: 1;
+    /* background-color: #D90429; */
+    /* color: white; */
+    height: 30px;
   }
 
 

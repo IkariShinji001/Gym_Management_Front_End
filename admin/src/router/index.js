@@ -6,7 +6,19 @@ const router = createRouter({
     {
       path: "/admins",
       component: () => import("../views/AdminLayoutView.vue"),
+      meta: { requiresAuth: true },
       children: [
+        {
+          path: "blogs",
+          name:"blog",
+          component: ()=> import("../views/BlogView.vue")
+        },
+        {
+          path: "blogs/posts/:id",
+          name:"postDetails",
+          component: () => import("../views/PostDetailView.vue")
+        },
+
         {
           path: "supplement-products",
           name: "supplement",
@@ -16,6 +28,16 @@ const router = createRouter({
           path: "facilities",
           name: "facilities",
           component: () => import("../views/Facilities.vue"),
+        },
+        {
+          path: "maintenances",
+          name: "maintenances",
+          component: () => import("../views/MaintenanceView.vue"),
+        },
+        {
+          path: "branches",
+          name: "branches",
+          component: () => import("../views/BranchesView.vue"),
         },
         {
           path: "pts",
@@ -52,6 +74,47 @@ const router = createRouter({
           name: "email",
           component: () => import("../views/SendMailView.vue"),
         },
+        {
+          path: "count-maintenances",
+          name: "countMaintenance",
+          component: () => import("../views/CountMaintenances.vue"),
+        },
+        {
+          path: "daily-bill-statistics",
+          name: "weeklyBillStatistics",
+          component: () => import("../views/WeeklyBillStatistics.vue"),
+        },
+        {
+          path: "yearly-bill-statistics",
+          name: "yearlyBillStatistics",
+          component: () => import("../views/YearlyBillStatistics.vue"),
+        },
+        {
+          path: "top-spent-users-statistics-in-month",
+          name: "TopSpentUsersStatisticsInMonth",
+          component: () => import("../views/TopSpentUsersStatisticsInMonth.vue"),
+        },
+        {
+          path: "top-spent-users-statistics-in-year",
+          name: "TopSpentUsersStatisticsInYear",
+          component: () => import("../views/TopSpentUsersStatisticsInYear.vue"),
+        },
+        {
+          path: "top-purchased-packages-statistics-in-month",
+          name: "TopPurchasedPackagesStatisticsInMonth",
+          component: () => import("../views/TopPurchasedPackagesStatisticsInMonth.vue"),
+        },
+        {
+          path: "top-purchased-packages-statistics-in-year",
+          name: "TopPurchasedPackagesStatisticsInYear",
+          component: () => import("../views/TopPurchasedPackagesStatisticsInYear.vue"),
+        },
+        
+        {
+          path: "profile",
+          name: "profile",
+          component: () => import("../views/Profile.vue"),
+        },
       ],
     },
     {
@@ -59,7 +122,22 @@ const router = createRouter({
       name: "login",
       component: () => import("../views/LoginAdmin.vue"),
     },
+    
   ],
+});
+
+//  hukhan
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem("role");
+
+  if (
+    to.matched.some((record) => record.meta.requiresAuth) &&
+    !isAuthenticated
+  ) {
+    next("/login");
+  } else {
+    next();
+  }
 });
 
 export default router;

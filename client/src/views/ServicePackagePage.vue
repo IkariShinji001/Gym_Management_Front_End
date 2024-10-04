@@ -7,6 +7,7 @@
     <h3 class="container-header">Gói tập</h3>
     <div class="cards">
       <div v-for="(fitnessPackage, index) in fitnessPackages" :key="index">
+      
         <q-card class="my-card">
           <router-link :to="`types/${typeId}/fitness-package/${fitnessPackage.id}`">
             <q-img :src="fitnessPackage.coverImageUrl">
@@ -32,8 +33,10 @@ import FitnessPackageService from "../services/fitnessPackage.service";
 const fitnessPackages = ref([]);
 const route = useRoute();
 const typeId = ref(route.params.typeId);
+
 onBeforeMount(async () => {
   fitnessPackages.value = await FitnessPackageService.getByType(typeId.value);
+ 
 });
 </script>
 
