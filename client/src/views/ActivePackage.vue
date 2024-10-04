@@ -22,7 +22,7 @@
     </q-card>
   </div>
   <div v-else class="no-package"> Bạn chưa có gói tập nào !
-    <router-link to="/">Mua ngay</router-link>
+    <router-link to="/fitness-package-type-service"><q-btn class="btn">Mua ngay</q-btn></router-link>
   </div>
 </template>
 
@@ -59,7 +59,9 @@
       persistent: true
     }).onOk(async () => {
       const res = await billService.cancelPackage(priceId);
-      console.log(res);
+      const index = activePackages.value.findIndex((pkg) => pkg.id == priceId);
+      activePackages.value.splice(index, 1);
+      console.log(index)
     }).onCancel(() => {
       console.log('>>>> Cancel')
     })
@@ -119,5 +121,17 @@
     align-items: center;
     flex-direction: column;
     font-size: 40px;
+    text-align: center;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  .btn {
+    padding: 10px 50px;
+    font-size: 20px;
+    color: white;
+    background-color: brown;
   }
 </style>

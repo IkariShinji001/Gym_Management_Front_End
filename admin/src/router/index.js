@@ -110,6 +110,11 @@ const router = createRouter({
           component: () => import("../views/TopPurchasedPackagesStatisticsInYear.vue"),
         },
         
+        {
+          path: "profile",
+          name: "profile",
+          component: () => import("../views/Profile.vue"),
+        },
       ],
     },
     {

@@ -55,10 +55,10 @@
           $q.notify({ position: 'top', message: 'Gói tập của bạn đã hết hạn!' });
           return;
         }
-        if (user.value.id !== res.user.id) {
-          user.value = res.user;
-          $q.notify({ position: 'top', message: "Xin chào " + user.value.fullName });
-        }
+        // if (user.value.id !== res.user.id) {
+        //   user.value = res.user;
+        $q.notify({ position: 'top', message: "Xin chào " + user.value.fullName });
+        // }
       } catch (error) {
         console.error(error);
         $q.notify({ position: 'top', message: 'Bạn chưa đăng ký gương mặt trong hệ thống!' });
@@ -67,10 +67,10 @@
     }
   };
 
-  setTimeout(() => setInterval(captureImage, 2000), 5000);
+  // setTimeout(() => setInterval(captureImage, 1000), 4000);
 
 
-
+  setInterval(captureImage, 1000);
   onMounted(() => {
     initializeCamera();
   });

@@ -10,7 +10,10 @@ class EmployeeService {
     }
 
     async getEmployeeById(id){
-        return (await api.get(`this.path/${id}`)).data;
+        return (await api.get(`${this.path}/${id}`)).data;
+    }
+    async findByProfile(id){
+        return (await api.get(`${this.path}/profile/${id}`)).data;
     }
     async createEmployee(newEmployee){
         return (await api.post(`${this.path}`, newEmployee)).data;
