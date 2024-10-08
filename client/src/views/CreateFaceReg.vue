@@ -43,8 +43,10 @@
     try {
       console.log(images.value)
       const res = await faceService.createFaceReg(userId, images.value);
-      console.log(res);
+      $q.notify({ position: 'top', message: 'Thành công !!' })
     } catch (error) {
+      $q.notify({ position: 'top', message: 'Ảnh không rõ mặt. Vui lòng thử lại' })
+      progress.value = 0;
       console.log(error)
     } finally {
       $q.loading.hide()
