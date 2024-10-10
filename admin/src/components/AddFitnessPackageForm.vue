@@ -8,7 +8,7 @@
         color="red"
       ></q-icon>
     </q-btn>
-    <q-form class="form-create" @submit="createFitnessPackage">
+    <q-form class="form-create" @submit="handleCreateFitnessPackage">
       <q-input
         v-model="createServicePackageDto.name"
         required
@@ -37,7 +37,7 @@
             style="width: 160px"
             filled
             v-model="createServicePackageDto.typeId"
-            :options="packageTypes"
+            :options="packageTypeList"
             option-value="id"
             map-options
             emit-value
@@ -53,7 +53,7 @@
         </div>
       </div>
 
-      <button class="add-price-btn" @click="addInputAndSelect">
+      <button class="add-price-btn" @click="handleAddPriceInput">
         <q-icon
           name="add_circle"
           class="add-price-icon"
@@ -74,7 +74,7 @@
           v-model="coupleInput.packageDurationId"
           :options="coupleInput.filteredDuration"
           option-value="id"
-          :option-label="formatDuration"
+          option-label="duration"
           label="thời hạn"
           class="q-select"
           map-options
@@ -90,11 +90,12 @@
           filled
           v-model="coupleInput.selectedDurationType"
           :options="durationTypeList"
+          :option-label="handleFormatDuration"
           label="thời gian"
           class="q-select"
           lazy-rules
           @update:model-value="
-            (newVal) => updateFilteredDuration(index, newVal)
+            (newVal) => handleUpdateFilteredDuration(index, newVal)
           "
           :rules="[
             (val) => (val !== null && val !== '') || 'Vui lòng chọn loại',
@@ -117,23 +118,6 @@
         >
       </div>
 
-      <div class="textarea-benefit">
-        <q-input
-          v-model="strBenefit"
-          style="width: 400px; font-size: 16px"
-          filled
-          type="textarea"
-          label="Quyền lợi gói dịch vụ "
-          required
-          :rules="[
-            (val) =>
-              (val && val.length > 0) || 'Vui lòng điền các quyền lợi của gói ',
-          ]"
-        />
-        <div style="font-size: 16px; color: red; font-weight: bold">
-          CÁC QUYỀN LỢI CÁCH NHAU BẰNG DẤU CHẤM
-        </div>
-      </div>
       <q-file
         required
         filloed
@@ -151,17 +135,14 @@
         <img :src="imageUrl" alt="Image preview" class="preview-img" />
       </div>
       <div class="btn">
-        <q-btn label="Thêm sản phẩm" type="submit" color="primary" />
-      </div>
-      <div class="btn" style="margin-top: 10px">
-        <q-btn label="Test" @click="testFunction" color="red" />
+        <q-btn label="Thêm gói tập" type="submit" color="primary" />
       </div>
     </q-form>
   </div>
 </template>
 
 <script>
-import { ref, onBeforeMount, reactive, watch } from "vue";
+import { ref, reactive } from "vue";
 import uploadFileService from "../services/uploadFile.service";
 import fitnessPackageService from "../services/fitnessPackage.service";
 import { useQuasar, QSpinnerCube } from "quasar";
@@ -173,33 +154,28 @@ export default {
   },
   setup(props, { emit }) {
     const $q = useQuasar();
+
+    const selectedPackageType = ref(null);
     const fileUploaded = ref(null);
     const imageUrl = ref("");
-    const createAllFitnessDto = ref();
     const selectedDurationType = ref("day");
+
+    const packageTypeList = ref(props.packageTypes);
+    const durationList = ref(props.durationList);
+    const createPackagePriceDtoList = ref([]);
+    const durationTypeList = ref(["day", "month", "year"]);
+
     const createFitnessPackageDto = reactive({
       coverImageUrl: "",
     });
     const createServicePackageDto = reactive({
       name: "",
       description: "",
-      typeId: 0,
+      typeId: packageTypeList.value[0].id,
     });
-     const createNewBenefit = ref({
-      description: ""
-     })
-    const createNewBenefitList = ref([])
+    const createAllFitnessDto = ref();
 
-    const strBenefit = ref("");
-
-    const packageTypes = ref(props.packageTypes);
-    const durationList = ref(props.durationList);
-    // const filteredDuration = ref(props.durationList);
-    const selectedPackageType = ref(null);
-    const createPackagePriceDtoList = ref([]);
-    const durationTypeList = ref(["day", "month", "year"]);
-
-    function updateFilteredDuration(index, newValue) {
+    function handleUpdateFilteredDuration(index, newValue) {
       createPackagePriceDtoList.value[index].filteredDuration =
         durationList.value.filter(
           (duration) => duration.durationType === newValue
@@ -208,10 +184,18 @@ export default {
       createPackagePriceDtoList.value[index].packageDurationId = null;
     }
 
-    function formatDuration(option) {
-      return `${option.duration} ${option.durationType}`;
+    function handleFormatDuration(option) {
+      if (option === "year") {
+        return "năm";
+      } else if (option === "month") {
+        return "tháng";
+      } else if (option === "day") {
+        return "ngày";
+      } else {
+        return;
+      }
     }
-    function addInputAndSelect() {
+    function handleAddPriceInput() {
       createPackagePriceDtoList.value.push({
         price: "",
         packageDurationId: null,
@@ -226,52 +210,12 @@ export default {
       }
     }
 
-    async function testFunction() {
-      $q.loading.show({
-        spinner: QSpinnerCube,
-        message: "Đang tạo gói tập mới...",
-      });
-
-      try {
-        // var cleanString = strBenefit.value.split(".");
-        // cleanString = cleanString.map((item) => item.replace(/\n/g, "").trim());
-        // const benefitList = cleanString.filter((item) => item !== "");
-        // const formData = new FormData();
-        // formData.append("file", fileUploaded.value);
-        // const resUpload = await uploadFileService.uploadFile(formData);
-        // createFitnessPackageDto.coverImageUrl = resUpload.secure_url;
-        // createAllFitnessDto.value = {
-        //   createFitnessPackageDto,
-        //   createServicePackageDto,
-        //   createPackagePriceDtoList: createPackagePriceDtoList.value,
-        //   createBenefitList: benefitList,
-        // };
-        // console.log(createAllFitnessDto.value);
-
-        console.log(durationList.value);
-        console.log(filteredDuration.value);
-      } catch (error) {
-        console.error("Error in testFunction:", error);
-      } finally {
-        $q.loading.hide();
-      }
-    }
-
-    async function createFitnessPackage() {
+    async function handleCreateFitnessPackage() {
       $q.loading.show({
         spinner: QSpinnerCube,
         message: "Đang tạo gói tập mới...",
       });
       try {
-        let cleanString = strBenefit.value.split(".");
-        cleanString = cleanString.map((item) => item.replace(/\n/g, "").trim());
-        const benefitList = cleanString.filter((item) => item !== "");
-
-        benefitList.forEach((benefit) => {
-          createNewBenefit.value.description = benefit
-          createNewBenefitList.value.push({...createNewBenefit.value})
-        })
-
         const formData = new FormData();
         if (fileUploaded.value) {
           formData.append("file", fileUploaded.value);
@@ -283,18 +227,17 @@ export default {
           createFitnessPackageDto,
           createServicePackageDto,
           createPackagePriceDtoList: createPackagePriceDtoList.value,
-          createNewBenefitList: createNewBenefitList.value
         };
-        console.log(createAllFitnessDto.value);
         const createdFitness = await fitnessPackageService.create(
           createAllFitnessDto.value
         );
 
         emit("addCreatedFitness", createdFitness);
         emit("closeForm");
-        $q.loading.hide();
       } catch (e) {
         console.log(e);
+      } finally {
+        $q.loading.hide();
       }
     }
     return {
@@ -302,22 +245,18 @@ export default {
       fileUploaded,
       selectedPackageType,
       selectedDurationType,
-      packageTypes,
+      packageTypeList,
       createPackagePriceDtoList,
       durationTypeList,
       durationList,
 
       createServicePackageDto,
-      strBenefit,
 
-      formatDuration,
-
-      addInputAndSelect,
+      handleFormatDuration,
+      handleAddPriceInput,
       handleFileChange,
-      createFitnessPackage,
-      updateFilteredDuration,
-
-      testFunction,
+      handleCreateFitnessPackage,
+      handleUpdateFilteredDuration,
     };
   },
 };

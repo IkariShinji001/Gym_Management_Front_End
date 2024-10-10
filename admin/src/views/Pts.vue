@@ -414,7 +414,6 @@ const handleDelete = async (id) => {
 onBeforeMount(async () => {
   manager.value = await managersService.findByProfile(profileId);
   pts.value = await managersService.getPtsByManagerId(manager.value.id);
-  console.log(pts.value);
 });
 const handleOpenDetailDialog = (id) => {
   openDetailDialog.value = true;

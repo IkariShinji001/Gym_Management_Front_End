@@ -23,7 +23,7 @@
       class="drawer"
     >
       <q-scroll-area class="fit drawer">
-        <q-list style="margin-top: 20px;">
+        <q-list style="margin-top: 20px">
           <template v-for="(menuItem, index) in menuList" :key="index">
             <router-link
               v-if="menuItem.label !== 'Thống kê doanh thu gói tập'"
@@ -44,10 +44,10 @@
             </router-link>
             <div v-else class="routerlink">
               <q-item :class="{ 'separator-true': menuItem.separator }">
-                <q-item-section avatar style="margin: 0 0;">
+                <q-item-section avatar style="margin: 0 0">
                   <q-icon :name="menuItem.icon" />
                 </q-item-section>
-                <q-item-section style="margin-left: -25px;">
+                <q-item-section style="margin-left: -25px">
                   <q-btn-dropdown class="dropdown" unelevated>
                     <template v-slot:label>
                       <div class="text-center">
@@ -156,12 +156,18 @@ export default {
         path: "/maintenances",
         role: ["manager", "employee"],
       },
-
       {
         icon: "fitness_center",
         label: "Gói dịch vụ",
+        separator: false,
+        path: "/fitness-packages",
+        role: ["manager", "employee"],
+      },
+      {
+        icon: "handshake",
+        label: "Gói PT",
         separator: true,
-        path: "/services",
+        path: "/pt-packages",
         role: ["manager", "employee"],
       },
       {
@@ -176,6 +182,13 @@ export default {
         label: "Quản lý nhân sự",
         separator: false,
         path: "/employees",
+        role: ["manager"],
+      },
+      {
+        icon: "self_improvement",
+        label: "Quản lý Pt",
+        separator: false,
+        path: "/pts",
         role: ["manager"],
       },
       {
