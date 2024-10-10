@@ -26,7 +26,10 @@
         <q-list style="margin-top: 20px">
           <template v-for="(menuItem, index) in menuList" :key="index">
             <router-link
-              v-if="menuItem.label !== 'Thống kê doanh thu gói tập'"
+              v-if="
+                menuItem.label !== 'Thống kê doanh thu gói tập' &&
+                menuItem.label !== 'Quản lý nhân sự'
+              "
               :to="basePath + menuItem.path"
               class="routerlink"
             >
@@ -42,6 +45,36 @@
                 </q-item-section>
               </q-item>
             </router-link>
+            <div
+              v-else-if="menuItem.label === 'Quản lý nhân sự'"
+              class="routerlink"
+            >
+              <q-item :class="{ 'separator-true': menuItem.separator }">
+                <q-item-section avatar style="margin: 0 0">
+                  <q-icon :name="menuItem.icon" />
+                </q-item-section>
+                <q-item-section style="margin-left: -25px">
+                  <q-btn-dropdown class="dropdown" unelevated>
+                    <template v-slot:label>
+                      <div class="text-center">Quản lý nhân sự</div>
+                    </template>
+                    <q-list>
+                      <q-item clickable v-close-popup to="/admins/employees">
+                        <q-item-section>
+                          <q-item-label>Nhân viên</q-item-label>
+                        </q-item-section>
+                      </q-item>
+
+                      <q-item clickable v-close-popup to="/admins/pts">
+                        <q-item-section>
+                          <q-item-label>Pt</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-btn-dropdown>
+                </q-item-section>
+              </q-item>
+            </div>
             <div v-else class="routerlink">
               <q-item :class="{ 'separator-true': menuItem.separator }">
                 <q-item-section avatar style="margin: 0 0">
@@ -135,7 +168,6 @@
 
 <script>
 import { ref, onBeforeMount } from "vue";
-
 export default {
   setup() {
     const isLeftDrawerOpen = ref(false);
@@ -154,6 +186,13 @@ export default {
         label: "Bảo trì thiết bị",
         separator: false,
         path: "/maintenances",
+        role: ["manager", "employee"],
+      },
+      {
+        icon: "trolley",
+        label: "Quản lý thiết bị",
+        separator: false,
+        path: "/facilities",
         role: ["manager", "employee"],
       },
       {
@@ -233,9 +272,11 @@ export default {
   padding: 6px;
   background: var(--layout-header-bg);
 }
+
 .drawer {
   background: var(--drawer-bg);
 }
+
 .routerlink {
   color: white;
   text-decoration: none;
