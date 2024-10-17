@@ -13,7 +13,7 @@
       <q-select
         filled
         v-model="provinceIsSelectedForFiltering"
-        :options="provinces"
+        :options="provincesInFilter"
         map-options
         emit-value
         label="Chọn thành phố"
@@ -69,77 +69,45 @@
           <q-form @submit="submitAddBranch">
             <q-input v-model="branch.name" label="Tên chi nhánh" />
             <q-input v-model="branch.address" label="Địa chỉ" />
-            <div class="container">
-              <div class="input-province-district q-pa-md">
-                <q-select
-                  filled
-                  v-model="provinceIsSelected"
-                  :options="provinces"
-                  map-options
-                  emit-value
-                  label="Chọn thành phố"
-                  option-value="id"
-                  option-label="name"
-                  style="width: 300px"
-                />
-              </div>
-              <div class="add-province">
-                <q-btn
-                  icon="add"
-                  dense
-                  flat
-                  @click="OpenAddProvince"
-                  title="Thêm thành phố"
-                />
-              </div>
-              <div>
-                <q-btn
-                  class="add-province"
-                  icon="update"
-                  dense
-                  flat
-                  title="Cập nhật thành phố"
-                  @click="showUpDateProvince = true"
-                />
-              </div>
+            {{ ProvinceIsSelected }}
+            <div class="input-province-district q-pa-md">
+              <q-select
+                filled
+                v-model="ProvinceIsSelected"
+                :options="provinces"
+                map-options
+                label="Chọn thành phố"
+                option-label="name"
+                style="width: 300px"
+                @update:model-value="
+                  saveProvinceIsSelected(
+                    ProvinceIsSelected.code,
+                    ProvinceIsSelected.name
+                  )
+                "
+              />
             </div>
-            <div class="container">
-              <div class="input-province-district q-pa-md">
-                <q-select
-                  filled
-                  v-model="branch.districtId"
-                  :options="districts"
-                  @filter="filterDistrictsInAddBranch"
-                  map-options
-                  emit-value
-                  label="Chọn quận"
-                  option-value="id"
-                  option-label="name"
-                  :disable="!provinceIsSelected"
-                  style="width: 300px"
-                />
-              </div>
-              <div class="add-province">
-                <q-btn
-                  icon="add"
-                  class="OpenAddDistrict"
-                  dense
-                  flat
-                  @click="OpenAddDistrict"
-                />
-              </div>
-              <div>
-                <q-btn
-                  class="add-province"
-                  icon="update"
-                  dense
-                  flat
-                  title="Cập nhật quận"
-                  @click="showUpDateDistrict = true"
-                />
-              </div>
+            <div class="input-province-district q-pa-md">
+              {{ districtsIsSelected }}
+              <q-select
+                filled
+                v-model="districtsIsSelected"
+                :options="districts"
+                @filter="filterDistricts"
+                map-options
+                emit-value
+                label="Chọn quận"
+                option-value="name"
+                option-label="name"
+                :disable="!ProvinceIsSelected"
+                style="width: 300px"
+              />
             </div>
-            <q-input v-model="branch.phoneNumber" label="Số địện thoại" />
+            <q-input
+              v-model="branch.phoneNumber"
+              label="Số địện thoại"
+              maxlength="10"
+            />
             <q-input
               type="time"
               v-model="branch.openTime"
@@ -188,14 +156,18 @@
             <div class="input-province-district q-pa-md">
               <q-select
                 filled
-                v-model="provinceIsChosen"
+                v-model="ProvinceIsSelected"
                 :options="provinces"
                 map-options
-                emit-value
                 label="Chọn thành phố"
-                option-value="id"
                 option-label="name"
                 style="width: 300px"
+                @update:model-value="
+                  saveProvinceIsSelected(
+                    ProvinceIsSelected.code,
+                    ProvinceIsSelected.name
+                  )
+                "
               />
             </div>
             <div class="input-province-district q-pa-md">
@@ -203,16 +175,20 @@
                 filled
                 v-model="branchToEdit.districtId"
                 :options="districts"
-                @filter="filterDistrictsInUpdateBranch"
+                @filter="filterDistricts"
                 map-options
                 emit-value
                 label="Chọn quận"
-                option-value="id"
+                option-value="name"
                 option-label="name"
                 style="width: 300px"
               />
             </div>
-            <q-input v-model="branchToEdit.phoneNumber" label="Số địện thoại" />
+            <q-input
+              v-model="branchToEdit.phoneNumber"
+              label="Số địện thoại"
+              maxlength="10"
+            />
             <q-input
               type="time"
               v-model="branchToEdit.openTime"
@@ -235,169 +211,29 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-
-    <!-- Thêm thành phố  -->
-    <q-dialog v-model="showAddProvince" persistent>
-      <q-card>
-        <q-card-section>
-          <h4>Thêm thành phố</h4>
-        </q-card-section>
-        <q-card-section>
-          <q-form @submit="submitAddProvince">
-            <h5>Tên thành phố</h5>
-            <q-input v-model="province.name"> </q-input>
-            <q-btn label="Lưu" icon="save" type="submit" class="btn-save" />
-            <q-btn
-              label="Hủy"
-              icon="cancel"
-              flat
-              @click="showAddProvince = false"
-              class="btn-cancel"
-            />
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- Cập nhật thành phố -->
-    <q-dialog v-model="showUpDateProvince">
-      <q-card>
-        <div class="dialog-update-province-district">
-          <div v-if="provinces.length === 0">
-            <h5>Không có thành phố nào</h5>
-          </div>
-          <div
-            v-for="province in provinces"
-            :key="province.id"
-            class="dialog-update-province-district-item"
-          >
-            <q-input v-model="province.name" style="font-size: 25px" />
-            <q-btn
-              icon="update"
-              @click="updateProvince(province.id, province.name)"
-              style="width: 100%"
-              title="Cập nhật thành phố"
-            />
-          </div>
-        </div>
-      </q-card>
-    </q-dialog>
-
-    <!-- Thêm quận  -->
-    <q-dialog v-model="showAddDistrict" persistent>
-      <q-card>
-        <q-card-section>
-          <h4>Thêm quận</h4>
-        </q-card-section>
-        <q-card-section>
-          <q-form @submit="submitAddDistrict">
-            <h5>Chọn thành phố</h5>
-            <div class="input-province-district q-pa-md">
-              <q-select
-                filled
-                v-model="district.provinceId"
-                :options="provinces"
-                map-options
-                emit-value
-                label="Chọn thành phố"
-                option-value="id"
-                option-label="name"
-                style="width: 300px"
-              />
-            </div>
-            <h5>Nhập tên quận</h5>
-            <q-input v-model="district.name"> </q-input>
-            <q-btn label="Lưu" icon="save" type="submit" class="btn-save" />
-            <q-btn
-              label="Hủy"
-              icon="cancel"
-              flat
-              @click="showAddDistrict = false"
-              class="btn-cancel"
-            />
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- Cập nhật quận -->
-    <q-dialog v-model="showUpDateDistrict">
-      <q-card>
-        <div class="dialog-update-province-district">
-          <div v-if="districts.length === 0">
-            <h5>Không có quận nào</h5>
-          </div>
-          <div
-            v-for="district in districts"
-            :key="district.id"
-            class="dialog-update-province-district-item"
-          >
-            <q-input v-model="district.name" style="font-size: 25px" />
-
-            <q-btn
-              icon="update"
-              @click="updateDistrict(district.id, district.name)"
-              style="width: 100%"
-              title="Cập nhật thành phố"
-            />
-          </div>
-        </div>
-      </q-card>
-    </q-dialog>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Tên chi nhánh</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="branch in branches" :key="branch.id">
-          <td>{{ branch.id }}</td>
-          <td>{{ branch.name }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Nút điều khiển phân trang -->
-    <div class="pagination">
-      <button @click="changePage(page - 1)" :disabled="page === 1">
-        Previous
-      </button>
-
-      <span>Page {{ page }} of {{ lastPage }}</span>
-
-      <button @click="changePage(page + 1)" :disabled="page === lastPage">
-        Next
-      </button>
-    </div>
   </div>
 </template>
     
     <script setup>
 import { ref, reactive, computed, onBeforeMount } from "vue";
 import { useToast } from "vue-toastification";
-import branchesService from "../services/branches.service.js";
+import districtsService from "../services/districts.service.js";
 import provincesService from "../services/provinces.service.js";
-import districtsService from "../services/districts.service";
+import branchesService from "../services/branches.service.js";
+import locationService from "../services/location.service.js";
 
 const toast = useToast();
 const branches = ref([]);
 const searchQuery = ref("");
 const showAddDialog = ref(false);
-const showAddProvince = ref(false);
-const showAddDistrict = ref(false);
 const showUpProvince = ref(false);
 const showUpdateDialog = ref(false);
 const provinceIsSelectedForFiltering = ref("");
-const provinceIsChosen = ref("");
-const provinceIsSelected = ref();
 const provinces = ref([]);
 const districtsIsSelected = ref();
 const districts = ref([]);
-const showUpDateProvince = ref(false);
-const showUpDateDistrict = ref(false);
-
+const ProvinceIsSelected = ref();
+const provincesInFilter = ref([]);
 const branch = reactive({
   name: "",
   address: "",
@@ -417,8 +253,14 @@ const branchToEdit = reactive({
   districtId: "",
 });
 
+// const provinceIsSelected = reactive({
+//   name: "",
+//   code: "",
+// });
+
 const province = reactive({
   name: "",
+  id_external: "",
 });
 
 const district = reactive({
@@ -433,6 +275,7 @@ const columns = [
     label: "Tên chi nhánh",
     align: "center",
     field: "name",
+    style: "text-transform: capitalize",
   },
   {
     name: "address",
@@ -471,25 +314,15 @@ const openAddBranch = () => {
   branch.address = "";
   branch.phoneNumber = "";
   branch.districtId = "";
-  provinceIsSelected.value = "";
+  ProvinceIsSelected.value = "";
+  districtsIsSelected.value = "";
   branch.openTime = "";
   branch.closedTime = "";
-
   showAddDialog.value = true;
 };
 
-const OpenAddProvince = () => {
-  province.name = "";
-  showAddProvince.value = true;
-};
-
-const OpenAddDistrict = () => {
-  district.name = "";
-  district.provinceId = "";
-  showAddDistrict.value = true;
-};
-
 const getAllBranches = async () => {
+  provinceIsSelectedForFiltering.value = "";
   branches.value = await branchesService.findAll();
 };
 
@@ -502,8 +335,12 @@ const filterBranchesInProvince = async () => {
 onBeforeMount(async () => {
   try {
     branches.value = await branchesService.findAll();
-    provinces.value = await provincesService.findAll();
-    districts.value = await districtsService.findAll();
+    console.log(branches.value);
+    provinces.value = await locationService.findAllProvinces();
+    console.log(provinces.value);
+    provincesInFilter.value = await provincesService.findAll();
+    // console.log(provinces.value);
+    // districts.value = await districtsService.findAll();
     // const newbranches = branches.value.map((branch) => {
     //   return {
     //     name: branch.name,
@@ -551,23 +388,21 @@ const filteredBranches = computed(() => {
 //   });
 // };
 
-const filterDistrictsInAddBranch = (valueInput, update) => {
-  update(async () => {
-    districts.value = await districtsService.findDistrictsInProvince(
-      provinceIsSelected.value
-    );
-    if (valueInput == "") {
-      return districts.value;
-    }
-  });
+const saveProvinceIsSelected = (codeProvince, nameProvince) => {
+  (province.name = nameProvince), (province.id_external = codeProvince);
+  console.log(province.name);
+  console.log(province.id_external);
 };
 
-const filterDistrictsInUpdateBranch = (valueInput, update) => {
+const filterDistricts = (valueInput, update) => {
   update(async () => {
-    districts.value = await districtsService.findDistrictsInProvince(
-      provinceIsChosen.value
+    const res = await locationService.findAllDistrictsByProvince(
+      province.id_external
     );
-    if (valueInput == "") {
+    console.log(res);
+    districts.value = res.districts;
+
+    if (valueInput === "") {
       return districts.value;
     }
   });
@@ -575,62 +410,43 @@ const filterDistrictsInUpdateBranch = (valueInput, update) => {
 
 const submitAddBranch = async () => {
   try {
-    console.log(branch);
-    const res = await branchesService.create(branch);
-    branches.value.push(res);
-    showAddDialog.value = false;
-    toast.success("Thêm chi nhánh thành công");
+    console.log(branch.name);
+    const nameBranch = await branchesService.checkNameBranchExisted(
+      branch.name,
+      9999999999
+    );
+    if (nameBranch) {
+      toast.error("Trùng tên chi nhánh");
+    } else {
+      // Kiểm tra số điện thoại
+      const phoneNumberPattern = /^\d{10}$/; // Chỉ chấp nhận 10 chữ số
+
+      if (!phoneNumberPattern.test(branch.phoneNumber)) {
+        toast.error("Số điện thoại phải là 10 chữ số và không chứa ký tự chữ.");
+        return;
+      }
+      const newProvince = await provincesService.create(province);
+      console.log(newProvince);
+      district.name = districtsIsSelected.value;
+      district.provinceId = newProvince.id;
+      const newDistrict = await districtsService.create(district);
+      branch.districtId = newDistrict.id;
+      const newBranch = await branchesService.create(branch);
+      console.log(newBranch);
+      branches.value.push(newBranch);
+      provincesInFilter.value = await provincesService.findAll();
+      showAddDialog.value = false;
+      toast.success("Thêm chi nhánh thành công");
+    }
   } catch (error) {
-    console.error("Error add maintenance: " + error);
+    console.error("Error add branch: " + error);
   }
-};
-
-const submitAddProvince = async () => {
-  try {
-    const res = await provincesService.create(province);
-    provinces.value.push(res);
-    showAddProvince.value = false;
-    toast.success("Thêm thành phố thành công");
-  } catch (error) {
-    console.error("Error add province:" + error);
-  }
-};
-
-const submitAddDistrict = async () => {
-  try {
-    const res = await districtsService.create(district);
-    districts.value.push(res);
-    showAddDistrict.value = false;
-    toast.success("Thêm quận thành công");
-  } catch (error) {
-    console.error("Error add district:" + error);
-  }
-};
-
-const updateProvince = async (id, nameProvince) => {
-  const province = {
-    name: nameProvince,
-  };
-  const res = await provincesService.update(id, province);
-  const index = provinces.value.findIndex((province) => province.id == id);
-  Object.assign(provinces.value[index], res);
-  toast.success("Cập nhật thành phố thành công");
-  showUpDateProvince.value = false;
-};
-
-const updateDistrict = async (id, nameDistrict) => {
-  const district = {
-    name: nameDistrict,
-  };
-  const res = await districtsService.update(id, district);
-  const index = districts.value.findIndex((district) => district.id == id);
-  Object.assign(districts.value[index], res);
-  toast.success("Cập nhật quận thành công");
-  showUpDateDistrict.value = false;
 };
 
 const editBranch = async (branchData) => {
-  provinceIsChosen.value = branchData.district.province.id;
+  province.id_external = branchData.district.province.id_external;
+  ProvinceIsSelected.value = branchData.district.province.name;
+  console.log(ProvinceIsSelected.value);
   branchToEdit.id = branchData.id;
   branchToEdit.name = branchData.name;
   branchToEdit.address = branchData.address;
@@ -643,25 +459,70 @@ const editBranch = async (branchData) => {
 
 const updateBranch = async (id, branchToEdit) => {
   try {
-    const nameIndex = branches.value.findIndex(
-      (brand) => brand.district.name == branchToEdit.districtId
+    const nameBranch = await branchesService.checkNameBranchExisted(
+      branchToEdit.name,
+      id
     );
-    console.log(branches.value);
-    console.log(nameIndex);
-    if (nameIndex >= 0) {
-      branchToEdit.districtId = branches.value[nameIndex].district.id;
+    console.log(nameBranch);
+    if (nameBranch) {
+      toast.error("Trùng tên chi nhánh");
     } else {
-      branchToEdit.districtId = branchToEdit.districtId;
+      // Kiểm tra số điện thoại
+      const phoneNumberPattern = /^\d{10}$/; // Chỉ chấp nhận 10 chữ số
+
+      if (!phoneNumberPattern.test(branchToEdit.phoneNumber)) {
+        toast.error("Số điện thoại phải là 10 chữ số và không chứa ký tự chữ.");
+        return;
+      }
+      const nameProvinceIndex = branches.value.findIndex(
+        (branch) => branch.district.province.name === ProvinceIsSelected.value
+      );
+      console.log(nameProvinceIndex);
+
+      const nameDistrictIndex = branches.value.findIndex(
+        (brand) => brand.district.name == branchToEdit.districtId
+      );
+      console.log(nameDistrictIndex);
+      //TH khong chon thanh pho va khong chon quan
+      if (nameProvinceIndex >= 0) {
+        ProvinceIsSelected.value =
+          branches.value[nameProvinceIndex].district.province.id;
+        console.log(ProvinceIsSelected.value);
+        // province.id_external = branches.value[nameProvinceIndex].district.province.id_external;
+        if (nameDistrictIndex >= 0) {
+          branchToEdit.districtId =
+            branches.value[nameDistrictIndex].district.id;
+        } //TH khong chon thanh pho nhung chon quan
+        else {
+          district.name = branchToEdit.districtId;
+          district.provinceId = ProvinceIsSelected.value;
+          const newDistrict = await districtsService.create(district);
+          console.log(newDistrict);
+          branchToEdit.districtId = newDistrict.id;
+        }
+      } // TH chon thanh pho va chon quan
+      else {
+        console.log(province.name);
+        // console.log()
+        const newProvince = await provincesService.create(province);
+        console.log(newProvince);
+        branchToEdit.districtId = branchToEdit.districtId;
+        district.name = branchToEdit.districtId;
+        district.provinceId = newProvince.id;
+        const newDistrict = await districtsService.create(district);
+        console.log(newDistrict);
+        branchToEdit.districtId = newDistrict.id;
+      }
+
+      const res = await branchesService.update(id, branchToEdit);
+      console.log(res);
+      const index = branches.value.findIndex((branch) => branch.id == id);
+      Object.assign(branches.value[index], res);
+      showUpdateDialog.value = false;
+      toast.success("Cập nhật chi nhánh thành công");
     }
-    console.log(branchToEdit.districtId);
-    const res = await branchesService.update(id, branchToEdit);
-    console.log(res);
-    const index = branches.value.findIndex((branch) => branch.id == id);
-    Object.assign(branches.value[index], res);
-    showUpdateDialog.value = false;
-    toast.success("Cập nhật chi nhánh thành công");
   } catch (error) {
-    console.error("Error update maintenance: " + error);
+    console.error("Error update branch: " + error);
   }
 };
 

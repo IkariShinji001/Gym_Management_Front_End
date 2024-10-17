@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h3>Quản lý thiết bị dụng cụ</h3>
     <div class="equipment-management">
       <div class="search-bar">
         <q-input
@@ -9,27 +8,72 @@
           label="Tìm kiếm thiết bị"
           filled
         />
-        <q-btn class="btn-all" label="TẤT CẢ" @click="getAllFacilities" />
-        <q-select
-          class="search-bar-q-select"
-          filled
-          v-model="branchIdIsSelected"
-          :options="branches"
-          label="Chọn chi nhánh"
-          map-options
-          emit-value
-          option-value="id"
-          option-label="name"
-          @update:model-value="filterFacilities"
-          @click="updateBranches"
-        />
-        <q-btn
-          class="btn-add"
-          label="Thêm thiết bị"
-          icon="add"
-          color="primary"
-          @click="OpenAddDialog"
-        />
+        <div class="search-branch">
+          <q-btn class="btn-all" label="TẤT CẢ" @click="getAllFacilities" />
+          <q-select
+            class="search-bar-q-select"
+            filled
+            v-model="branchIdIsSelected"
+            :options="branches"
+            label="Chọn chi nhánh"
+            map-options
+            emit-value
+            option-value="id"
+            option-label="name"
+            @update:model-value="filterFacilities"
+            @click="updateBranches"
+          />
+        </div>
+        <div class="search-facilityType">
+          <q-select
+            class="search-bar-q-select"
+            filled
+            v-model="facilityTypeIsSelected"
+            :options="facilityTypes"
+            label="Chọn loại"
+            map-options
+            emit-value
+            option-value="id"
+            option-label="name"
+            @update:model-value="filterFacilities"
+            @click="updateBranches"
+          />
+          <!-- btn-drop -->
+          <q-btn-dropdown class="update-type-btn" label="Loại" icon="settings">
+            <q-list>
+              <q-item clickable v-close-popup @click="openFacilityType()">
+                <q-item-section side>
+                  <q-icon name="add_circle" class="add-icon" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Thêm loại</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item
+                clickable
+                v-close-popup
+                @click="isUpdateTypeFormVisible = true"
+              >
+                <q-item-section side>
+                  <q-icon name="build_circle" class="update-icon" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Cập nhật</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+          <!-- btn-drop -->
+        </div>
+        <div class="cover-btn-add">
+          <q-btn
+            class="btn-add"
+            label="Thiết bị"
+            icon="add"
+            color="primary"
+            @click="OpenAddDialog"
+          />
+        </div>
       </div>
 
       <div class="table">
@@ -54,7 +98,7 @@
             <tr v-for="(facility, id) in filteredFacilities" :key="facility.id">
               <td width="4%" scope="row">{{ id + 1 }}</td>
               <td>{{ facility.name }}</td>
-              <td style="width: 15%">
+              <td width="14%">
                 <img
                   :src="facility.imageUrl"
                   alt="Hình ảnh thiết bị"
@@ -64,7 +108,7 @@
               <td width="13%">{{ formatDate(facility.purchaseDate) }}</td>
               <td>
                 <q-btn
-                  style="border-radius: 10px"
+                  class="btn-maintenance"
                   icon="add"
                   color="primary"
                   @click="addMaintenance(facility.id)"
@@ -111,6 +155,50 @@
         </table>
       </div>
 
+      <!-- Thêm loại thiết bị -->
+      <q-dialog v-model="isAddTypeFormVisible" persistent>
+        <q-card>
+          <q-card-section>
+            <h4>Thêm loại thiết bị</h4>
+          </q-card-section>
+          <q-card-section>
+            <q-form @submit="addFacilityType">
+              <q-input v-model="facilityType.name" label="Nhập tên loại">
+              </q-input>
+              <q-btn class="btn-save" icon="save" label="Lưu" type="submit" />
+              <q-btn
+                class="btn-cancel"
+                icon="cancel"
+                label="Hủy"
+                flat
+                @click="isAddTypeFormVisible = false"
+              />
+            </q-form>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
+      <!-- Cập nhật loại thiết bị -->
+      <q-dialog v-model="isUpdateTypeFormVisible">
+        <q-card>
+          <q-card-section>
+            <div class="container-facility-type">
+              <div
+                class="item"
+                v-for="facilityType in facilityTypes"
+                :key="facilityType.id"
+              >
+                <q-input v-model="facilityType.name" />
+                <q-btn
+                  label="Cập nhật"
+                  @click="updateFacilityType(facilityType.id, facilityType)"
+                />
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
       <!-- Thêm thiết bị vào lịch bảo trì -->
       <q-dialog v-model="showAddMaintenance">
         <q-card class="dialog">
@@ -147,7 +235,6 @@
           <q-card-section>
             <h4>Xem chi tiết thông tin thiết bị</h4>
           </q-card-section>
-          {{ facilityIsSelected }}
           <q-card-section class="flex justify-center items-center">
             <q-img
               :src="facilityIsSelected.imageUrl"
@@ -161,6 +248,11 @@
               <q-input
                 v-model="facilityIsSelected.name"
                 label="Tên thiết bị"
+                readonly
+              />
+              <q-input
+                v-model="facilityIsSelected.facilityTypeId"
+                label="Loại thiết bị"
                 readonly
               />
               <q-input
@@ -278,6 +370,17 @@
                 filled
                 :counter-label="file ? file.name : 'Chưa chọn tệp nào'"
               />
+              {{ facility.facilityTypeId }}
+              <q-select
+                filled
+                v-model="facility.facilityTypeId"
+                :options="facilityTypes"
+                label="Chọn loại thiết bị"
+                map-options
+                emit-value
+                option-value="id"
+                option-label="name"
+              />
               <q-input v-model="facility.description" label="Mô tả" />
               <div class="q-select q-gutter-md">
                 <q-select
@@ -349,6 +452,17 @@
                 class="q-select"
                 @update:model-value="updateImg"
               />
+              {{ facilityIsSelected.facilityTypeId }}
+              <q-select
+                filled
+                v-model="facilityIsSelected.facilityTypeId"
+                :options="facilityTypes"
+                label="Chọn loại thiết bị"
+                map-options
+                emit-value
+                option-value="id"
+                option-label="name"
+              />
               <q-input v-model="facilityIsSelected.description" label="Mô tả" />
               <q-select
                 filled
@@ -397,6 +511,7 @@ import { useToast } from "vue-toastification";
 import facilitiesService from "../services/facilities.service";
 import branchesService from "../services/branches.service";
 import maintenancesService from "../services/maintenance.service";
+import facilityTypesService from "../services/facilityType.service";
 import uploadFileService from "../services/uploadFile.service";
 
 const toast = useToast();
@@ -411,10 +526,15 @@ const showMaintenanceHistory = ref(false);
 const listMaintenancesOfFacility = ref([]);
 const publicIdOld = ref("");
 const branchIdIsSelected = ref("");
+const facilityTypeIsSelected = ref("");
+const facilityTypes = ref([]);
+const isAddTypeFormVisible = ref(false);
+const isUpdateTypeFormVisible = ref(false);
 
 const facility = reactive({
   name: "",
   description: "",
+  facilityTypeId: "",
   imageUrl: "",
   nameBranch: "",
   branchId: "",
@@ -427,6 +547,7 @@ const facility = reactive({
 const facilityIsSelected = reactive({
   name: "",
   description: "",
+  facilityTypeId: "",
   imageUrl: "",
   nameBranch: "",
   branchId: "",
@@ -442,11 +563,17 @@ const maintenance = reactive({
   description: "",
 });
 
+const facilityType = reactive({
+  name: "",
+});
+
 onBeforeMount(async () => {
   try {
     facilities.value = await facilitiesService.findAll();
-    console.log(facilities.value)
+    console.log(facilities.value);
     branches.value = await branchesService.findAll();
+    facilityTypes.value = await facilityTypesService.findAll();
+    console.log(facilityTypes.value);
   } catch (error) {
     console.log(error);
   }
@@ -491,21 +618,24 @@ const formatDateInput = (date) => {
 
 const getAllFacilities = async () => {
   facilities.value = await facilitiesService.findAll();
-}
+};
 
 const filterFacilities = async () => {
-  facilities.value = await facilitiesService.findFacilitiesByBranchId(branchIdIsSelected.value);
-}
+  facilities.value = await facilitiesService.findFacilitiesByBranchId(
+    branchIdIsSelected.value
+  );
+};
 
 const updateBranches = async () => {
   branches.value = await branchesService.findAll();
-}
+};
 
 const OpenAddDialog = async () => {
   branches.value = await branchesService.findAll();
   (facility.name = ""),
     (facility.description = ""),
     (facility.imageUrl = ""),
+    (facility.facilityTypeId = ""),
     (facility.branchId = ""),
     (facility.purchaseDate = ""),
     (facility.warrantyStartDate = ""),
@@ -527,6 +657,34 @@ const addFacility = async () => {
   } catch (error) {
     console.error("Error adding facility:", error);
   }
+};
+
+const openFacilityType = () => {
+  facilityType.name = "";
+  isAddTypeFormVisible.value = true;
+};
+
+const addFacilityType = async () => {
+  const newFacilityType = await facilityTypesService.create(facilityType);
+  console.log(newFacilityType);
+  facilityTypes.value.push(newFacilityType);
+  toast.success("Thêm loại thiết bị thành công");
+  isAddTypeFormVisible.value = false;
+};
+
+const updateFacilityType = async (id, facilityTypeToUpdate) => {
+  console.log(facilityTypeToUpdate);
+  facilityType.name = facilityTypeToUpdate.name;
+  const facilityTypeIsUpdated = await facilityTypesService.update(
+    id,
+    facilityType
+  );
+  const index = facilityTypes.value.findIndex(
+    (facilityType) => facilityType.id === id
+  );
+  Object.assign(facilityTypes.value[index], facilityTypeIsUpdated);
+  toast.success("Cập nhật loại thiết bị thành công");
+  isUpdateTypeFormVisible.value = false;
 };
 
 const addMaintenance = (id) => {
@@ -568,6 +726,7 @@ const viewFacilityDetails = async (facility) => {
   facility.purchaseDate = formatDateInput(facility.purchaseDate);
   facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
   facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
+  facility.facilityTypeId = facility.facilityType.name;
   Object.assign(facilityIsSelected, facility);
   const nameBranch = await branchesService.findOne(facilityIsSelected.branchId);
   facilityIsSelected.branchId = nameBranch.name;
@@ -597,11 +756,13 @@ const updateImg = async () => {
 };
 
 const editFacility = async (facility) => {
-  branches.value = await branchesService.findAll()
+  console.log(facility.facilityTypeId);
+  branches.value = await branchesService.findAll();
   facility.purchaseDate = formatDateInput(facility.purchaseDate);
   facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
   facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
   Object.assign(facilityIsSelected, facility);
+  console.log(facilityIsSelected);
   publicIdOld.value = getPublicId(facilityIsSelected.imageUrl);
   showEditDialog.value = true;
 };
@@ -621,10 +782,14 @@ const updateFacility = async (id, facilityIsSelected) => {
     // Loại bỏ thuộc tính nameBranch
     delete facilityIsSelected.nameBranch;
 
+    console.log(facilityIsSelected);
+
     const facilityToUpdate = await facilitiesService.update(
       id,
       facilityIsSelected
     );
+
+    console.log(facilityToUpdate);
 
     const index = facilities.value.findIndex((facility) => facility.id == id);
     Object.assign(facilities.value[index], facilityToUpdate);
@@ -680,38 +845,85 @@ h4 {
 }
 .input-search {
   background: white;
-  width: 50%;
+  width: 40%;
   margin-top: 8px;
+  margin-right: 20px;
 }
+.search-branch {
+  display: flex;
+  width: 25%;
+  margin: auto;
+  margin-right: 20px;
+}
+
+.search-facilityType {
+  display: flex;
+  width: 30%;
+  margin: auto;
+}
+
 .btn-all {
   margin: auto;
+  margin-right: 20px;
   height: 53px;
-  background: rgb(26, 127, 241);
-  color: white;
+  width: 100px;
+  background: var(--icon-color);
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.5) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 .search-bar-q-select {
   padding: 0px;
   margin: auto;
   width: 250px;
 }
+.update-type-btn {
+  margin: auto;
+  /* margin-right: 15px; */
+  height: 53px;
+  margin-left: 20px;
+}
+.cover-btn-add {
+  width: 15%;
+  padding-left: 22px !important;
+  /* padding-right: 1px !important; */
+  /* justify-content: center !important; */
+}
+.container-facility-type {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 cột */
+  gap: 10px; /* Khoảng cách giữa các phần tử */
+}
+.item {
+  padding: 10px; /* Khoảng cách bên trong */
+  border: 1px solid #ccc; /* Đường viền cho dễ nhìn */
+}
+
 .btn-add {
   margin-top: 10px !important;
-  margin-left: 50px;
   height: 53px;
   border-radius: 6px;
 }
+.add-icon {
+  color: blue;
+}
+.update-icon {
+  color: var(--icon-color) !important;
+}
 .dialog {
   width: 500px;
+}
+.btn-maintenance {
+  border-radius: 7px;
 }
 .btn-update {
   margin-right: 15px;
   background: rgb(241, 241, 37);
   color: black;
-  border-radius: 10px;
+  border-radius: 7px;
 }
 .btn-delete {
   background: red;
-  border-radius: 10px;
+  border-radius: 7px;
 }
 .btn-save {
   margin-top: 10px;

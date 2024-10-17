@@ -123,17 +123,17 @@ const router = createRouter({
 });
 
 //  hukhan
-// router.beforeEach((to, from, next) => {
-//   const isAuthenticated = !!localStorage.getItem("role");
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem("role");
 
-//   if (
-//     to.matched.some((record) => record.meta.requiresAuth) &&
-//     !isAuthenticated
-//   ) {
-//     next("/login");
-//   } else {
-//     next();
-//   }
-// });
+  if (
+    to.matched.some((record) => record.meta.requiresAuth) &&
+    !isAuthenticated
+  ) {
+    next("/login");
+  } else {
+    next();
+  }
+});
 
 export default router;
