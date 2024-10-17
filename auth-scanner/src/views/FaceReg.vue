@@ -4,8 +4,7 @@
     <video ref="video" class="video" autoplay></video>
   </div>
   <canvas class="canva" ref="canvas" width="640" height="480"></canvas>
-  <p v-if="user">{{ user.fullName }}</p>
-  {{ image }}
+  <q-btn>XÁC THỰC GƯƠNG MẶT</q-btn>
 </template>
 
 <script setup>
@@ -33,6 +32,8 @@
   };
 
 
+  let notifyRef = null;
+
   const captureImage = async () => {
     if (video.value && canvas.value) {
       const context = canvas.value.getContext('2d');
@@ -45,31 +46,56 @@
       try {
         const res = await faceService.validateFace(image.value);
         console.log(res);
+
+        // Dismiss previous notification
+        if (notifyRef) {
+          notifyRef();
+        }
+
         if (!res.user.id) {
-          $q.notify({ position: 'top', message: 'Bạn chưa đăng ký gương mặt trong hệ thống!' });
+          notifyRef = $q.notify({
+            position: 'top',
+            message: 'Bạn chưa đăng ký gương mặt trong hệ thống!',
+            timeout: 3000 // Tự động hủy sau 3 giây
+          });
           return;
         }
+
         const billActive = await billService.getAllBillActive(res.user.id);
 
         if (billActive.length === 0) {
-          $q.notify({ position: 'top', message: 'Gói tập của bạn đã hết hạn!' });
+          notifyRef = $q.notify({
+            position: 'top',
+            message: 'Gói tập của bạn đã hết hạn!',
+            timeout: 3000
+          });
           return;
         }
-        if (user.value.id !== res.user.id) {
-          user.value = res.user;
-          $q.notify({ position: 'top', message: "Xin chào " + user.value.fullName });
-        }
+
+        user.value = res.user;
+
+        notifyRef = $q.notify({
+          position: 'top',
+          message: "Xin chào " + user.value.fullName,
+          timeout: 3000
+        });
+
       } catch (error) {
         console.error(error);
-        $q.notify({ position: 'top', message: 'Bạn chưa đăng ký gương mặt trong hệ thống!' });
-      }
 
+        // Dismiss previous notification
+        if (notifyRef) {
+          notifyRef();
+        }
+
+        notifyRef = $q.notify({
+          position: 'top',
+          message: 'Bạn chưa đăng ký gương mặt trong hệ thống!',
+          timeout: 3000
+        });
+      }
     }
   };
-
-  setTimeout(() => setInterval(captureImage, 2000), 5000);
-
-
 
   onMounted(() => {
     initializeCamera();

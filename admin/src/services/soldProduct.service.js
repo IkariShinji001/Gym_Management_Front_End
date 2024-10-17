@@ -2,7 +2,7 @@ import api from "./api.service";
 
 class SoldProductService {
   constructor() {
-    this.path = "sold-products";
+    this.path = "/sold-products";
   }
 
   async getRevenueByDate(date) {

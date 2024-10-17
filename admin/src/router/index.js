@@ -55,9 +55,14 @@ const router = createRouter({
           component: () => import("../views/Managers.vue"),
         },
         {
-          path: "services",
-          name: "services",
-          component: () => import("../views/ServicePackageView.vue"),
+          path: "fitness-packages",
+          name: "fitness",
+          component: () => import("../views/FitnessPackageView.vue"),
+        },
+        {
+          path: "pt-packages",
+          name: "pt",
+          component: () => import("../views/PtPackageView.vue"),
         },
         {
           path: "supplement-products/charts",
@@ -111,6 +116,12 @@ const router = createRouter({
           name: "TopPurchasedPackagesStatisticsInYear",
           component: () =>
             import("../views/TopPurchasedPackagesStatisticsInYear.vue"),
+        },
+        
+        {
+          path: "profile",
+          name: "profile",
+          component: () => import("../views/Profile.vue"),
         },
       ],
     },

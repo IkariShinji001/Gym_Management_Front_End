@@ -21,6 +21,10 @@ class BillService {
     console.log(payload);
     return (await api.post(`${this.path}/users/${userId}`, payload)).data;
   }
+
+  async updateBill(billId, status) {
+    return await api.patch(`${this.path}/${billId}`, { status });
+  }
 }
 
 export default new BillService();

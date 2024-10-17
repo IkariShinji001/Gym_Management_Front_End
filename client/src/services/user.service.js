@@ -25,6 +25,10 @@ class UserService {
     ).data;
   }
 
+  async getUserByRefferalCode(refferalCode) {
+    return (await api.get(`${this.path}/refferal-code/${refferalCode}`)).data;
+  }
+
   async getAllEntryTime(id, startDate, endDate) {
     console.log(startDate, endDate);
     return (

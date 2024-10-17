@@ -70,6 +70,16 @@
         </tr>
       </table>
     </div>
+
+    <div class="invite">
+      <h5><q-icon name="payments"></q-icon> Mã mời</h5>
+      <div class="refferal">
+        <q-input class="refferal" :color="refferalColorInput" outlined label="Mã mời" v-model="refferalCode"
+          maxlength="6" :hint="ferralHint"></q-input>
+        <q-btn @click="checkVoucher">Kiểm tra</q-btn>
+      </div>
+
+    </div>
   </div>
   <div class="checkout">
     <div>
@@ -117,9 +127,13 @@
   import servicePackagePriceService from '../services/servicePackagePrice.service';
   import voucherService from '../services/voucher.service';
   import billService from '../services/bill.service';
+  import userService from '../services/user.service';
 
+  const ferralHint = ref();
   const router = useRouter()
   const route = useRoute();
+  const refferalCode = ref();
+  const refferalColorInput = ref('primary');
   const fitnessPriceId = route.query?.fitnessPriceId;
   const ptPriceId = route.query?.ptPriceId;
   const listPriceIds = ref([]);
@@ -145,6 +159,20 @@
       return 'Giảm trực tiếp ' + formatPrice(discount);
     } else {
       return 'Giảm trực tiếp ' + discount + '%';
+    }
+  }
+
+  const checkVoucher = async () => {
+    try {
+      const user = await userService.getUserByRefferalCode(refferalCode.value);
+      console.log(user, userId)
+      if (user && user.id !== parseInt(userId)) {
+        ferralHint.value = 'Hợp lệ';
+      } else {
+        ferralHint.value = 'Không hợp lệ';
+      }
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -236,7 +264,9 @@
     }
 
     try {
+      console.log(listPriceIds.value)
       packagePrices.value = (await servicePackagePriceService.getPackagePriceByListIds(listPriceIds.value)).servicePackagePriceList;
+      console.log(packagePrices.value);
       totalAmount = packagePrices.value.reduce((sum, p) => sum + parseInt(p.price), 0);
       vouchers.value = await voucherService.getVouchersByUserId(userId);
       vouchers.value.forEach((voucher) => {
@@ -268,6 +298,7 @@
   .container {
     width: 95%;
     margin: 0 auto;
+    padding-bottom: 50px;
   }
 
   .btn-checkout {
@@ -276,6 +307,10 @@
     color: white;
     font-size: 20px;
     font-weight: bold;
+  }
+
+  .refferal {
+    font-size: 20px;
   }
 
   td {
@@ -295,6 +330,11 @@
 
   h4 {
     text-align: center;
+  }
+
+  .refferal {
+    display: flex;
+    justify-content: space-between;
   }
 
   .packages {
@@ -388,6 +428,10 @@
     margin: 0;
     margin-right: 20px;
     font-size: 18px;
+  }
+
+  .invite {
+    padding-bottom: 100px;
   }
 
 

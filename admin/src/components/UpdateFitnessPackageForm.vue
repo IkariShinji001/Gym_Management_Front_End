@@ -75,8 +75,8 @@
           v-model="coupleInput.packageDuration.id"
           :options="durationList"
           option-value="id"
-          :option-label="formatDuration"
           label="Chọn thời gian"
+          option-label="duration"
           class="q-select"
           map-options
           lazy-rules
@@ -92,6 +92,7 @@
           filled
           v-model="coupleInput.packageDuration.durationType"
           :options="durationTypeList"
+          :option-label="handleFormatDuration"
           class="q-select"
           lazy-rules
           :rules="[
@@ -128,7 +129,7 @@
           v-model="coupleInput.packageDurationId"
           :options="coupleInput.filteredDuration"
           option-value="id"
-          :option-label="formatDuration"
+          option-label="duration"
           label="thời hạn"
           class="q-select"
           map-options
@@ -145,6 +146,7 @@
           v-model="coupleInput.selectedDurationType"
           :options="durationTypeList"
           label="thời gian"
+          :option-label="handleFormatDuration"
           class="q-select"
           lazy-rules
           @update:model-value="
@@ -186,10 +188,7 @@
         <img :src="imageUrl" alt="Image preview" class="preview-img" />
       </div>
       <div class="btn">
-        <q-btn label="Thêm sản phẩm" type="submit" color="primary" />
-      </div>
-      <div class="btn">
-        <q-btn label="Thêm sản phẩm" @click="testFunction" color="red" />
+        <q-btn label="Cập nhật gói tập" type="submit" color="primary" />
       </div>
     </q-form>
   </div>
@@ -229,7 +228,6 @@ export default {
       packageDurationId: 0,
     });
     const updatePackagePriceDtoList = ref([]);
-    const strBenefit = ref("");
 
     const packageTypes = ref(props.packageTypes);
     const durationList = ref(props.durationList);
@@ -258,8 +256,16 @@ export default {
       });
     }
 
-    function formatDuration(option) {
-      return `${option.duration} ${option.durationType}`;
+    function handleFormatDuration(option) {
+      if (option === "year") {
+        return "năm";
+      } else if (option === "month") {
+        return "tháng";
+      } else if (option === "day") {
+        return "ngày";
+      } else {
+        return;
+      }
     }
 
     function handleFileChange() {
@@ -334,12 +340,6 @@ export default {
       }
     }
 
-    function testFunction() {
-      console.log(fitnessPackage.value);
-
-      assignData();
-      console.log(updatePackagePriceDtoList.value);
-    }
     return {
       imageUrl,
       checkUpdatedImg,
@@ -349,17 +349,13 @@ export default {
       durationTypeList,
       filteredDuration,
 
-      strBenefit,
-
       durationList,
-      formatDuration,
+      handleFormatDuration,
 
       addInputAndSelect,
       handleFileChange,
       updateFitnessPackageHandler,
       updateFilteredDuration,
-
-      testFunction,
     };
   },
 };
@@ -406,10 +402,6 @@ export default {
 }
 
 .form-create .textarea-description {
-  display: flex;
-  gap: 10px;
-}
-.form-create .textarea-benefit {
   display: flex;
   gap: 10px;
 }

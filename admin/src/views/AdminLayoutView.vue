@@ -1,6 +1,6 @@
 <template>
-  <q-layout view="hHh lpR fFf">
-    <q-header reveal elevated class="layout text-white">
+  <q-layout view="hHh Lpr lff">
+    <q-header elevated class="layout text-white">
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawerHandler" />
 
@@ -23,12 +23,18 @@
       class="drawer"
     >
       <q-scroll-area class="fit drawer">
-        <q-list>
+        <q-list style="margin-top: 20px">
           <template v-for="(menuItem, index) in menuList" :key="index">
-            <router-link :to="basePath + menuItem.path" class="routerlink">
+            <router-link
+              v-if="
+                menuItem.label !== 'Thống kê doanh thu gói tập' &&
+                menuItem.label !== 'Quản lý nhân sự'
+              "
+              :to="basePath + menuItem.path"
+              class="routerlink"
+            >
               <q-item
                 clickable
-                :active="menuItem.label === 'Outbox'"
                 :class="{ 'separator-true': menuItem.separator }"
               >
                 <q-item-section avatar>
@@ -38,8 +44,117 @@
                   {{ menuItem.label }}
                 </q-item-section>
               </q-item>
-              <!-- <q-separator :key="'sep' + index" v-if="menuItem.separator" /> -->
             </router-link>
+            <div
+              v-else-if="menuItem.label === 'Quản lý nhân sự'"
+              class="routerlink"
+            >
+              <q-item :class="{ 'separator-true': menuItem.separator }">
+                <q-item-section avatar style="margin: 0 0">
+                  <q-icon :name="menuItem.icon" />
+                </q-item-section>
+                <q-item-section style="margin-left: -25px">
+                  <q-btn-dropdown class="dropdown" unelevated>
+                    <template v-slot:label>
+                      <div class="text-center">Quản lý nhân sự</div>
+                    </template>
+                    <q-list>
+                      <q-item clickable v-close-popup to="/admins/employees">
+                        <q-item-section>
+                          <q-item-label>Nhân viên</q-item-label>
+                        </q-item-section>
+                      </q-item>
+
+                      <q-item clickable v-close-popup to="/admins/pts">
+                        <q-item-section>
+                          <q-item-label>Pt</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-btn-dropdown>
+                </q-item-section>
+              </q-item>
+            </div>
+            <div v-else class="routerlink">
+              <q-item :class="{ 'separator-true': menuItem.separator }">
+                <q-item-section avatar style="margin: 0 0">
+                  <q-icon :name="menuItem.icon" />
+                </q-item-section>
+                <q-item-section style="margin-left: -25px">
+                  <q-btn-dropdown class="dropdown" unelevated>
+                    <template v-slot:label>
+                      <div class="text-center">
+                        Thống kê doanh thu <br />
+                        gói tập
+                      </div>
+                    </template>
+                    <q-list>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/count-maintenances"
+                      >
+                        <q-item-section>
+                          <q-item-label>Lịch bảo trì thiết bị</q-item-label>
+                        </q-item-section>
+                      </q-item>
+
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/daily-bill-statistics"
+                      >
+                        <q-item-section>
+                          <q-item-label>doanh thu theo ngày</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/yearly-bill-statistics"
+                      >
+                        <q-item-section>
+                          <q-item-label>doanh thu theo năm</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/top-spent-users-statistics-in-month"
+                      >
+                        <q-item-section>
+                          <q-item-label
+                            >Người mua gói tập nhiều nhất tháng
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/top-purchased-packages-statistics-in-month"
+                      >
+                        <q-item-section>
+                          <q-item-label
+                            >Gói tập được mua nhiều nhất tháng
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/top-purchased-packages-statistics-in-year"
+                      >
+                        <q-item-section>
+                          <q-item-label
+                            >Gói tập được mua nhiều nhất tháng
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-btn-dropdown>
+                </q-item-section>
+              </q-item>
+            </div>
           </template>
         </q-list>
       </q-scroll-area>
@@ -53,7 +168,6 @@
 
 <script>
 import { ref, onBeforeMount } from "vue";
-
 export default {
   setup() {
     const isLeftDrawerOpen = ref(false);
@@ -71,34 +185,61 @@ export default {
         icon: "construction",
         label: "Bảo trì thiết bị",
         separator: false,
-        path: "",
+        path: "/maintenances",
         role: ["manager", "employee"],
       },
-
+      {
+        icon: "trolley",
+        label: "Quản lý thiết bị",
+        separator: false,
+        path: "/facilities",
+        role: ["manager", "employee"],
+      },
       {
         icon: "fitness_center",
         label: "Gói dịch vụ",
-        separator: false ,
-        path: "",
+        separator: false,
+        path: "/fitness-packages",
+        role: ["manager", "employee"],
+      },
+      {
+        icon: "handshake",
+        label: "Gói PT",
+        separator: true,
+        path: "/pt-packages",
         role: ["manager", "employee"],
       },
       {
         icon: "shopping_bag",
         label: "Sản phẩm hỗ trợ",
-        separator: true,
-        path: "",
+        separator: false,
+        path: "/supplement-products",
         role: ["manager"],
       },
       {
         icon: "groups",
         label: "Quản lý nhân sự",
         separator: false,
-        path: "",
+        path: "/employees",
+        role: ["manager"],
+      },
+      {
+        icon: "self_improvement",
+        label: "Quản lý Pt",
+        separator: false,
+        path: "/pts",
+        role: ["manager"],
+      },
+      {
+        icon: "explore",
+        label: "Quản lý chi nhánh",
+        separator: false,
+        path: "/branches",
         role: ["manager"],
       },
       {
         icon: "savings",
-        label: "Doanh thu",
+        label: "Thống kê doanh thu gói tập",
         separator: false,
         path: "",
         role: ["manager"],
@@ -131,17 +272,20 @@ export default {
   padding: 6px;
   background: var(--layout-header-bg);
 }
+
 .drawer {
   background: var(--drawer-bg);
 }
+
 .routerlink {
   color: white;
   text-decoration: none;
   font-size: 18px;
 }
 
-.separator-true{
+.separator-true {
   border-bottom: 2px solid white;
-  padding-bottom: 20px;
+  padding-bottom: 30px;
+  margin-bottom: 30px;
 }
 </style>
