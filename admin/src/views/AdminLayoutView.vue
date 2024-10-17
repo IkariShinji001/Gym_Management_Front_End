@@ -4,12 +4,20 @@
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawerHandler" />
 
-        <q-btn flat no-caps no-wrap>
+        <q-btn flat no-caps no-wrap @click="redirectToBlogsHandler">
           <q-avatar size="40px">
-            <img src="./7 honlam.png" />
+            <img src="./4 raica .jpg" />
           </q-avatar>
           <q-toolbar-title shrink class="text-weight-bold">
             4GYM
+          </q-toolbar-title>
+        </q-btn>
+
+        <q-space />
+
+        <q-btn flat no-caps no-wrap @click="logoutHandler">
+          <q-toolbar-title shrink class="text-weight-bold">
+            Đăng xuất
           </q-toolbar-title>
         </q-btn>
       </q-toolbar>
@@ -23,12 +31,13 @@
       class="drawer"
     >
       <q-scroll-area class="fit drawer">
-        <q-list style="margin-top: 20px">
+        <q-list style="margin-top: 10px">
           <template v-for="(menuItem, index) in menuList" :key="index">
             <router-link
               v-if="
                 menuItem.label !== 'Thống kê doanh thu gói tập' &&
-                menuItem.label !== 'Quản lý nhân sự'
+                menuItem.label !== 'Quản lý nhân sự' &&
+                menuItem.role.includes(role)
               "
               :to="basePath + menuItem.path"
               class="routerlink"
@@ -45,27 +54,44 @@
                 </q-item-section>
               </q-item>
             </router-link>
+
             <div
-              v-else-if="menuItem.label === 'Quản lý nhân sự'"
-              class="routerlink"
+              v-else-if="
+                menuItem.label === 'Quản lý nhân sự' &&
+                menuItem.role.includes(role)
+              "
+              class="routerlink-dropdown-container"
             >
               <q-item :class="{ 'separator-true': menuItem.separator }">
                 <q-item-section avatar style="margin: 0 0">
                   <q-icon :name="menuItem.icon" />
                 </q-item-section>
-                <q-item-section style="margin-left: -25px">
-                  <q-btn-dropdown class="dropdown" unelevated>
-                    <template v-slot:label>
-                      <div class="text-center">Quản lý nhân sự</div>
-                    </template>
+                <q-item-section>
+                  <q-btn-dropdown
+                    class="routerlink-dropdown-list"
+                    unelevated
+                    style="margin-left: -16px; width: fit-content"
+                    label="Quản lý nhân sự"
+                    no-caps
+                  >
                     <q-list>
-                      <q-item clickable v-close-popup to="/admins/employees">
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/employees"
+                        class="routerlink-dropdown-item"
+                      >
                         <q-item-section>
                           <q-item-label>Nhân viên</q-item-label>
                         </q-item-section>
                       </q-item>
 
-                      <q-item clickable v-close-popup to="/admins/pts">
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/pts"
+                        class="routerlink-dropdown-item"
+                      >
                         <q-item-section>
                           <q-item-label>Pt</q-item-label>
                         </q-item-section>
@@ -75,13 +101,24 @@
                 </q-item-section>
               </q-item>
             </div>
-            <div v-else class="routerlink">
+
+            <div
+              v-else-if="
+                menuItem.label === 'Thống kê doanh thu gói tập' &&
+                menuItem.role.includes(role)
+              "
+              class="routerlink-dropdown-container"
+            >
               <q-item :class="{ 'separator-true': menuItem.separator }">
                 <q-item-section avatar style="margin: 0 0">
                   <q-icon :name="menuItem.icon" />
                 </q-item-section>
-                <q-item-section style="margin-left: -25px">
-                  <q-btn-dropdown class="dropdown" unelevated>
+                <q-item-section style="margin-left: -20px">
+                  <q-btn-dropdown
+                    unelevated
+                    class="routerlink-dropdown-list"
+                    no-caps
+                  >
                     <template v-slot:label>
                       <div class="text-center">
                         Thống kê doanh thu <br />
@@ -93,6 +130,7 @@
                         clickable
                         v-close-popup
                         to="/admins/count-maintenances"
+                        class="routerlink-dropdown-item"
                       >
                         <q-item-section>
                           <q-item-label>Lịch bảo trì thiết bị</q-item-label>
@@ -103,6 +141,7 @@
                         clickable
                         v-close-popup
                         to="/admins/daily-bill-statistics"
+                        class="routerlink-dropdown-item"
                       >
                         <q-item-section>
                           <q-item-label>doanh thu theo ngày</q-item-label>
@@ -112,6 +151,7 @@
                         clickable
                         v-close-popup
                         to="/admins/yearly-bill-statistics"
+                        class="routerlink-dropdown-item"
                       >
                         <q-item-section>
                           <q-item-label>doanh thu theo năm</q-item-label>
@@ -121,6 +161,7 @@
                         clickable
                         v-close-popup
                         to="/admins/top-spent-users-statistics-in-month"
+                        class="routerlink-dropdown-item"
                       >
                         <q-item-section>
                           <q-item-label
@@ -132,6 +173,7 @@
                         clickable
                         v-close-popup
                         to="/admins/top-purchased-packages-statistics-in-month"
+                        class="routerlink-dropdown-item"
                       >
                         <q-item-section>
                           <q-item-label
@@ -143,10 +185,11 @@
                         clickable
                         v-close-popup
                         to="/admins/top-purchased-packages-statistics-in-year"
+                        class="routerlink-dropdown-item"
                       >
                         <q-item-section>
                           <q-item-label
-                            >Gói tập được mua nhiều nhất tháng
+                            >Gói tập được mua nhiều nhất năm
                           </q-item-label>
                         </q-item-section>
                       </q-item>
@@ -168,11 +211,15 @@
 
 <script>
 import { ref, onBeforeMount } from "vue";
+import { useRouter } from "vue-router";
+
 export default {
   setup() {
     const isLeftDrawerOpen = ref(false);
     const role = ref("");
     const basePath = ref("/admins");
+    const router = useRouter();
+
     const menuList = ref([
       {
         icon: "mail",
@@ -223,13 +270,7 @@ export default {
         path: "/employees",
         role: ["manager"],
       },
-      {
-        icon: "self_improvement",
-        label: "Quản lý Pt",
-        separator: false,
-        path: "/pts",
-        role: ["manager"],
-      },
+
       {
         icon: "explore",
         label: "Quản lý chi nhánh",
@@ -248,20 +289,31 @@ export default {
 
     onBeforeMount(() => {
       role.value = localStorage.getItem("role");
-      // console.log(role.value);
+      console;
     });
 
     function toggleLeftDrawerHandler() {
       isLeftDrawerOpen.value = !isLeftDrawerOpen.value;
     }
 
+    function redirectToBlogsHandler() {
+      router.push("/admins/blogs");
+    }
+
+    function logoutHandler() {
+      localStorage.clear();
+      router.push("/login");
+    }
     return {
       isLeftDrawerOpen,
       basePath,
+      role,
 
       menuList,
 
       toggleLeftDrawerHandler,
+      redirectToBlogsHandler,
+      logoutHandler,
     };
   },
 };
@@ -277,15 +329,26 @@ export default {
   background: var(--drawer-bg);
 }
 
-.routerlink {
+.routerlink,
+.routerlink-dropdown-container {
   color: white;
   text-decoration: none;
   font-size: 18px;
 }
+.routerlink-dropdown-container .routerlink-dropdown-list {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+}
+.routerlink-dropdown-item {
+  color: var(--table-bg);
+  font-size: 15px;
+  font-weight: bold;
+}
 
 .separator-true {
   border-bottom: 2px solid white;
-  padding-bottom: 30px;
-  margin-bottom: 30px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
 }
 </style>

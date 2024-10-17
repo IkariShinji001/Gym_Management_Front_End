@@ -1,55 +1,59 @@
 <template>
   <div class="page-container">
-    <div :class="['search-add-div', { centered: !drawerOpen1 }]">
-      <q-input outlined v-model="searchText" label="Search" class="search-bar">
+    <div class="search-add-div">
+      <q-input class="search-bar" outlined v-model="searchText" label="Search">
         <template v-slot:append>
           <q-icon name="search" />
         </template>
       </q-input>
 
-      <q-btn class="update-btn" @click="isAddProductFormVisible = true">
-        <q-icon name="add" class="add-icon" />
-        <q-item-label>Thêm sản phẩm</q-item-label>
+      <q-btn class="header-btn" @click="isAddProductFormVisible = true">
+        <q-item-label class="header-btn-title">Sản phẩm</q-item-label>
+        <q-icon name="add_circle" class="header-icon" size="35px" />
       </q-btn>
 
       <!-- btn-drop -->
-      <q-btn-dropdown class="update-btn" label="Loại" icon="settings">
+      <q-btn-dropdown
+        class="header-btn"
+        flat
+        size="20px"
+        label="Loại"
+        dropdown-icon="settings"
+      >
         <q-list>
-          <q-item clickable v-close-popup @click="isAddTypeFormVisible = true">
-            <q-item-section side>
-              <q-icon name="add_circle" class="add-icon" />
-            </q-item-section>
+          <q-item
+            class="header-btn-item"
+            clickable
+            v-close-popup
+            @click="isAddTypeFormVisible = true"
+          >
             <q-item-section>
-              <q-item-label>Thêm loại</q-item-label>
+              <q-item-label class="item-label">Thêm loại</q-item-label>
             </q-item-section>
           </q-item>
           <q-item
             clickable
             v-close-popup
             @click="isRemoveTypeFormVisible = true"
+            class="header-btn-item"
           >
-            <q-item-section side>
-              <q-icon name="build_circle" class="remove-icon" />
-            </q-item-section>
             <q-item-section>
-              <q-item-label>Cập nhật</q-item-label>
+              <q-item-label class="item-label">Cập nhật loại</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
       </q-btn-dropdown>
       <!-- btn-drop -->
 
-      <q-btn class="update-btn">
+      <q-btn class="header-btn">
         <router-link class="chart-link" to="supplement-products/charts">
-          <q-icon name="query_stats" class="add-icon" />
-          <q-item-label>Thống kê</q-item-label>
+          <q-item-label class="header-btn-title">Thống kê</q-item-label>
+          <q-icon name="query_stats" class="header-icon" size="35px" />
         </router-link>
       </q-btn>
     </div>
 
-    <div
-      :class="['product-type', { 'product-type-drawer-open': !drawerOpen1 }]"
-    >
+    <div class="product-type">
       <q-btn
         class="btn-type"
         @click="fileterProductsByTypeIdHandler(-1)"
@@ -238,14 +242,10 @@ export default {
     UpdateTypeForm,
     UpdateProductForm,
   },
-  props: {
-    drawerOpen: Boolean,
-  },
 
-  setup(props) {
+  setup() {
     const toast = useToast();
     const searchText = ref("");
-    const drawerOpen1 = ref(props.drawerOpen);
     const selectedProduct = ref(null);
     const isAddProductFormVisible = ref(false);
     const isAddTypeFormVisible = ref(false);
@@ -281,7 +281,6 @@ export default {
     });
 
     watchEffect(() => {
-      drawerOpen1.value = props.drawerOpen;
       filteredSupplementProducts.value.forEach((product) => {
         if (!amounts.value.hasOwnProperty(product.id)) {
           amounts.value[product.id] = 0;
@@ -371,12 +370,12 @@ export default {
         soldProductPayload.price = soldProductPayload.quantity * product.price;
 
         product.totalSold += amounts.value[productId];
-        console.log(soldProductPayload)
+        console.log(soldProductPayload);
 
         const soldPro = await soldProductService.createSoldProduct(
           soldProductPayload
         );
-        console.log(soldPro)
+        console.log(soldPro);
         toast.success("Đã bán");
       } catch (e) {
         console.log(e);
@@ -384,7 +383,6 @@ export default {
       }
     }
     return {
-      drawerOpen1,
       searchText,
       supplementProducts,
       types,
@@ -417,40 +415,58 @@ export default {
   width: 100%;
   height: 100%;
   padding: 20px;
+
+  .search-add-div {
+    display: flex;
+    justify-content: end;
+
+    .search-bar {
+      width: 40%;
+      margin-right: 20px;
+      background-color: white;
+    }
+
+    .header-btn {
+      height: 53px;
+      margin-right: 10px;
+
+      color: white;
+      background-color: var(--icon-color);
+      border-radius: 0 0;
+      box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+        rgba(0, 0, 0, 0.5) 0px 7px 13px -3px,
+        rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+
+      .header-btn-title {
+        font-size: 20px;
+        margin-right: 10px;
+      }
+
+      .header-icon {
+        color: rgb(255, 255, 255);
+      }
+
+      .chart-link {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: white;
+      }
+    }
+
+    .header-btn:hover {
+      background: #ff8512;
+      box-shadow: rgba(155, 155, 155, 0.4) 0px 2px 4px,
+        rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
+        rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    }
+  }
 }
 
-.search-add-div {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  transition: justify-content 0.3s;
-}
-
-.centered {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search-bar {
-  width: 40%;
-  margin-right: 15px;
-  background-color: white;
-}
-
-.update-btn {
-  width: 160px;
-  height: 52px;
-  margin-right: 10px;
-}
-
-.update-btn .chart-link {
-  text-decoration: none;
-  color: black;
-}
-
-.add-icon {
-  color: blue;
+.header-btn-item .item-label {
+  color: var(--icon-color);
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .remove-icon,

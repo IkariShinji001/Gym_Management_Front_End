@@ -10,13 +10,13 @@ const router = createRouter({
       children: [
         {
           path: "blogs",
-          name:"blog",
-          component: ()=> import("../views/BlogView.vue")
+          name: "blog",
+          component: () => import("../views/BlogView.vue"),
         },
         {
           path: "blogs/posts/:id",
-          name:"postDetails",
-          component: () => import("../views/PostDetailView.vue")
+          name: "postDetails",
+          component: () => import("../views/PostDetailView.vue"),
         },
 
         {
@@ -97,7 +97,8 @@ const router = createRouter({
         {
           path: "top-spent-users-statistics-in-month",
           name: "TopSpentUsersStatisticsInMonth",
-          component: () => import("../views/TopSpentUsersStatisticsInMonth.vue"),
+          component: () =>
+            import("../views/TopSpentUsersStatisticsInMonth.vue"),
         },
         {
           path: "top-spent-users-statistics-in-year",
@@ -107,14 +108,16 @@ const router = createRouter({
         {
           path: "top-purchased-packages-statistics-in-month",
           name: "TopPurchasedPackagesStatisticsInMonth",
-          component: () => import("../views/TopPurchasedPackagesStatisticsInMonth.vue"),
+          component: () =>
+            import("../views/TopPurchasedPackagesStatisticsInMonth.vue"),
         },
         {
           path: "top-purchased-packages-statistics-in-year",
           name: "TopPurchasedPackagesStatisticsInYear",
-          component: () => import("../views/TopPurchasedPackagesStatisticsInYear.vue"),
+          component: () =>
+            import("../views/TopPurchasedPackagesStatisticsInYear.vue"),
         },
-        
+
         {
           path: "profile",
           name: "profile",
@@ -127,7 +130,6 @@ const router = createRouter({
       name: "login",
       component: () => import("../views/LoginAdmin.vue"),
     },
-    
   ],
 });
 
