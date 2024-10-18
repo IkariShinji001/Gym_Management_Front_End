@@ -53,56 +53,35 @@
       </table>
 
 
-      <div class="info" v-if="user">
-        <div class="user-info">
-          <div class="title">
-            <p class="info-header">Họ và tên: </p>
-            <p class="info-header">Số điện thoại: </p>
-            <p class="info-header">Email: </p>
-            <p class="info-header">Giới tính: </p>
-            <p class="info-header">Ngày sinh: </p>
-            <p class="info-header">Mã mời: </p>
-          </div>
+      <q-dialog v-model="openDialog">
+        <q-card class="card" v-if="userUpdated">
+          <q-card-section class="title-card">Cập nhật thông tin</q-card-section>
+          <q-card-section>
+            <q-input v-model="userUpdated.fullName" label="Họ và tên"></q-input>
+            <q-input v-model="userUpdated.phoneNumber" label="Số điện thoại"></q-input>
+            <q-input v-model="userUpdated.email" label="Email"></q-input>
+            <q-select v-model="userUpdated.gender" label="Giới tính" :options="genderSelect" map-options emit-value
+              option-label="text" option-value="value"></q-select>
+            <q-input v-model="userUpdated.dateBirth" label="Ngày sinh" type="date" />
+            <q-btn class="btn" @click="handleUpdate">Cập nhật</q-btn>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
 
-          <div>
-            <p>{{ user.fullName }}</p>
-            <p>{{ user.phoneNumber || 'Chưa có thông tin' }}</p>
-            <p>{{ user.email || 'Chưa có thông tin' }}</p>
-            <p>{{ user.gender ? 'Nam' : 'Nữ' || 'Chưa có thông tin' }}</p>
-            <p>{{ formatDateDDMMYYY(new Date(user.dateBirth)) || 'Chưa có thông tin' }}</p>
-            <p>{{ user.referralCode || 'Chưa có thông tin' }}</p>
-          </div>
-        </div>
+      <q-dialog v-model="openChangePassword">
+        <q-card class="card">
+          <q-card-section class="title-card">Đổi mật khẩu</q-card-section>
+          <q-card-section>
+            <q-input v-model="password" label="Mật khẩu cũ" type="password"></q-input>
+            <q-input v-model="newPassword" label="Mật khẩu mới" type="password"></q-input>
+            <q-input v-model="confirmPassword" label="Nhập lại mật khẩu mới" type="password"></q-input>
+            <q-btn class="btn" @click="changePassword">Đổi mật khẩu</q-btn>
+          </q-card-section>
 
-        <q-dialog v-model="openDialog">
-          <q-card class="card" v-if="userUpdated">
-            <q-card-section class="title-card">Cập nhật thông tin</q-card-section>
-            <q-card-section>
-              <q-input v-model="userUpdated.fullName" label="Họ và tên"></q-input>
-              <q-input v-model="userUpdated.phoneNumber" label="Số điện thoại"></q-input>
-              <q-input v-model="userUpdated.email" label="Email"></q-input>
-              <q-select v-model="userUpdated.gender" label="Giới tính" :options="genderSelect" map-options emit-value
-                option-label="text" option-value="value"></q-select>
-              <q-input v-model="userUpdated.dateBirth" label="Ngày sinh" type="date" />
-              <q-btn class="btn" @click="handleUpdate">Cập nhật</q-btn>
-            </q-card-section>
-          </q-card>
-        </q-dialog>
-
-        <q-dialog v-model="openChangePassword">
-          <q-card class="card">
-            <q-card-section class="title-card">Đổi mật khẩu</q-card-section>
-            <q-card-section>
-              <q-input v-model="password" label="Mật khẩu cũ" type="password"></q-input>
-              <q-input v-model="newPassword" label="Mật khẩu mới" type="password"></q-input>
-              <q-input v-model="confirmPassword" label="Nhập lại mật khẩu mới" type="password"></q-input>
-              <q-btn class="btn" @click="changePassword">Đổi mật khẩu</q-btn>
-            </q-card-section>
-
-          </q-card>
-        </q-dialog>
-      </div>
+        </q-card>
+      </q-dialog>
     </div>
+  </div>
 </template>
 
 
@@ -200,7 +179,7 @@
     margin: 0 auto;
   }
 
-  <<<<<<< HEAD table {
+  table {
     width: 100%;
   }
 
@@ -213,12 +192,12 @@
     align-items: center;
   }
 
-  =======.header {
+  .header {
     display: flex;
     align-items: center;
   }
 
-  >>>>>>>33dcea1dc642e8b8e3cf3ce49fa1ef8e83888ae9 p {
+  p {
     margin: 0;
     margin-left: 20px;
     font-size: 18px;
@@ -229,7 +208,7 @@
     text-transform: uppercase;
   }
 
-  <<<<<<< HEAD .table-user {
+  .table-user {
     padding: 10px;
   }
 
@@ -238,12 +217,12 @@
     font-size: 24px;
   }
 
-  =======.update {
+  .update {
     margin-left: 100px;
     font-size: 24px;
   }
 
-  >>>>>>>33dcea1dc642e8b8e3cf3ce49fa1ef8e83888ae9 .changePass {
+  .changePass {
     margin-left: 20px;
     font-size: 24px;
   }
@@ -268,7 +247,7 @@
     font-weight: bold;
   }
 
-  <<<<<<< HEAD .card {
+  .card {
     width: 90vw;
   }
 
@@ -285,11 +264,11 @@
     color: white;
   }
 
-  =======.title-card {
+  .title-card {
     font-size: 18px;
   }
 
-  >>>>>>>33dcea1dc642e8b8e3cf3ce49fa1ef8e83888ae9 .card {
+  .card {
     width: 90vw;
   }
 
