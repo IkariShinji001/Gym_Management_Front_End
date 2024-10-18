@@ -6,18 +6,17 @@
     <!-- Container chatbot -->
     <div id="chatbot-container" v-show="isChatbotVisible" class="chatbot-container">
       <h5 class="chatbot-header">HỎI ĐÁP CÙNG 4GYM</h5>
-      <div class="message-container" id="messageContainer">
-        <div v-for="(msg, index) in messages" :key="index" :class="msg.sender === 'user' ? 'user-message' : 'bot-message'">
+      <div class="message-container" id="messageContainer" ref="messageContainer">
+        <div v-for="(msg, index) in messages" :key="index"
+          :class="msg.sender === 'user' ? 'user-message' : 'bot-message'">
           {{ msg.message }}
         </div>
       </div>
+
+
       <form @submit.prevent="sendMessage" class="chatbot-form">
         <div class="input-row">
-          <textarea 
-            v-model="messageInput" 
-            rows="1" 
-            placeholder="Soạn tin nhắn..." 
-            class="message-input" 
+          <textarea v-model="messageInput" rows="1" placeholder="Soạn tin nhắn..." class="message-input"
             @keydown.enter="sendMessage">
           </textarea>
           <button type="submit" class="send-btn">Gửi</button>
@@ -50,11 +49,14 @@ export default {
     async sendMessage() {
       if (this.messageInput.trim() !== '') {
         this.addMessageToChat('user', this.messageInput);
+        const data = this.messageInput;
+        this.messageInput = '';
+  
 
         try {
           const response = await chatbotService.getChatbotResponse({
             sender: 'user',
-            message: this.messageInput,
+            message: data,
           });
           if (Array.isArray(response) && response.length > 0) {
             const botMessage = response[0].text;
@@ -62,20 +64,27 @@ export default {
           } else {
             console.error('Invalid response format:', response);
           }
-          this.messageInput = '';
+          
         } catch (error) {
           console.error('Error:', error);
         }
       }
     },
     addMessageToChat(sender, message) {
+      console.log('Full message being added:', message); // Log full message
       this.messages.push({ sender, message });
+      // Wait for the DOM to update before scrolling
       this.$nextTick(() => {
         const messageContainer = this.$refs.messageContainer;
-        // Scroll tự động tới tin nhắn mới nhất
-        messageContainer.scrollTop = messageContainer.scrollHeight;
+        if (messageContainer) {
+          messageContainer.scrollTop = messageContainer.scrollHeight;
+        } else {
+          console.error('Message container reference is undefined');
+        }
       });
-    },
+    }
+
+
   },
 };
 </script>
@@ -126,6 +135,7 @@ export default {
   text-align: center;
   font-weight: bold;
 }
+
 /* Container tin nhắn */
 .message-container {
   flex: 1;
@@ -135,28 +145,31 @@ export default {
   display: flex;
   flex-direction: column;
   padding-bottom: 50px;
-  
+
 }
 
 /* Tin nhắn người dùng (căn phải) */
 .user-message {
-  background-color: #d90429; /* Đỏ tươi */
+  background-color: #d90429;
+  /* Đỏ tươi */
   color: white;
   padding: 10px;
   border-radius: 10px;
   margin-bottom: 8px;
-  align-self: flex-end; /* Căn về bên phải */
+  align-self: flex-end;
+  /* Căn về bên phải */
   max-width: 70%;
 }
 
 /* Tin nhắn bot (căn trái) */
 .bot-message {
-  background-color: #e0e0e0; 
+  background-color: #e0e0e0;
   color: #000;
   padding: 10px;
   border-radius: 10px;
   margin-bottom: 8px;
-  align-self: flex-start; /* Căn về bên trái */
+  align-self: flex-start;
+  /* Căn về bên trái */
   max-width: 70%;
 }
 
@@ -166,7 +179,7 @@ export default {
   padding: 10px;
   background-color: #ffffff;
   border-top: 1px solid #e0e0e0;
-  padding-bottom: 10px ;
+  padding-bottom: 10px;
 }
 
 .input-row {

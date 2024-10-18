@@ -8,13 +8,28 @@
         <q-select label="Giới tính" outlined v-model="user.gender" :options="genderOptions" class="input"></q-select>
         <q-input label="Ngày sinh" outlined class="input" v-model="user.dateOfBirth" type="date"></q-input>
         <q-input label="Tên đăng nhập" outlined class="input" v-model="user.username"></q-input>
-        <q-input label="Mật khẩu" outlined class="input" v-model="user.password"></q-input>
-        <q-input label="Nhập lại mật khẩu" outlined class="input" v-model="rePassword"></q-input>
+        <!-- <q-input label="Mật khẩu" password outlined class="input" v-model="user.password" type="password"></q-input> -->
+        <q-input label="Mật khẩu" outlined class="input" v-model="user.password"
+          :type="showPassword ? 'text' : 'password'">
+          <!-- Nút để ẩn/hiện mật khẩu -->
+          <template v-slot:append>
+            <q-btn flat dense :icon="showPassword ? 'visibility_off' : 'visibility'"
+              @click="togglePasswordVisibility"></q-btn>
+          </template>
+        </q-input>
 
+        <!-- <q-input label="Nhập lại mật khẩu" outlined class="input" v-model="rePassword" type="password"></q-input> -->
+        <q-input label="Nhập lại mật khẩu" outlined class="input" v-model="rePassword"
+          :type="showPassword ? 'text' : 'password'">
+          <!-- Nút để ẩn/hiện mật khẩu -->
+          <template v-slot:append>
+            <q-btn flat dense :icon="showPassword ? 'visibility_off' : 'visibility'"
+              @click="togglePasswordVisibility"></q-btn>
+          </template>
+        </q-input>
         <q-btn class="btn" @click="handleRegister">ĐĂNG KÝ</q-btn>
         <router-link class="register" to="/login">Đã có tài khoản? Đăng nhập</router-link>
-
-        {{ user }}
+        <router-link class="register" to="/forgot-password">Quên mật khẩu?</router-link>
       </q-card-section>
     </q-card>
   </div>
@@ -40,6 +55,11 @@ const user = reactive({
 })
 const rePassword = ref();
 const $q = useQuasar()
+const showPassword = ref(false);
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
 
 const sex = ref(true);
 const genderOptions = [
@@ -67,7 +87,7 @@ const handleRegister = async () => {
     router.push({ path: '/login' })
     console.log(res);
   } catch (error) {
-    toast.error("Xảy ra lỗi trong quá trình đăng nhập");
+    toast.error("Xảy ra lỗi trong quá trình đăng ký");
     console.error(error);
   } finally {
     $q.loading.hide()

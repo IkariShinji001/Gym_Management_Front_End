@@ -37,6 +37,19 @@ class UserService {
       })
     ).data;
   }
+  async forgetPassword(email) {
+    return (await api.post(`${this.path}/reset-password`, { email })).data;
+  }
+  async resetPassword(token, newPassword) {
+    return (
+      await api.post(`${this.path}/update-password-with-token`, {newPassword}, {
+        params: { token },
+      })
+    ).data;
+  }
+  async changePassword(id, password, newPassword) {
+    return (await api.patch(`${this.path}/change-password/${id}`, { password, newPassword } )).data;
+  }
 }
 
 export default new UserService();

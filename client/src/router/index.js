@@ -5,6 +5,8 @@ const router = createRouter({
   routes: [
     { path: "/login", component: () => import("../views/LoginPage.vue") },
     { path: "/register", component: () => import("../views/Register.vue") },
+    { path: "/forgot-password", component: () => import("../views/ForgotPassword.vue"),  },
+    { path: "/reset-password", component: () => import("../views/ResetPassword.vue") },  
     {
       path: "/",
       children: [
@@ -86,7 +88,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const publicPages = ["/login", "/register"];
+  const publicPages = ["/login", "/register", "/forgot-password", "/reset-password"];
   const authRequired = !publicPages.includes(to.path);
 
   if (authRequired && !localStorage.getItem("user_access_token")) {
