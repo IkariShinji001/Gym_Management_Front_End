@@ -15,25 +15,41 @@
   </div>
 
   <div class="info" v-if="user">
-    <div class="user-info">
-      <div class="title">
-        <p class="info-header">Họ và tên: </p>
-        <p class="info-header">Số điện thoại: </p>
-        <p class="info-header">Email: </p>
-        <p class="info-header">Giới tính: </p>
-        <p class="info-header">Ngày sinh: </p>
-        <p class="info-header">Mã mời: </p>
-      </div>
+    <table v-if="user" class="table-user">
+      <thead>
+        <tr>
+          <th>Thông tin</th>
+          <th>Chi tiết</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Họ và tên:</td>
+          <td class="detail">{{ user.fullName }}</td>
+        </tr>
+        <tr>
+          <td>Số điện thoại:</td>
+          <td class="detail">{{ user.phoneNumber || 'Chưa có thông tin' }}</td>
+        </tr>
+        <tr>
+          <td>Email:</td>
+          <td class="detail">{{ user.email || 'Chưa có thông tin' }}</td>
+        </tr>
+        <tr>
+          <td>Giới tính:</td>
+          <td class="detail">{{ user.gender ? 'Nam' : 'Nữ' || 'Chưa có thông tin' }}</td>
+        </tr>
+        <tr>
+          <td>Ngày sinh:</td>
+          <td class="detail">{{ formatDateDDMMYYY(new Date(user.dateBirth)) || 'Chưa có thông tin' }}</td>
+        </tr>
+        <tr>
+          <td>Mã mời:</td>
+          <td class="detail">{{ user.referralCode || 'Chưa có thông tin' }}</td>
+        </tr>
+      </tbody>
+    </table>
 
-      <div>
-        <p>{{ user.fullName }}</p>
-        <p>{{ user.phoneNumber || 'Chưa có thông tin' }}</p>
-        <p>{{ user.email || 'Chưa có thông tin' }}</p>
-        <p>{{ user.gender ? 'Nam' : 'Nữ' || 'Chưa có thông tin' }}</p>
-        <p>{{ formatDateDDMMYYY(new Date(user.dateBirth)) || 'Chưa có thông tin' }}</p>
-        <p>{{ user.referralCode || 'Chưa có thông tin' }}</p>
-      </div>
-    </div>
 
     <q-dialog v-model="openDialog">
       <q-card class="card" v-if="userUpdated">
@@ -99,6 +115,14 @@
     margin: 0 auto;
   }
 
+  table {
+    width: 100%;
+  }
+
+  td {
+    font-size: 16px;
+  }
+
   .header {
     display: flex;
     align-items: center;
@@ -113,6 +137,10 @@
 
   span {
     text-transform: uppercase;
+  }
+
+  .table-user {
+    padding: 10px;
   }
 
   .update {
@@ -146,6 +174,10 @@
 
   .card {
     width: 90vw;
+  }
+
+  .detail {
+    margin-left: 20px;
   }
 
   .btn {

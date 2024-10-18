@@ -21,6 +21,12 @@
         <p>Lịch sử tập gym</p>
       </li>
     </router-link>
+    <router-link :to="`/bmi`">
+      <li class="li">
+        <q-icon class="icons" name="calculate"></q-icon>
+        <p>Tính BMI</p>
+      </li>
+    </router-link>
     <!-- <router-link :to="`/create-face-login`">
       <li class="li">
         <q-icon class="icons" name="sensor_occupied"></q-icon>
@@ -40,7 +46,7 @@
 
 
     <li id="signout">
-      <p class="sign-out-btn" @click="signOut" >Đăng xuất</p>
+      <p class="sign-out-btn" @click="signOut">Đăng xuất</p>
     </li>
   </ul>
 

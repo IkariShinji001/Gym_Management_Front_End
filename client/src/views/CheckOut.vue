@@ -76,7 +76,6 @@
       <div class="refferal">
         <q-input class="refferal" :color="refferalColorInput" outlined label="Mã mời" v-model="refferalCode"
           maxlength="6" :hint="ferralHint"></q-input>
-        <q-btn @click="checkVoucher">Kiểm tra</q-btn>
       </div>
 
     </div>
@@ -110,6 +109,8 @@
               <q-radio v-model="voucherSelected" :val="voucher" color="teal" />
             </q-item-section>
           </q-item>
+          <q-btn class="dont-use-voucher-btn" @click="() => { voucherSelected = null; openVoucherDialog = false }">KHÔNG
+            DÙNG VOUCHER</q-btn>
         </q-tab-panel>
 
         <q-tab-panel name="inactive">
@@ -128,7 +129,9 @@
   import voucherService from '../services/voucher.service';
   import billService from '../services/bill.service';
   import userService from '../services/user.service';
+  import { useQuasar } from "quasar"
 
+  const $q = useQuasar()
   const ferralHint = ref();
   const router = useRouter()
   const route = useRoute();
@@ -167,32 +170,77 @@
       const user = await userService.getUserByRefferalCode(refferalCode.value);
       console.log(user, userId)
       if (user && user.id !== parseInt(userId)) {
-        ferralHint.value = 'Hợp lệ';
+        return { user };
       } else {
-        ferralHint.value = 'Không hợp lệ';
+        return false;
       }
     } catch (error) {
       console.log(error)
+      return false;
     }
   }
 
+  // const handleCreateBill = async () => {
+  //   try {
+  //     if (refferalCode.value) {
+  //       const isValid = await checkVoucher();
+  //       if (!isValid) {
+  //         $q.notify({ position: 'top', message: 'Mã mời không hợp lệ!' })
+  //         return;
+  //       }
+  //       if (voucherSelected.value) {
+  //         const res = await billService.createBill(userId, listPriceIds.value, voucherSelected.value.id, isValid.user.id);
+  //         if (res.url) {
+  //           window.location.href = res.url;
+  //         }
+  //         return;
+  //       }
+  //       const res = await billService.createBill(userId, listPriceIds.value);
+  //       if (res.url) {
+  //         window.location.href = res.url;
+  //       }
+  //       return;
+  //     }
+
+  //     if (voucherSelected.value) {
+  //       const res = await billService.createBill(userId, listPriceIds.value, voucherSelected.value.id);
+  //       if (res.url) {
+  //         window.location.href = res.url;
+  //       }
+  //       return;
+  //     }
+  //     const res = await billService.createBill(userId, listPriceIds.value);
+  //     if (res.url) {
+  //       window.location.href = res.url;
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
+
   const handleCreateBill = async () => {
     try {
-      if (voucherSelected.value) {
-        const res = await billService.createBill(userId, listPriceIds.value, voucherSelected.value.id);
-        if (res.url) {
-          window.location.href = res.url;
+      let referredUserId = null;
+
+      if (refferalCode.value) {
+        const isValid = await checkVoucher();
+        if (!isValid) {
+          $q.notify({ position: 'top', message: 'Mã mời không hợp lệ!' });
+          return;
         }
-        return;
+        referredUserId = isValid.user.id;
       }
-      const res = await billService.createBill(userId, listPriceIds.value);
-      if (res.url) {
+
+      const voucherId = voucherSelected.value ? voucherSelected.value.id : null;
+      const res = await billService.createBill(userId, listPriceIds.value, voucherId, referredUserId);
+
+      if (res?.url) {
         window.location.href = res.url;
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
-  }
+  };
 
   const getVoucherDiscount = (discountType, discount) => {
     if (discountType === 'fixed') {
@@ -332,10 +380,6 @@
     text-align: center;
   }
 
-  .refferal {
-    display: flex;
-    justify-content: space-between;
-  }
 
   .packages {
     width: 90%;
@@ -432,6 +476,14 @@
 
   .invite {
     padding-bottom: 100px;
+  }
+
+  .dont-use-voucher-btn {
+    background-color: #D90429;
+    font-weight: bold;
+    color: white;
+    display: flex;
+    margin: 0 auto;
   }
 
 
