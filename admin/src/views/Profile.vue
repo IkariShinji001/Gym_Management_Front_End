@@ -5,12 +5,12 @@
         <q-btn class="btn" flat icon="edit" size="md" @click="handleOpenUpdateDialog">
           <q-tooltip>Chỉnh sửa</q-tooltip>
         </q-btn>
-        <q-btn class="btn" flat icon="key" size="md" @click="handleOpenUpdatePassword">
+        <q-btn class="btn" flat icon="key" size="md" @click="handleOpenUpdatePasswordDialog">
           <q-tooltip>Đổi mật khẩu</q-tooltip>
         </q-btn>
       </div>
       <!-- Profile Information -->
-      <div class="container-body">
+      <div class="container-body" v-if="role === 'pt'">
         <!-- Quasar Carousel for images -->
         <q-card class="card-img">
           <div v-if="profilePt.images?.length" class="carousel-container">
@@ -21,10 +21,12 @@
                   @click="handleDeleteImage(image.id)">
                   <q-tooltip>Xoá ảnh</q-tooltip>
                 </q-icon>
-                <q-icon class="add-icon" name="upload_file" color="blue" size="md" @click="handleAddImageDialog">
-                  <q-tooltip>Thêm ảnh</q-tooltip>
-                </q-icon>
-              </q-carousel-slide>
+
+              </q-carousel-slide> <q-icon v-show="true" class="add-icon" name="upload_file" color="blue" size="md"
+                @click="handleAddImageDialog">
+                <q-tooltip>Thêm ảnh</q-tooltip>
+              </q-icon>
+
             </q-carousel>
           </div>
         </q-card>
@@ -41,8 +43,23 @@
           <a :href="profilePt.fbLink">{{ profilePt.fbLink }}</a>
         </div>
       </div>
-
-      <q-dialog v-model="openUpdateDialog">
+      <!-- profile Manager Infomation -->
+      <div class="container-body" v-if="role === 'manager'">
+        <div class="profile-detail">
+          <p><strong>Họ và tên: </strong> {{ profileManager?.fullName }}</p>
+          <p><strong>Email: </strong> {{ profileManager?.email }}</p>
+          <p><strong>Số điện thoại: </strong> {{ profileManager?.phoneNumber }}</p>
+        </div>
+      </div>
+      <!-- profile Employee Infomation -->
+      <div class="container-body" v-if="role === 'employee'">
+        <div class="profile-detail">
+          <p><strong>Họ và tên: </strong> {{ profileEmployee?.fullName }}</p>
+          <p><strong>Email: </strong> {{ profileEmployee?.email }}</p>
+          <p><strong>Số điện thoại: </strong> {{ profileEmployee?.phoneNumber }}</p>
+        </div>
+      </div>
+      <q-dialog v-model="openUpdatePtDialog">
         <q-card>
           <q-card-section>
             <q-card-title>
@@ -51,9 +68,10 @@
             <q-card-section>
               <q-form @submit="handleUpdateProfile">
                 <q-input v-model="profilePt.profile.fullName" label="Họ và tên" />
-                <q-input v-model="profilePt.profile.email" label="Email" />
+                <q-input v-model="profilePt.profile.email" label="Email" :rules="[
+                  val => !!val || 'Email không được để trống', validateEmail]" />
                 <q-input v-model="profilePt.profile.phoneNumber" label="Số điện thoại" />
-                <q-btn type="submit" label="Update" color="primary" />
+                <q-btn type="submit" label="Lưu" color="primary" />
               </q-form>
               <q-form @submit="handleUpdatePt">
                 <q-input v-model="profilePt.weight" label="Cân nặng" />
@@ -62,7 +80,10 @@
                 <q-input v-model="profilePt.waist" label="Vòng 2" />
                 <q-input v-model="profilePt.hips" label="Vòng 3" />
                 <q-input v-model="profilePt.fbLink" label="Link Facebook" />
-                <q-btn type="submit" label="Update" color="primary" />
+                <div class="submit-button">
+                  <q-btn type="submit" label="Lưu" color="primary" />
+                </div>
+
               </q-form>
             </q-card-section>
           </q-card-section>
@@ -79,7 +100,9 @@
                 <q-input v-model="oldPassword" label="Mật khẩu cũ" type="password" />
                 <q-input v-model="newPassword" label="Mật khẩu mới" type="password" />
                 <q-input v-model="confirmPassword" label="Xác nhận mật khẩu" type="password" />
-                <q-btn type="submit" label="Update" color="primary" />
+                <div class="submit-button">
+                  <q-btn type="submit" label="Lưu" color="primary" />
+                </div>
               </q-form>
             </q-card-section>
           </q-card-section>
@@ -99,12 +122,55 @@
                     <q-icon name="cloud_upload" />
                   </template>
                 </q-file>
-                <q-btn type="submit" label="Thêm ảnh" color="primary" />
+                <div class="submit-button">
+                  <q-btn type="submit" label="Thêm ảnh" color="primary" />
+                </div>
               </q-form>
             </q-card-section>
           </q-card-section>
         </q-card>
       </q-dialog>
+      <q-dialog v-model="openUpdateManagerDialog">
+        <q-card>
+          <q-card-section>
+            <q-card-title>
+              <h4>Chỉnh sửa thông tin cá nhân</h4>
+            </q-card-title>
+            <q-card-section>
+              <q-form @submit="handleUpdateManagerProfile">
+                <q-input v-model="profileManager.fullName" label="Họ và tên" />
+                <q-input v-model="profileManager.email" label="Email"
+                :rules="[ val => !!val || 'Email không được để trống', validateEmail]" />
+                <q-input v-model="profileManager.phoneNumber" label="Số điện thoại" />
+                <div class="submit-button">
+                  <q-btn type="submit" label="Lưu" color="primary" />
+                </div>
+              </q-form>
+            </q-card-section>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+      <q-dialog v-model="openUpdateEmployeeDialog">
+        <q-card>
+          <q-card-section>
+            <q-card-title>
+              <h4>Chỉnh sửa thông tin cá nhân</h4>
+            </q-card-title>
+            <q-card-section>
+              <q-form @submit="handleUpdateEmployeeProfile">
+                <q-input v-model="profileEmployee.fullName" label="Họ và tên" />
+                <q-input v-model="profileEmployee.email" label="Email"
+                :rules="[ val => !!val || 'Email không được để trống', validateEmail]" />
+                <q-input v-model="profileEmployee.phoneNumber" label="Số điện thoại" />
+                <div class="submit-button">
+                  <q-btn type="submit" label="Lưu" color="primary" />
+                </div>
+              </q-form>
+            </q-card-section>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
     </div>
   </template>
 
@@ -120,7 +186,7 @@ const profilePt = ref({});
 const id = localStorage.getItem('id');
 const role = localStorage.getItem('role');
 const slide = ref(0);
-const openUpdateDialog = ref(false);
+const openUpdatePtDialog = ref(false);
 const openUpdatePasswordDialog = ref(false);
 const openAddImageDialog = ref(false);
 const oldPassword = ref('');
@@ -129,6 +195,10 @@ const confirmPassword = ref('');
 const originalProfile = ref({}); // lưu trữ bản sao của profile ban đầu
 const fileUploaded = ref([]);
 const secure_urlList = ref([]);
+const profileManager = ref({});
+const openUpdateManagerDialog = ref(false);
+const openUpdateEmployeeDialog = ref(false);
+const profileEmployee = ref({});  
 
 const $q = useQuasar();
 
@@ -140,6 +210,14 @@ onBeforeMount(async () => {
       profilePt.value = ptData;
       originalProfile.value = JSON.parse(JSON.stringify(ptData)); // Lưu bản sao gốc
     }
+    if (role === 'manager') {
+      const managerData = await profilesService.getProfile(id);
+      profileManager.value = managerData;
+    }
+    if (role === 'employee') {
+      const employeeData = await profilesService.getProfile(id);
+      profileEmployee.value = employeeData;
+    }
   } catch (error) {
     console.log(error);
   }
@@ -148,10 +226,61 @@ const handleAddImageDialog = () => {
   openAddImageDialog.value = true;
 };
 const handleOpenUpdateDialog = () => {
-  openUpdateDialog.value = true;
+  if (role === 'pt')
+    openUpdatePtDialog.value = true;
+  else if (role === 'manager') {
+    openUpdateManagerDialog.value = true;
+  }
+  else if (role === 'employee') {
+    openUpdateEmployeeDialog.value = true;
+  }
 };
-const handleOpenUpdatePassword = () => {
+const handleOpenUpdatePasswordDialog = () => {
   openUpdatePasswordDialog.value = true;
+};
+
+const handleFileChange = (files) => {
+  fileUploaded.value = files;
+};
+
+const handleUpdateEmployeeProfile = async () => {
+  try {
+    // validate not empty
+    if (profileEmployee.value.fullName === '' || profileEmployee.value.email === '' || profileEmployee.value.phoneNumber === '') {
+      $q.notify({ position: 'top', color: 'negative', message:'Vui lòng kiểm tra lại thông tin cập nhật' });
+      return;
+    }
+    const updatedEmployeeProfile = {
+      fullName: profileEmployee.value.fullName,
+      email: profileEmployee.value.email,
+      phoneNumber: profileEmployee.value.phoneNumber,
+    }
+    await profilesService.updatedProfile(id, updatedEmployeeProfile);
+    openUpdateEmployeeDialog.value = false;
+  }catch (error) {
+    $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
+    console.log(error);
+  }
+}
+
+const handleUpdateManagerProfile = async () => {
+  try {
+    // validate not empty
+    if (profileManager.value.fullName === '' || profileManager.value.email === '' || profileManager.value.phoneNumber === '') {
+      $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
+      return;
+    }
+    const updatedManagerProfile = {
+      fullName: profileManager.value.fullName,
+      email: profileManager.value.email,
+      phoneNumber: profileManager.value.phoneNumber,
+    };
+    await profilesService.updatedProfile(id, updatedManagerProfile);
+    openUpdateManagerDialog.value = false;
+  } catch (error) {
+    $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
+    console.log(error);
+  }
 };
 
 const handleAddImage = async () => {
@@ -164,7 +293,7 @@ const handleAddImage = async () => {
       secure_urlList.value.push(
         { imageUrl: fileRes.secure_url });
     }
-    for( var i = 0; i< secure_urlList.value.length; i++){
+    for (var i = 0; i < secure_urlList.value.length; i++) {
       const newImage = await ptImagesService.createImage(secure_urlList.value[i].imageUrl, profilePt.value.id);
       profilePt.value.images.push(newImage);
     }
@@ -186,15 +315,19 @@ const handleUpdatePt = async () => {
       fbLink: profilePt.value.fbLink,
     };
     await ptsService.update(profilePt.value.id, updatedPt);
-    openUpdateDialog.value = false;
+    openUpdatePtDialog.value = false;
   } catch (error) {
     console.log(error);
-    sole.log("2131");
 
   }
 };
 const handleUpdateProfile = async () => {
   try {
+    // validate not empty
+    if (profilePt.value.profile.fullName === '' || profilePt.value.profile.email === '' || profilePt.value.profile.phoneNumber === '') {
+      $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
+      return;
+    }
     const updatedProfile = {};
     // So sánh từng trường và chỉ thêm những trường thay đổi vào updatedProfile
     if (profilePt.value.profile.fullName !== originalProfile.value.profile.fullName) {
@@ -210,10 +343,12 @@ const handleUpdateProfile = async () => {
     // Kiểm tra nếu có thay đổi thì mới gọi API
     if (Object.keys(updatedProfile).length > 0) {
       await profilesService.updatedProfile(profilePt.value.profile.id, updatedProfile);
-      openUpdateDialog.value = false;
+      openUpdatePtDialog.value = false;
       originalProfile.value = JSON.parse(JSON.stringify(profilePt.value)); // Cập nhật lại bản sao gốc
     } else {
-      alert('Không có thay đổi nào để cập nhật');
+      $q.notify({ position: 'top', message: 'Không có thay đổi nào để cập nhật' });
+
+
     }
   } catch (error) {
     $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
@@ -222,26 +357,43 @@ const handleUpdateProfile = async () => {
 };
 const handleUpdatePassword = async () => {
   try {
-
+    // validate not empty
+    if (oldPassword.value === '' || newPassword.value === '' || confirmPassword.value === '') {
+      $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
+      return;
+    }
     if (newPassword.value !== confirmPassword.value) {
-      alert('Mật khẩu xác nhận không khớp');
+      $q.notify({ position: 'top', color: 'negative', message: 'Mật khẩu xác nhận không khớp' });
       return;
     }
     if (newPassword.value.length < 6) {
-      alert('Mật khẩu phải có ít nhất 6 ký tự');
+      $q.notify({ position: 'top', color: 'negative', message: 'Mật khẩu phải có ít nhất 6 ký tự' });
       return;
     }
     if (oldPassword.value === '') {
-      alert('Vui lòng nhập mật khẩu cũ');
+      $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng nhập mật khẩu cũ' });
       return;
     }
-    await profilesService.updatePassword(profilePt.value.profile.id, oldPassword.value, newPassword.value);
+    if (role === 'manager') {
+      await profilesService.updatePassword(id, oldPassword.value, newPassword.value);
+    } else if (role === 'pt') {
+      await profilesService.updatePassword(profilePt.value.profile.id, oldPassword.value, newPassword.value);
+    }
+    else if (role === 'employee') {
+      await profilesService.updatePassword(id, oldPassword.value, newPassword.value);
+    }
+    // after update password, clear the input fields
+    oldPassword.value = '';
+    newPassword.value = '';
+    confirmPassword.value = '';
+
+    // await profilesService.updatePassword(profilePt.value.profile.id, oldPassword.value, newPassword.value);
     openUpdatePasswordDialog.value = false;
   } catch (error) {
+    $q.notify({ position: 'top', color: 'negative', message: error.response.data.message })
     console.log(error);
   }
 };
-
 const handleDeleteImage = async (imageId) => {
   try {
     await uploadFileService.deleteFile(imageId);
@@ -251,9 +403,16 @@ const handleDeleteImage = async (imageId) => {
     console.log(error);
   }
 };
+// function validateEmail(email) {
+//   const regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
 
-
-
+//   return regex.test(email);
+// }
+const validateEmail = (email) => {
+  const regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+  
+  return regex.test(email) || "Email không hợp lệ";
+};  
 </script>
 
 <style scoped>
@@ -342,5 +501,14 @@ h2 {
 
 .carousel-container:hover .delete-icon .add-icon {
   display: block;
+}
+
+.profile-detail p {
+  margin: 10px 0;
+}
+
+.submit-button {
+  text-align: center;
+  margin-top: 10px;
 }
 </style>

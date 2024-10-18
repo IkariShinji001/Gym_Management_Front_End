@@ -40,9 +40,8 @@
       </q-card>
     </div>
 
-    <div class="buy">
+    <div class="buy" v-if="currentPackage === false">
       <q-icon name="sms" class="icon chat"></q-icon>
-      <!-- đường dẫn tương đối không có / ở đầu thì nối đuôi đường dẫn cũ ra -->
       <router-link class="buy" :to="`${fitnessPackageId}/prices/${selectPriceId}`">
         <q-icon name="shopping_cart" class="icon">
           <p class="icon-text">Mua gói tập</p>
