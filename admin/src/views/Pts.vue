@@ -290,57 +290,59 @@ const slide = ref(0);
 const selectedImgId = ref(0);
 const profileId = localStorage.getItem("id");
 const manager = ref({});
+const $q = useQuasar();
+const deleteId = ref(null); // Lưu id nhân viên cần xóa
+const openDeleteDialog = ref(false);
 
+const pt = reactive({
+  weight: "",
+  height: "",
+  bust: "",
+  waist: "",
+  hips: "",
+  fbLink: "",
+  profile: {
+    email: "",
+    password: "",
+    phoneNumber: "",
+    fullName: "",
+    role: "",
+  },
+  images: [],
+});
 
-  const pt = reactive({
-    weight: "",
-    height: "",
-    bust: "",
-    waist: "",
-    hips: "",
-    fbLink: "",
-    profile: {
-      email: "",
-      password: "",
-      phoneNumber: "",
-      fullName: "",
-      role: "",
-    },
-    images: [],
-  });
+const ptInput = reactive({
+  weight: "",
+  height: "",
+  bust: "",
+  waist: "",
+  hips: "",
+  fbLink: "",
+  profile: {
+    email: "",
+    password: "",
+    phoneNumber: "",
+    fullName: "",
+    role: "",
+  },
+  managerId: "",
+});
 
-  const ptInput = reactive({
-    weight: "",
-    height: "",
-    bust: "",
-    waist: "",
-    hips: "",
-    fbLink: "",
-    profile: {
-      email: "",
-      password: "",
-      phoneNumber: "",
-      fullName: "",
-      role: "",
-    },
-    managerId: "",
-  });
-
-  const handleOpenCreateDialog = () => {
-    ptInput.profile.email = "";
-    ptInput.profile.password = "";
-    ptInput.profile.phoneNumber = "";
-    ptInput.profile.fullName = "";
-    ptInput.profile.role = "";
-    ptInput.weight = "";
-    ptInput.height = "";
-    ptInput.bust = "";
-    ptInput.waist = "";
-    ptInput.hips = "";
-    ptInput.fbLink = "";
-    ptInput.managerId = "";
-    openCreateDialog.value = true;
-  };
+const handleOpenCreateDialog = () => {
+  ptInput.profile.email = "";
+  ptInput.profile.password = "";
+  ptInput.profile.phoneNumber = "";
+  ptInput.profile.fullName = "";
+  ptInput.profile.role = "";
+  ptInput.weight = "";
+  ptInput.height = "";
+  ptInput.bust = "";
+  ptInput.waist = "";
+  ptInput.hips = "";
+  ptInput.fbLink = "";
+  ptInput.managerId = "";
+  openCreateDialog.value = true;
+};
 
 const handleOpenUpdateDialog = async (id) => {
   openUpdateDialog.value = true;
@@ -349,15 +351,48 @@ const handleOpenUpdateDialog = async (id) => {
   updateId.value = id;
 };
 
+const validateEmail = (email) => {
+  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailPattern.test(email);
+};
+
 const handleAdd = async () => {
+  $q.loading.show({
+    spinner: QSpinnerCube,
+    message: "Đang tạo thành viên mới...",
+  });
   try {
+    // Kiểm tra nếu các trường bắt buộc bị bỏ trống
+    if (ptInput.profile.email === "" || ptInput.profile.password === "" ||
+      ptInput.profile.phoneNumber === "" || ptInput.profile.fullName === "" ||
+      ptInput.weight === "" || ptInput.height === "" ||
+      ptInput.bust === "" || ptInput.waist === "" ||
+      ptInput.hips === "" || ptInput.fbLink === "") {
+      $q.notify({ position: 'top', message: 'Vui lòng điền đầy đủ thông tin' });
+      return;
+    }
+
+    // Kiểm tra định dạng email bằng RegEx
+    if (!validateEmail(ptInput.profile.email)) {
+      $q.notify({
+        color: "negative",
+        position: "top",
+        message: "Email không hợp lệ",
+      });
+      return;
+    }
+    const imageList = [];
+    // Tiếp tục xử lý thêm PT khi email hợp lệ
     for (var i = 0; i < fileUploaded.value.length; i++) {
       const formData = new FormData();
       formData.append("file", fileUploaded.value[i]);
       const fileRes = await uploadFileService.uploadFile(formData);
-      secure_urlList.value.push(
-        { imageUrl: fileRes.secure_url });
+       secure_urlList.value.push({ imageUrl: fileRes.secure_url });
+      imageList.push({ imageUrl: fileRes.secure_url });
     }
+    console.log(imageList);
+    
+
     const payload = {
       createProfileDto: {
         email: ptInput.profile.email,
@@ -377,35 +412,44 @@ const handleAdd = async () => {
       },
       createImagesDto: secure_urlList.value,
     };
+
     const res = await ptsServices.create(payload);
     openCreateDialog.value = false;
     pts.value.push(res);
+    const index = pts.value.findIndex((pt) => pt.id === res.id);
+    if(index !== -1){
+      pts.value[index].images = imageList;
+    } 
+  } catch (error) {
+    console.log(error);
+  } finally {
+    $q.loading.hide();
+    $q.notify({ position: 'top', color: 'positive', message: 'Tạo thành viên mới thành công' });
+    fileUploaded.value = [];
+  }
+};
+
+const handleUpdate = async (id) => {
+  try {
+    const payload = {
+      weight: pt.weight,
+      height: pt.height,
+      bust: pt.bust,
+      waist: pt.waist,
+      hips: pt.hips,
+      fbLink: pt.fbLink,
+    };
+    const res = await ptsServices.update(id, payload);
+    handleAddImage(id);
+    const index = pts.value.findIndex((pt) => pt.id === id);
+    Object.assign(pts.value[index], res);
+    openUpdateDialog.value = false;
   } catch (error) {
     console.log(error);
   }
 };
 
-  const handleUpdate = async (id) => {
-    try {
-      const payload = {
-        weight: pt.weight,
-        height: pt.height,
-        bust: pt.bust,
-        waist: pt.waist,
-        hips: pt.hips,
-        fbLink: pt.fbLink,
-      };
-      const res = await ptsServices.update(id, payload);
-      handleAddImage(id);
-      const index = pts.value.findIndex((pt) => pt.id === id);
-      Object.assign(pts.value[index], res);
-      openUpdateDialog.value = false;
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-const   handleAddImage = async (id) => {
+const handleAddImage = async (id) => {
   try {
     secure_urlList.value = []; // reset danh sách ảnh
     for (var i = 0; i < fileUploaded.value.length; i++) {
@@ -420,54 +464,68 @@ const   handleAddImage = async (id) => {
       const newImage = await ptImagesService.createImage(secure_urlList.value[i].imageUrl, id);
       // pt.images.push(secure_urlList.value[i]);
       const ptIndex = pts.value.findIndex(pt => pt.id === id);
-      pts.value[ptIndex].images.push(newImage); 
+      pts.value[ptIndex].images.push(newImage);
     }
 
-      fileUploaded.value = [];
+    fileUploaded.value = [];
 
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const filteredPts = computed(() => {
-    if (!search.value) return pts.value;
-
-  const searchName = search.value.toLowerCase();
-  return pts.value.filter((pt) => pt.profile.fullName.includes(searchName));
-});
-const handleDelete = async (id) => {
-  try {
-    await ptsServices.delete(id);
-    pts.value = pts.value.filter((pt) => pt.id !== id);
   } catch (error) {
     console.log(error);
   }
 };
+const filteredPts = computed(() => {
+  if (!search.value) return pts.value;
 
-  onBeforeMount(async () => {
-    manager.value = await managersService.findByProfile(profileId);
-    pts.value = await managersService.getPtsByManagerId(manager.value.id);
-    console.log(pts.value);
-  });
-  const handleOpenDetailDialog = (id) => {
-    openDetailDialog.value = true;
-    const index = pts.value.findIndex((pt) => pt.id === id);
-    Object.assign(pt, pts.value[index]);
-  };
-  const totalPages = computed(() => {
-    return Math.ceil(filteredPts.value.length / rowsPerPage.value);
-  });
+  const searchName = search.value.toLowerCase();
+  return pts.value.filter((pt) => pt.profile.fullName.includes(searchName));
+});
+// const handleDelete = async (id) => {
+//   try {
+//     await ptsServices.delete(id);
+//     pts.value = pts.value.filter((pt) => pt.id !== id);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
 
-  const paginatedPts = computed(() => {
-    const start = (currentPage.value - 1) * rowsPerPage.value;
-    const end = start + rowsPerPage.value;
-    return filteredPts.value.slice(start, end);
-  });
+onBeforeMount(async () => {
+  manager.value = await managersService.findByProfile(profileId);
+  pts.value = await managersService.getPtsByManagerId(manager.value.id);
+  console.log(pts.value);
+});
+const handleOpenDetailDialog = (id) => {
+  openDetailDialog.value = true;
+  const index = pts.value.findIndex((pt) => pt.id === id);
+  Object.assign(pt, pts.value[index]);
+};
+const totalPages = computed(() => {
+  return Math.ceil(filteredPts.value.length / rowsPerPage.value);
+});
+
+const paginatedPts = computed(() => {
+  const start = (currentPage.value - 1) * rowsPerPage.value;
+  const end = start + rowsPerPage.value;
+  return filteredPts.value.slice(start, end);
+});
 
 const updatePage = (page) => {
   currentPage.value = page;
 };
+const handleOpenDeleteDialog = (id) => {
+  deleteId.value = id;
+  openDeleteDialog.value = true; // Mở hộp thoại xác nhận
+};
 
+// Hàm thực hiện xóa sau khi người dùng xác nhận
+const confirmDelete = async () => {
+  try {
+    await ptsServices.delete(deleteId.value);
+    pts.value = pts.value.filter((pt) => pt.id !== deleteId.value);
+    openDeleteDialog.value = false; // Đóng hộp thoại xác nhận sau khi xóa
+  } catch (error) {
+    console.log(error);
+  }
+};
 const handleDeleteImage = async (imageId, ptId) => {
   try {
     await uploadFileService.deleteFile(imageId);
@@ -484,158 +542,158 @@ const handleDeleteImage = async (imageId, ptId) => {
 </script>
 
 <style>
-  h1 {
-    text-align: center;
-    font-size: 30px;
-    margin-bottom: 20px;
-  }
+h1 {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 20px;
+}
 
-  .input-search {
-    display: flex;
-    margin: 0 50px;
-    justify-content: space-around;
-  }
+.input-search {
+  display: flex;
+  margin: 0 50px;
+  justify-content: space-around;
+}
 
-  .input {
-    width: 70%;
-    font-size: 22px;
-  }
+.input {
+  width: 70%;
+  font-size: 22px;
+}
 
-  .add {
-    width: 20%;
-  }
+.add {
+  width: 20%;
+}
 
-  table {
-    width: 85%;
-    margin: 30px auto;
-    border-collapse: collapse;
-  }
+table {
+  width: 85%;
+  margin: 30px auto;
+  border-collapse: collapse;
+}
 
-  .heading-table th {
-    background-color: #f5f5f5;
-    padding: 10px;
-    text-align: center;
-  }
+.heading-table th {
+  background-color: #f5f5f5;
+  padding: 10px;
+  text-align: center;
+}
 
-  tr:nth-child(even) {
-    background-color: aliceblue;
-  }
+tr:nth-child(even) {
+  background-color: aliceblue;
+}
 
-  .modal {
-    min-width: 700px;
-  }
+.modal {
+  min-width: 700px;
+}
 
-  .icons {
-    margin: 0 20px;
-    cursor: pointer;
-  }
+.icons {
+  margin: 0 20px;
+  cursor: pointer;
+}
 
-  th {
-    font-size: 20px;
-    padding: 0 10px;
-    border-bottom: 1px solid #ddd;
-  }
+th {
+  font-size: 20px;
+  padding: 0 10px;
+  border-bottom: 1px solid #ddd;
+}
 
-  td {
-    font-size: 18px;
-    padding: 0 10px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-  }
+td {
+  font-size: 18px;
+  padding: 0 10px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
 
-  .action {
-    display: flex;
-    justify-content: center;
-  }
+.action {
+  display: flex;
+  justify-content: center;
+}
 
-  .btn {
-    display: flex;
-    margin: 0 auto;
-    padding: 10px 60px;
-    margin-top: 20px;
-  }
+.btn {
+  display: flex;
+  margin: 0 auto;
+  padding: 10px 60px;
+  margin-top: 20px;
+}
 
-  td {
-    text-align: center;
-  }
+td {
+  text-align: center;
+}
 
-  .avatar {
-    height: 180px;
-    width: 100%;
-  }
+.avatar {
+  height: 180px;
+  width: 100%;
+}
 
-  .card-img {
-    height: 180px;
-    width: 100%;
-  }
+.card-img {
+  height: 180px;
+  width: 100%;
+}
 
-  .panel {
-    height: 450px;
-    width: 700px;
-  }
+.panel {
+  height: 450px;
+  width: 700px;
+}
 
-  .dia-input {
-    margin: 5px;
-  }
+.dia-input {
+  margin: 5px;
+}
 
-  .list-image {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+.list-image {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 
-  .add-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 10px;
-  }
+.add-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
 
-  .image-container {
-    position: relative;
-    display: inline-block;
-  }
+.image-container {
+  position: relative;
+  display: inline-block;
+}
 
-  .image-preview {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    transition: filter 0.3s ease;
-    /* Hiệu ứng mờ khi hover */
-  }
+.image-preview {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  transition: filter 0.3s ease;
+  /* Hiệu ứng mờ khi hover */
+}
 
-  .image-container:hover .image-preview {
-    filter: grayscale(100%);
-    /* Chuyển ảnh sang xám khi hover */
-  }
+.image-container:hover .image-preview {
+  filter: grayscale(100%);
+  /* Chuyển ảnh sang xám khi hover */
+}
 
-  .delete-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    /* Ẩn nút xoá */
-    transition: opacity 0.3s ease;
-    /* Hiệu ứng mượt khi hover */
-  }
+.delete-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  /* Ẩn nút xoá */
+  transition: opacity 0.3s ease;
+  /* Hiệu ứng mượt khi hover */
+}
 
-  .image-container:hover .delete-icon {
-    opacity: 1;
-    /* Hiển thị nút xoá khi hover */
-  }
+.image-container:hover .delete-icon {
+  opacity: 1;
+  /* Hiển thị nút xoá khi hover */
+}
 
-  .card-title {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    height: 40px;
+.card-title {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  height: 40px;
 
-  }
+}
 
-  .header-card-title {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+.header-card-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 </style>
