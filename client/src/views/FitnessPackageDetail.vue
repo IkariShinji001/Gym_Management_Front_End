@@ -80,10 +80,10 @@
     fitnessBenefits.value = await benefitPackageService.findBenefitByFitnessPackageId(fitnessPackageId.value);
     fitnessPackage.value = await FitnessPackageService.getById(fitnessPackageId.value);
 
-    servicePackagePrices.value = await servicePackagePrice.getPackagePriceByIdServicePackage(fitnessPackage.value.servicePackage.id);
+    servicePackagePrices.value = await servicePackagePrice.getPackagePriceByIdServicePackage(fitnessPackageId.value);
     // price.value=servicePackagePrices.value[0].price;
     // Đặt mặc định giá trị của selectPriceId và price
-
+    console.log(servicePackagePrices.value);
     if (servicePackagePrices.value.length > 0) {
       selectPriceId.value = servicePackagePrices.value[0].id;
       price.value = servicePackagePrices.value[0].price;

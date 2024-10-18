@@ -371,9 +371,12 @@ export default {
         soldProductPayload.price = soldProductPayload.quantity * product.price;
 
         product.totalSold += amounts.value[productId];
+        console.log(soldProductPayload)
+
         const soldPro = await soldProductService.createSoldProduct(
           soldProductPayload
         );
+        console.log(soldPro)
         toast.success("Đã bán");
       } catch (e) {
         console.log(e);

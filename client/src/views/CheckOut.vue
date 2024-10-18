@@ -2,7 +2,6 @@
   <div class="container">
     <h4>Thanh toán</h4>
     <div class="packages">
-      {{ packagePrices }}
       <div v-for="(pkg, index) in packagePrices" class="package">
         <div class="seperate">
         </div>
@@ -267,6 +266,7 @@
     try {
       console.log(listPriceIds.value)
       packagePrices.value = (await servicePackagePriceService.getPackagePriceByListIds(listPriceIds.value)).servicePackagePriceList;
+      console.log(packagePrices.value);
       totalAmount = packagePrices.value.reduce((sum, p) => sum + parseInt(p.price), 0);
       vouchers.value = await voucherService.getVouchersByUserId(userId);
       vouchers.value.forEach((voucher) => {
