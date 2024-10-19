@@ -5,16 +5,33 @@
       <q-card-section>
         <q-input label="Họ và tên" outlined class="input" v-model="user.fullName"></q-input>
         <q-input label="Email" outlined class="input" v-model="user.email"></q-input>
-        <q-select label="Giới tính" outlined v-model="user.gender" :options="genderOptions" class="input"></q-select>
-        <q-input label="Ngày sinh" outlined class="input" v-model="user.dateOfBirth" type="date"></q-input>
+        <q-input label="Số điện thoại" outlined class="input" v-model="user.phoneNumber"></q-input>
+        <q-select v-model="user.gender" label="Giới tính" :options="genderSelect" map-options emit-value
+        option-label="text" outlined option-value="value"></q-select>
+        <q-input label="Ngày sinh" outlined class="input" v-model="user.dateBirth" type="date"></q-input>
         <q-input label="Tên đăng nhập" outlined class="input" v-model="user.username"></q-input>
-        <q-input label="Mật khẩu" outlined class="input" v-model="user.password"></q-input>
-        <q-input label="Nhập lại mật khẩu" outlined class="input" v-model="rePassword"></q-input>
+        <!-- <q-input label="Mật khẩu" password outlined class="input" v-model="user.password" type="password"></q-input> -->
+        <q-input label="Mật khẩu" outlined class="input" v-model="user.password"
+          :type="showPassword ? 'text' : 'password'">
+          <!-- Nút để ẩn/hiện mật khẩu -->
+          <template v-slot:append>
+            <q-btn flat dense :icon="showPassword ? 'visibility_off' : 'visibility'"
+              @click="togglePasswordVisibility"></q-btn>
+          </template>
+        </q-input>
 
+        <!-- <q-input label="Nhập lại mật khẩu" outlined class="input" v-model="rePassword" type="password"></q-input> -->
+        <q-input label="Nhập lại mật khẩu" outlined class="input" v-model="rePassword"
+          :type="showPassword ? 'text' : 'password'">
+          <!-- Nút để ẩn/hiện mật khẩu -->
+          <template v-slot:append>
+            <q-btn flat dense :icon="showPassword ? 'visibility_off' : 'visibility'"
+              @click="togglePasswordVisibility"></q-btn>
+          </template>
+        </q-input>
         <q-btn class="btn" @click="handleRegister">ĐĂNG KÝ</q-btn>
         <router-link class="register" to="/login">Đã có tài khoản? Đăng nhập</router-link>
-
-        {{ user }}
+        <router-link class="register" to="/forgot-password">Quên mật khẩu?</router-link>
       </q-card-section>
     </q-card>
   </div>
@@ -30,49 +47,51 @@ import userService from '../services/user.service';
 
 const toast = useToast();
 const router = useRouter()
-const user = reactive({
-  username: '',
-  password: '',
-  fullName: '',
-  email: '',
-  gender: null,
-  dateOfBirth: new Date(),
-})
+const user = ref({});
 const rePassword = ref();
 const $q = useQuasar()
+const showPassword = ref(false);
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
 
 const sex = ref(true);
-const genderOptions = [
-  { label: 'Nam', value: true },
-  { label: 'Nữ', value: false },
-]
+
+const genderSelect = ref([{
+  text: 'Nam',
+  value: true
+}, {
+  text: 'Nữ',
+  value: false
+}])
 
 const isMatchedPassword = () => {
-  return rePassword.value === user.password;
+  return rePassword.value === user.value.password;
 }
 
 
 const handleRegister = async () => {
-  $q.loading.show({
-    spinner: QSpinnerCube,
-  })
+  $q.loading.show({ spinner: QSpinnerCube });
 
-  if (!isMatchedPassword) {
-    toast.error("Mật khẩu nhập ko trùng");
+  if (!isMatchedPassword()) {
+    toast.error("Mật khẩu nhập không trùng");
     return;
   }
+
   try {
-    const res = await userService.register(user);
+    user.value.dateBirth = new Date(user.value.dateBirth);
+    const res = await userService.register(user.value);
     toast.success("Đăng ký thành công");
-    router.push({ path: '/login' })
+    router.push({ path: '/login' });
     console.log(res);
   } catch (error) {
-    toast.error("Xảy ra lỗi trong quá trình đăng nhập");
+    toast.error("Xảy ra lỗi trong quá trình đăng ký");
     console.error(error);
   } finally {
-    $q.loading.hide()
+    $q.loading.hide();
   }
-}
+};
 </script>
 
 <style scoped>

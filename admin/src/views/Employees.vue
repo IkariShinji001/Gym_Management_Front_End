@@ -24,7 +24,7 @@
         <td>{{ formatDate(employee.hireDate) }}</td>
         <td class="function">
           <q-icon class="icons" @click="handleOpenUpdateDialog(employee.id)" name="update"></q-icon><q-icon
-            class="icons" @click="handleDelete(employee.id)" name="delete"></q-icon>
+            class="icons" @click="handleOpenDeleteDialog(employee.id)" name="delete"></q-icon>
         </td>
       </tr>
       <q-pagination v-model="currentPage" :max="totalPages" :rows-per-page="rowsPerPage"
@@ -41,7 +41,8 @@
           </q-card-title>
           <q-card-section>
             <q-input class="dia-input" v-model="employeeInput.profile.fullName" label="Họ và tên" outlined />
-            <q-input class="dia-input" v-model="employeeInput.profile.email" label="Email" outlined />
+            <q-input class="dia-input" v-model="employeeInput.profile.email" label="Email" outlined
+              :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
             <q-input class="dia-input" v-model="employeeInput.profile.password" label="Password" outlined />
             <q-input class="dia-input" v-model="employeeInput.profile.phoneNumber" label="Số điện thoại" outlined />
             <q-input class="dia-input" v-model="employeeInput.position" label="Vị trí" outlined />
@@ -64,7 +65,8 @@
           </q-card-title>
           <q-card-section>
             <q-input class="dia-input" v-model="employeeUpdate.profile.fullName" label="Họ và tên" outlined />
-            <q-input class="dia-input" v-model="employeeUpdate.profile.email" label="Email" outlined />
+            <q-input class="dia-input" v-model="employeeUpdate.profile.email" label="Email" outlined
+              :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
             <q-input class="dia-input" v-model="employeeUpdate.profile.phoneNumber" label="Số điện thoại" outlined />
             <q-input class="dia-input" v-model="employeeUpdate.position" label="Vị trí" outlined />
             <q-input class="dia-input" v-model="employeeUpdate.hireDate" label="Ngày vào làm" type="date" outlined />
@@ -75,7 +77,20 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="openDeleteDialog">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Bạn có chắc chắn muốn xóa nhân viên này không?</div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Huỷ" v-close-popup />
+          <q-btn color="negative" label="Xoá" @click="confirmDelete" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </section>
+
 </template>
 
 <script setup>
@@ -90,7 +105,9 @@ const openCreateDialog = ref(false);
 const openUpdateDialog = ref(false);
 const employees = ref([]);
 const updateId = ref("");
-
+const confirmDeleteDialog = ref(false); // Quản lý trạng thái của dialog xác nhận
+const deleteId = ref(null); // Lưu id nhân viên cần xóa
+const openDeleteDialog = ref(false);
 const profileId = localStorage.getItem("id");
 
 const employeeInput = ref({
@@ -120,6 +137,7 @@ const employeeUpdate = ref({
     id: "",
   },
 });
+
 const currentPage = ref(1);
 const rowsPerPage = ref(10);
 
@@ -130,6 +148,8 @@ const handleOpenUpdateDialog = (id) => {
   openUpdateDialog.value = true;
   const index = employees.value.findIndex((employee) => employee.id === id);
   Object.assign(employeeUpdate.value, employees.value[index]);
+  employeeUpdate.value.hireDate = new Date(employees.value[index].hireDate).toISOString().slice(0, 10);
+
   updateId.value = id;
 };
 const handleUpdate = async () => {
@@ -151,6 +171,14 @@ const handleUpdate = async () => {
       employeeUpdate.value.profile.id,
       payloadProfile
     );
+    // Cập nhật hireDate trực tiếp trên employee
+    const index = employees.value.findIndex(employee => employee.id === updateId.value);
+    if (index !== -1) {
+      employees.value[index].hireDate = employeeUpdate.value.hireDate;
+    }
+    // cập nhật vị trí trực tiếp trên employee
+    employees.value[index].position = employeeUpdate.value.position;
+
     openUpdateDialog.value = false;
   } catch (error) {
     console.log(error);
@@ -159,7 +187,7 @@ const handleUpdate = async () => {
 const manager = ref({});
 onBeforeMount(async () => {
   manager.value = await managersService.findByProfile(profileId);
-  employees.value = await managersService.getEmployeesByManagerId(manager.value.id); 
+  employees.value = await managersService.getEmployeesByManagerId(manager.value.id);
 
 });
 
@@ -204,10 +232,10 @@ const handleAdd = async () => {
   openCreateDialog.value = false;
 };
 
-const handleDelete = async (id) => {
-  await employeesService.deleteEmployee(id);
-  employees.value = employees.value.filter((employee) => employee.id !== id);
-};
+// const handleDelete = async (id) => {
+//   await employeesService.deleteEmployee(id);
+//   employees.value = employees.value.filter((employee) => employee.id !== id);
+// };
 // const handleOpenDetailDialog = (id) => {
 //   openDetailDialog.value = true;
 //   const index = employees.value.findIndex((employee) => employee.id === id);
@@ -233,6 +261,28 @@ const paginatedEmployees = computed(() => {
 
 const updatePage = (page) => {
   currentPage.value = page;
+};
+const validateEmail = (email) => {
+  const regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+
+  return regex.test(email) || "Email không hợp lệ";
+};
+// Hàm mở hộp thoại xác nhận xóa
+const handleOpenDeleteDialog = (id) => {
+  deleteId.value = id;
+  openDeleteDialog.value = true; // Mở hộp thoại xác nhận
+};
+
+
+// Hàm thực hiện xóa sau khi người dùng xác nhận
+const confirmDelete = async () => {
+  try {
+    await employeesService.deleteEmployee(deleteId.value);
+    employees.value = employees.value.filter((employee) => employee.id !== deleteId.value);
+    openDeleteDialog.value = false; // Đóng hộp thoại xác nhận sau khi xóa
+  } catch (error) {
+    console.log(error);
+  }
 };
 </script>
 

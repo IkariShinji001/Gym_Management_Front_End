@@ -36,15 +36,18 @@ import authService from "../services/auth.service";
 import { reactive } from "vue";
 import { useRouter } from "vue-router";
 import { jwtDecode } from "jwt-decode";
+import { useQuasar } from 'quasar';
 
 export default {
   setup() {
     const router = useRouter();
     const userInfo = reactive({ email: "", password: "" });
+    const $q = useQuasar();
     const handleLogin = async () => {
       try {
         if (userInfo.email === "" || userInfo.password === "") {
-          alert("Email or password is empty");
+          $q.notify({position: "top", color: "negative",  message: "Email hoặc mật khẩu không được để trống"});
+          // alert("Email or password is empty");
         }
 
         const response = await authService.login(
@@ -54,10 +57,18 @@ export default {
         const payload = jwtDecode(response.access_token);
         localStorage.setItem("role", payload.role);
         localStorage.setItem("id", payload.id);
-        alert("Login successfully");
+
+        $q.notify({
+          message: "Đăng nhập thành công",
+          color: "positive",
+          position: "top",
+        });
+        // alert("Login successfully");
         router.push({ path: "/admins/blogs" });
       } catch (error) {
-        alert("Login fail");
+
+        $q.notify({position: "top", color: "negative",  message: "Đăng nhập thất bại"});
+        // alert("Login fail");
         console.log(error);
       }
     };
