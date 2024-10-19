@@ -244,7 +244,7 @@ export default {
       },
       {
         icon: "fitness_center",
-        label: "Gói dịch vụ",
+        label: "Gói tập",
         separator: false,
         path: "/fitness-packages",
         role: ["manager", "employee"],
