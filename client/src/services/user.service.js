@@ -38,7 +38,7 @@ class UserService {
     ).data;
   }
   async forgetPassword(email) {
-    return (await api.post(`${this.path}/reset-password`, { email })).data;
+    return (await api.post(`emails/reset-password`, { email })).data;
   }
   async resetPassword(token, newPassword) {
     return (
