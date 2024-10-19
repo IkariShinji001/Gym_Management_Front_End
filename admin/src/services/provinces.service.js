@@ -1,6 +1,6 @@
 import api from "./api.service";
 
-export class ProvincesService {
+class ProvincesService {
   constructor() {
     this.path = "/provinces";
   }
@@ -9,9 +9,14 @@ export class ProvincesService {
     return (await api.get(`${this.path}`)).data;
   }
 
-  async findOne(id) {
-    return (await api.get(`${this.path}/${id}`)).data;
+  async findOneByCode(codeProvince) {
+    console.log(codeProvince)
+    return (await api.get(`${this.path}/${codeProvince}`)).data;
   }
+
+  // async findOne(id) {
+  //   return (await api.get(`${this.path}/${id}`)).data;
+  // }
 
   async create(data) {
     return (await api.post(`${this.path}`, data)).data;

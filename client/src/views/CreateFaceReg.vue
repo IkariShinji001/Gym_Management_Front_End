@@ -1,5 +1,5 @@
 <template>
-  <h1>Đăng ký vào phòng tập bằng gương mặt</h1>
+  <h1>Xác thực vào phòng tập bằng gương mặt</h1>
   <q-linear-progress :value="progress" rounded size="8px" class="progress" v-if="isProgress" />
   <div class="vid-container">
     <video ref="video" class="video" autoplay></video>
@@ -11,7 +11,6 @@
 
 <script setup>
   import { ref, onMounted } from 'vue';
-  import { base64ToBlob } from 'base64ToBlob';
   import faceService from '../services/face.service';
   import { useQuasar, QSpinnerCube } from 'quasar'
 
@@ -45,7 +44,7 @@
       const res = await faceService.createFaceReg(userId, images.value);
       $q.notify({ position: 'top', message: 'Thành công !!' })
     } catch (error) {
-      $q.notify({ position: 'top', message: 'Ảnh không rõ mặt. Vui lòng thử lại' })
+      $q.notify({ position: 'top', message: error.response.data.error })
       progress.value = 0;
       console.log(error)
     } finally {

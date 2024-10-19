@@ -12,12 +12,13 @@ class BillService {
     return (await api.patch(`${this.path}/cancel/packages/${priceId}`)).data;
   }
 
-  async createBill(userId, listIds, voucherId = null) {
+  async createBill(userId, listIds, voucherId = null, userInvitedId = null) {
     let payload = {};
     if (voucherId) {
       payload.voucherId = voucherId;
     }
     payload.priceListIds = listIds;
+    payload.userInvitedId = userInvitedId;
     console.log(payload);
     return (await api.post(`${this.path}/users/${userId}`, payload)).data;
   }

@@ -95,7 +95,7 @@
                         to="/admins/count-maintenances"
                       >
                         <q-item-section>
-                          <q-item-label>Lịch bảo trì thiết bị</q-item-label>
+                          <q-item-label>Số lần bảo trì của thiết bị trong năm</q-item-label>
                         </q-item-section>
                       </q-item>
 

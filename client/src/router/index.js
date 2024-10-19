@@ -15,6 +15,10 @@ const router = createRouter({
           component: () => import("../views/HomePage.vue"),
         },
         {
+          path: "/bmi",
+          component: () => import("../views/BMICalculator.vue"),
+        },
+        {
           path: "qr-code",
           component: () => import("../views/QRCodePage.vue"),
         },
