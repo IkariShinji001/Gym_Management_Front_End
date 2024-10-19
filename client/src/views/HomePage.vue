@@ -1,106 +1,258 @@
-  <template>
-    <div class="container">
-
-      <div class="q-pa-md">
-        <q-carousel animated v-model="slide" arrows navigation infinite class="carousel">
-          <q-carousel-slide :name="1"
-            img-src="https://cdnb.artstation.com/p/assets/images/images/077/911/955/large/wlop-4se.jpg?1720679230" />
-          <q-carousel-slide :name="2"
-            img-src="https://cdna.artstation.com/p/assets/images/images/077/097/020/large/wlop-6se.jpg?1718603887" />
-          <q-carousel-slide :name="3"
-            img-src="https://cdnb.artstation.com/p/assets/images/images/047/969/347/large/wlop-46se.jpg?1648879300" />
-          <q-carousel-slide :name="4"
-            img-src="https://cdna.artstation.com/p/assets/images/images/017/609/282/large/wl-op-3s.jpg?1556677761" />
-        </q-carousel>
-      </div>
-
-
-      <div class="q-pa-md icons">
-        <div class="div">
-          <div class="icon-container">
-            <q-icon name="badge" class="icon"></q-icon>
-          </div>
+<template>
+  <div v-if="isLaptop" class="post-list-container">
+    <div class="post-item-container-column-laptop">
+      <router-link
+        class="post-item-router"
+        :to="{ name: 'postDetails', params: { id: post.id } }"
+        v-for="(post, index) in postList1"
+        :key="index + post.title"
+      >
+        <div class="post-item-content-container-laptop">
+          <img
+            class="post-img-laptop"
+            :src="post.cover_image"
+            alt=""
+            @load="handlerAdjustImageSize($event, index, 1)"
+            :class="postList[index * 3]?.imgClass"
+          />
+          <div class="post-title">{{ post.title }}</div>
         </div>
-        <div class="div">
-          <div class="icon-container">
-            <q-icon name="apps" class="icon"></q-icon>
-          </div>
-        </div>
-        <div class="div">
-          <div class="icon-container">
-            <q-icon name="terminal" class="icon"></q-icon>
-          </div>
-        </div>
-        <div class="div">
-          <div class="icon-container">
-            <q-icon name="rocket_launch" class="icon"></q-icon>
-          </div>
-        </div>
-        <div class="div">
-          <div class="icon-container">
-            <q-icon name="thunderstorm" class="icon"></q-icon>
-          </div>
-        </div>
-        <div class="div">
-          <div class="icon-container">
-            <q-icon name="badge" class="icon"></q-icon>
-          </div>
-        </div>
-      </div>
+      </router-link>
     </div>
+    <div class="post-item-container-column-laptop column2">
+      <router-link
+        class="post-item-router"
+        :to="{ name: 'postDetails', params: { id: post.id } }"
+        v-for="(post, index) in postList2"
+        :key="index + post.title"
+      >
+        <div class="post-item-content-container-laptop">
+          <img
+            class="post-img-laptop"
+            :src="post.cover_image"
+            alt=""
+            @load="handlerAdjustImageSize($event, index, 2)"
+            :class="postList[index * 3 + 1]?.imgClass"
+          />
+          <div class="post-title">{{ post.title }}</div>
+        </div>
+      </router-link>
+    </div>
+    <div class="post-item-container-column-laptop column3">
+      <router-link
+        class="post-item-router"
+        :to="{ name: 'postDetails', params: { id: post.id } }"
+        v-for="(post, index) in postList3"
+        :key="index + post.title"
+      >
+        <div class="post-item-content-container-laptop">
+          <img
+            class="post-img-laptop"
+            :src="post.cover_image"
+            alt=""
+            @load="handlerAdjustImageSize($event, index, 3)"
+            :class="postList[index * 3 + 2]?.imgClass"
+          />
+          <div class="post-title">{{ post.title }}</div>
+        </div>
+      </router-link>
+    </div>
+  </div>
 
-  </template>
+  <div v-else class="post-list-container">
+    <router-link
+      class="post-item-router"
+      :to="{ name: 'postDetails', params: { id: post.id } }"
+      v-for="(post, index) in postList"
+      :key="index + post.title"
+    >
+      <div class="post-item-content-container">
+        <img
+          class="post-img"
+          :src="post.cover_image"
+          alt=""
+          @load="handlerAdjustImageSize($event, index)"
+          :class="postList[index]?.imgClass"
+        />
+        <div class="post-title">{{ post.title }}</div>
+      </div>
+    </router-link>
+  </div>
+</template>
 
+<script>
+import { ref, onBeforeMount, computed } from "vue";
+import blogService from "../../../admin/src/services/blog.service";
 
-<script setup>
-  import { ref } from 'vue';
-  const slide = ref(1);
+export default {
+  setup() {
+    const postList = ref([]);
 
+    const postList1 = computed(() =>
+      postList.value.filter((_, index) => index % 3 === 0)
+    );
+    const postList2 = computed(() =>
+      postList.value.filter((_, index) => index % 3 === 1)
+    );
+    const postList3 = computed(() =>
+      postList.value.filter((_, index) => index % 3 === 2)
+    );
+
+    const isLaptop = ref(window.innerWidth >= 1024);
+
+    const handleResize = () => {
+      isLaptop.value = window.innerWidth >= 1024;
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    onBeforeMount(async () => {
+      postList.value = await blogService.getAll();
+    });
+
+    const handlerAdjustImageSize = (event, index, listType = null) => {
+      const img = event.target;
+      const height = img.naturalHeight;
+
+      let realIndex;
+      if (listType === 1) {
+        realIndex = index * 3;
+      } else if (listType === 2) {
+        realIndex = index * 3 + 1;
+      } else if (listType === 3) {
+        realIndex = index * 3 + 2;
+      } else {
+        realIndex = index;
+      }
+
+      if (height <= 500) {
+        postList.value[realIndex].imgClass = "height-200-img";
+      } else {
+        postList.value[realIndex].imgClass = "height-400-img";
+      }
+    };
+
+    return {
+      postList,
+      postList1,
+      postList2,
+      postList3,
+      isLaptop,
+      handlerAdjustImageSize,
+    };
+  },
+};
 </script>
 
 <style scoped>
-  .container {
-    background-color: #EDF2F4;
-    min-height: 100vh;
+/* Styles for All*/
+.post-list-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 10px;
+}
+.post-item-router {
+  text-decoration: none;
+  flex-basis: 100%;
+}
+.post-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-top: 10px;
+  color: black;
+}
 
+/* Styles for PHONE*/
+.post-item-content-container {
+  width: 100%;
+  margin-top: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background-color: rgba(214, 214, 214, 0.15);
+  padding: 12px;
+  border-radius: 8px;
+}
+.post-item-container-column {
+  max-width: fit-content;
+  margin-top: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s;
+  background-color: rgba(220, 220, 220, 0.15);
+  padding: 12px;
+  border-radius: 8px;
+}
+.post-img {
+  border-radius: 8px;
+  width: 100%;
+  object-fit: cover;
+  height: auto;
+}
+
+/* ===== Style for Laptop */
+.post-list-container .post-item-container-column-laptop {
+  max-width: fit-content;
+  flex: 1;
+}
+.post-list-container .post-item-container-column-laptop .post-item-router {
+  text-decoration: none;
+}
+.post-list-container
+  .post-item-container-column-laptop
+  .post-item-router
+  .column2 {
+  margin-top: 25px;
+}
+.post-list-container
+  .post-item-container-column-laptop
+  .post-item-router
+  .column3 {
+  margin-top: 10px;
+}
+
+.post-item-container-column-laptop .post-item-content-container-laptop {
+  max-width: fit-content;
+  margin-top: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s;
+  background-color: rgba(220, 220, 220, 0.15);
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.post-item-container-column-laptop .post-item-content-container-laptop:hover {
+  transform: translateY(-10px);
+}
+.post-item-content-container-laptop .post-img-laptop {
+  border-radius: 8px;
+  margin: 0 0;
+  width: 100%;
+  object-fit: cover;
+}
+.post-item-content-container-laptop .height-200-img {
+  height: 350px;
+}
+.post-item-content-container-laptop .height-400-img {
+  height: 400px;
+}
+
+/* Laptop layout */
+@media (min-width: 1024px) {
+  .post-item-container-column-laptop {
+    flex: 1;
+    max-width: fit-content;
   }
-
-  .carousel {
-    border-radius: 20px;
-    height: 35vh;
+  .column2 {
+    margin-top: 25px;
   }
-
-  .icons {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-gap: 10px;
-    text-align: justify;
-    background-color: white;
-    width: 95%;
-    margin: 0 auto;
-    border-radius: 10px;
+  .column3 {
+    margin-top: 10px;
   }
+}
 
-
-  .div {
-    width: 100%;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Mobile layout */
+@media (max-width: 1023px) {
+  .post-item-router {
+    flex-basis: 100%;
   }
-
-
-  .icon {
-    width: 60px;
-    height: 60px;
-    font-size: 30px;
-    color: white;
-    display: flex;
-    background-color: #D90429;
-    border-radius: 10px;
-    align-items: center;
-    text-align: center;
-  }
-
+}
 </style>

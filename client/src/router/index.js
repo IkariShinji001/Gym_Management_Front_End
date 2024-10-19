@@ -13,6 +13,12 @@ const router = createRouter({
           component: () => import("../views/HomePage.vue"),
         },
         {
+          path: "blogs/posts/:id",
+          name: "postDetails",
+          component: () => import("../views/PostDetailView.vue"),
+        },
+
+        {
           path: "qr-code",
           component: () => import("../views/QRCodePage.vue"),
         },
