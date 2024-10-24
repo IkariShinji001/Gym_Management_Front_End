@@ -91,13 +91,18 @@
 
     <!-- ====== PRODUCT -==========---->
     <!-- ====== PRODUCT -==========---->
+    <div class="open-cart-btn-container">
+      <button class="btn-open-cart-dialog" @click="isShowCartDialog = true">
+        <q-icon size="40px" name="shopping_cart"></q-icon>
+      </button>
+    </div>
     <div class="q-pa-md product-card-container">
       <div
         v-for="product in filteredSupplementProducts"
         :key="product.id"
         class="product-card"
       >
-        <q-card>
+        <q-card class="product-p-card">
           <q-img :src="product.imageUrl" class="product-card-img" />
           <q-card-section>
             <div class="row no-wrap items-center">
@@ -137,7 +142,10 @@
             </div>
             <div class="sell-container">
               <div class="amount-edit-btns-container">
-                <button class="amount-btn" @click="decreaseAmount(product.id)">
+                <button
+                  class="amount-btn"
+                  @click="decreaseAmountHandler(product.id)"
+                >
                   <q-icon
                     name="remove"
                     color="black"
@@ -145,8 +153,11 @@
                     class="amount-icon"
                   ></q-icon>
                 </button>
-                <h6 class="amount-btn">{{ amounts[product.id] }}</h6>
-                <button class="amount-btn" @click="increaseAmount(product.id)">
+                <h6 class="amount-btn">{{ amountProductList[product.id] }}</h6>
+                <button
+                  class="amount-btn"
+                  @click="increaseAmountHandler(product.id)"
+                >
                   <q-icon
                     name="add"
                     color="black"
@@ -155,10 +166,7 @@
                   ></q-icon>
                 </button>
               </div>
-              <button
-                class="sell-btn"
-                @click="sellFunction(product.id, product)"
-              >
+              <button class="add-to-cart-btn" @click="addToCart(product)">
                 <q-icon name="shopping_cart" size="24px"> </q-icon>
               </button>
             </div>
@@ -166,6 +174,9 @@
         </q-card>
       </div>
     </div>
+
+    <!-- ====== Dialog -==========---->
+    <!-- ====== Dialog -==========---->
     <q-dialog v-model="isAddProductFormVisible">
       <q-card>
         <AddProductForm @getNewProduct="getNewProduct"> </AddProductForm>
@@ -188,7 +199,7 @@
         <UpdateTypeForm
           v-if="isRemoveTypeFormVisible"
           :typeList="types"
-          @deletedType="deletedType"
+          @deletedType="deletedTypeHandler"
         >
         </UpdateTypeForm>
       </q-card>
@@ -221,19 +232,29 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <q-dialog :maximized="true" v-model="isShowCartDialog">
+      <q-card class="cart-dialog-container">
+        <CartDialog
+          :cart="cart"
+          :filteredSupplementProducts="filteredSupplementProducts"
+        ></CartDialog>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script>
 import { ref, watchEffect, onBeforeMount, computed, reactive } from "vue";
 import { useToast } from "vue-toastification";
+
 import supplementProductService from "../services/supplementProduct.service";
 import typeService from "../services/type.service";
 import AddProductForm from "../components/AddProductForm.vue";
 import AddTypeForm from "../components/AddTypeForm.vue";
 import UpdateTypeForm from "../components/UpdateTypeForm.vue";
 import UpdateProductForm from "../components/UpdateProductForm.vue";
-import soldProductService from "../services/soldProduct.service";
+import CartDialog from "../components/CartDialog.vue";
 
 export default {
   components: {
@@ -241,6 +262,7 @@ export default {
     AddTypeForm,
     UpdateTypeForm,
     UpdateProductForm,
+    CartDialog,
   },
 
   setup() {
@@ -251,19 +273,29 @@ export default {
     const isAddTypeFormVisible = ref(false);
     const isRemoveTypeFormVisible = ref(false);
     const isUpdateProductFormVisible = ref(false);
+    const isShowCartDialog = ref(false);
     const showConfirmDialog = ref(false);
     const supplementProducts = ref([]);
     const types = ref([]);
+    const cart = ref([]);
     const filteredSupplementProducts = ref([]);
+
+    const employeeId = localStorage.getItem("id")
     const selectedProductId = ref(null);
     const soldProductPayload = reactive({
+      img: "",
+      name: "",
       supplementProductId: 0,
       profileId: 0,
       quantity: 0,
+      pricePerUnit: 0,
       price: 0,
     });
 
-    const amounts = ref({});
+    const amountProductList = ref([]);
+    const totalPrice = computed(() => {
+      return cart.value.reduce((total, item) => total + item.price, 0);
+    });
 
     onBeforeMount(async () => {
       try {
@@ -272,7 +304,7 @@ export default {
           await supplementProductService.getAllSupplementProduct();
 
         supplementProducts.value.forEach((product) => {
-          amounts.value[product.id] = 0;
+          amountProductList.value[product.id] = 0;
         });
         filteredSupplementProducts.value = supplementProducts.value;
       } catch (e) {
@@ -282,8 +314,8 @@ export default {
 
     watchEffect(() => {
       filteredSupplementProducts.value.forEach((product) => {
-        if (!amounts.value.hasOwnProperty(product.id)) {
-          amounts.value[product.id] = 0;
+        if (!amountProductList.value.hasOwnProperty(product.id)) {
+          amountProductList.value[product.id] = 0;
         }
       });
     });
@@ -343,45 +375,62 @@ export default {
       isAddTypeFormVisible.value = false;
       types.value.push(type);
     }
-    function deletedType(id) {
+    function deletedTypeHandler(id) {
       types.value = types.value.filter((type) => type.id !== id);
     }
 
-    function increaseAmount(productId) {
-      if (amounts.value[productId] !== undefined) {
-        amounts.value[productId]++;
+    function increaseAmountHandler(productId) {
+      if (amountProductList.value[productId] !== undefined) {
+        amountProductList.value[productId]++;
       }
     }
 
-    function decreaseAmount(productId) {
+    function decreaseAmountHandler(productId) {
       if (
-        amounts.value[productId] !== undefined &&
-        amounts.value[productId] > 0
+        amountProductList.value[productId] !== undefined &&
+        amountProductList.value[productId] > 0
       ) {
-        amounts.value[productId]--;
+        amountProductList.value[productId]--;
       }
     }
 
-    async function sellFunction(productId, product) {
+    function addToCart(product) {
       try {
-        soldProductPayload.profileId = 1;
-        soldProductPayload.supplementProductId = productId;
-        soldProductPayload.quantity = amounts.value[productId];
-        soldProductPayload.price = soldProductPayload.quantity * product.price;
-
-        product.totalSold += amounts.value[productId];
-        console.log(soldProductPayload);
-
-        const soldPro = await soldProductService.createSoldProduct(
-          soldProductPayload
+        const res = cart.value.filter(
+          (item) => item.supplementProductId === product.id
         );
-        console.log(soldPro);
-        toast.success("Đã bán");
+
+        if (res.length === 0) {
+          soldProductPayload.img = product.imageUrl;
+          soldProductPayload.name = product.name;
+          soldProductPayload.profileId = employeeId;
+          soldProductPayload.supplementProductId = product.id;
+          soldProductPayload.quantity = amountProductList.value[product.id];
+          soldProductPayload.pricePerUnit = product.price;
+          soldProductPayload.price =
+            soldProductPayload.quantity * product.price;
+
+          cart.value.push({ ...soldProductPayload });
+        } else {
+          cart.value.map((item) => {
+            if (item.supplementProductId === product.id) {
+              item.quantity += amountProductList.value[product.id];
+            }
+          });
+        }
+
+        toast.success("Sản phẩm đã được thêm vào giỏ hàng", {
+          timeout: 1000,
+        });
+        amountProductList.value[product.id] = 0;
       } catch (e) {
         console.log(e);
-        toast.error("Lỗi bán");
+        console.log("== Loi add2cart ==");
       }
     }
+
+    
+
     return {
       searchText,
       supplementProducts,
@@ -394,23 +443,32 @@ export default {
       isRemoveTypeFormVisible,
       isUpdateProductFormVisible,
       showConfirmDialog,
+      isShowCartDialog,
+
       getNewProduct,
       getNewType,
-      deletedType,
+      deletedTypeHandler,
       fileterProductsByTypeIdHandler,
       filteredSupplementProducts,
+      cart,
+
       filterAfterUpdate,
       confirmRemoveProduct,
-      amounts,
-      increaseAmount,
-      decreaseAmount,
-      sellFunction,
+      amountProductList,
+      increaseAmountHandler,
+      decreaseAmountHandler,
+
+      addToCart,
+      totalPrice,
+   
     };
   },
 };
 </script>
 
 <style scoped>
+/* =======  Search vs btn (header)  ===============
+==========  Search vs btn (header)  ==================*/
 .page-container {
   width: 100%;
   height: 100%;
@@ -474,6 +532,30 @@ export default {
   color: var(--icon-color) !important;
 }
 
+.open-cart-btn-container .btn-open-cart-dialog {
+  color: white;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  cursor: pointer;
+  background: var(--icon-color);
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.5) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+  z-index: 99;
+}
+
+.open-cart-btn-container .btn-open-cart-dialog:hover {
+  width: 58px;
+  height: 58px;
+  background: rgb(255, 153, 0);
+  box-shadow: rgba(170, 170, 170, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+}
+
 /* =======  Product Type  ===============
 ==========  Product Type  ==================*/
 .product-type {
@@ -505,63 +587,59 @@ export default {
   justify-content: center;
 }
 
-.product-card-container .product-card {
+.product-card-container .product-card .product-p-card {
   margin-right: 10px;
   margin-top: 15px;
-}
+  background-color: rgba(220, 220, 220, 0.15);
 
-.product-card-container .product-card .product-edit-btn {
-  border: none;
-  background: none;
-  color: var(--icon-color);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  margin-right: 2px;
-}
+  .product-card-img {
+    height: 100px;
+    border-radius: 5px;
+  }
 
-.product-card .product-edit-btn:hover {
-  border: 1px solid var(--icon-color);
-}
+  .product-edit-btn {
+    border: none;
+    background: none;
+    color: var(--icon-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin-right: 2px;
+  }
 
-.product-card-img {
-  height: 100px;
-  border-radius: 5px;
+  .product-edit-btn:hover {
+    border: 1px solid var(--icon-color);
+  }
 }
 
 .sell-container {
   display: flex;
   justify-content: space-between;
   margin-top: 5px;
+
+  .amount-edit-btns-container {
+    display: flex;
+  }
+
+  .amount-btn {
+    background: none;
+    border: 1px solid rgb(201, 201, 201);
+    width: 35px;
+    margin: 0 0;
+    text-align: center;
+    padding: 0 0;
+    cursor: pointer;
+  }
+  .amount-btn:hover {
+    border: 1px solid rgb(120, 120, 120);
+  }
 }
 
-.sell-container .amount-edit-btns-container {
-  display: flex;
-}
-
-.sell-container .amount-edit-btns-container .amount-btn {
-  background: none;
-  border: 1px solid rgb(201, 201, 201);
-  width: 35px;
-  margin: 0 0;
-  text-align: center;
-  padding: 0 0;
-  cursor: pointer;
-}
-
-.amount-icon {
-  margin: 0 0;
-}
-
-.sell-container .amount-edit-btns-container .amount-btn:hover {
-  border: 1px solid rgb(120, 120, 120);
-}
-
-.sell-container .sell-btn {
+.sell-container .add-to-cart-btn {
   border: none;
   border-radius: 2px;
   background: var(--icon-color);
@@ -571,7 +649,7 @@ export default {
     rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 
-.sell-container .sell-btn:hover {
+.sell-container .add-to-cart-btn:hover {
   background: #ff882d;
   box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 2px,
     rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.1) 0px -3px 0px inset;
@@ -581,17 +659,4 @@ export default {
   display: flex;
   justify-content: space-between;
 }
-
-/* 
-.q-card-action-class {
-  height: 45px;
-  font-weight: 500;
-  color: var(--secondary-color);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-} */
-
-/* a {
-  text-decoration: none;
-  color: inherit;
-} */
 </style>
