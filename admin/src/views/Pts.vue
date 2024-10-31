@@ -46,7 +46,8 @@
               <q-input class="dia-input" v-model="ptInput.profile.email" label="Email" outlined
                 :rules="[val => !!val || 'Email không được để trống', val => /.+@.+\..+/.test(val) || 'Email không hợp lệ']" />
               <q-input class="dia-input" v-model="ptInput.profile.password" label="Password" outlined type="password" />
-              <q-input class="dia-input" v-model="ptInput.profile.phoneNumber" label="Số điện thoại" outlined />
+              <q-input class="dia-input" v-model="ptInput.profile.phoneNumber" label="Số điện thoại" outlined
+                maxlength="10" />
               <q-input class="dia-input" v-model="ptInput.weight" label="Cân nặng" outlined> <template v-slot:append>
                   <h6>kg</h6>
                 </template></q-input>
@@ -123,6 +124,10 @@
                   <h5>Cập nhật thông tin </h5>
                 </q-card-title>
               </div>
+              <q-input class="dia-input" v-model="pt.profile.fullName" label="Họ và tên" outlined />
+              <q-input class="dia-input" v-model="pt.profile.email" label="Email" outlined
+                :rules="[val => !!val || 'Email không được để trống', val => /.+@.+\..+/.test(val) || 'Email không hợp lệ']" />
+              <q-input class="dia-input" v-model="pt.profile.phoneNumber" label="Số điện thoại" outlined maxlength="10" />
               <q-input class="dia-input" v-model="pt.weight" label="Cân nặng" outlined>
                 <template v-slot:append>
                   <h6>kg</h6>
@@ -275,6 +280,7 @@ import uploadFileService from "../services/uploadFile.service";
 import ptImagesService from "../services/ptImages.service"
 import managersService from "../services/managers.service";
 import { useQuasar, QSpinnerCube } from "quasar";
+import profilesService from "../services/profiles.service";
 
 const pts = ref([]);
 const search = ref();
@@ -368,7 +374,7 @@ const handleAdd = async () => {
       ptInput.weight === "" || ptInput.height === "" ||
       ptInput.bust === "" || ptInput.waist === "" ||
       ptInput.hips === "" || ptInput.fbLink === "") {
-      $q.notify({ position: 'top', message: 'Vui lòng điền đầy đủ thông tin' });
+      $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng điền đầy đủ thông tin' });
       return;
     }
 
@@ -381,17 +387,16 @@ const handleAdd = async () => {
       });
       return;
     }
+
+    // Tạo danh sách hình ảnh
     const imageList = [];
-    // Tiếp tục xử lý thêm PT khi email hợp lệ
-    for (var i = 0; i < fileUploaded.value.length; i++) {
+    for (let i = 0; i < fileUploaded.value.length; i++) {
       const formData = new FormData();
       formData.append("file", fileUploaded.value[i]);
       const fileRes = await uploadFileService.uploadFile(formData);
-       secure_urlList.value.push({ imageUrl: fileRes.secure_url });
+      secure_urlList.value.push({ imageUrl: fileRes.secure_url });
       imageList.push({ imageUrl: fileRes.secure_url });
     }
-    console.log(imageList);
-    
 
     const payload = {
       createProfileDto: {
@@ -413,21 +418,33 @@ const handleAdd = async () => {
       createImagesDto: secure_urlList.value,
     };
 
+    // Gửi yêu cầu lên server
     const res = await ptsServices.create(payload);
-    openCreateDialog.value = false;
-    pts.value.push(res);
-    const index = pts.value.findIndex((pt) => pt.id === res.id);
-    if(index !== -1){
-      pts.value[index].images = imageList;
-    } 
+
+    if (res && res.id) {
+      // Nếu tạo thành công
+      openCreateDialog.value = false;
+      pts.value.push(res);
+      const index = pts.value.findIndex((pt) => pt.id === res.id);
+      if (index !== -1) {
+        pts.value[index].images = imageList;
+      }
+      $q.notify({ position: 'top', color: 'positive', message: 'Tạo thành viên mới thành công' });
+    } else {
+      // Xử lý nếu phản hồi từ server không thành công
+      $q.notify({ position: 'top', color: 'negative', message: 'Tạo thành viên mới thất bại, vui lòng thử lại!' });
+    }
   } catch (error) {
-    console.log(error);
+    // Xử lý lỗi
+    console.error(error);
+    $q.notify({ position: 'top', color: 'negative', message: `Lỗi: ${error.response.data.message || 'Không thể tạo thành viên mới'}` });
   } finally {
     $q.loading.hide();
-    $q.notify({ position: 'top', color: 'positive', message: 'Tạo thành viên mới thành công' });
     fileUploaded.value = [];
   }
 };
+
+
 
 const handleUpdate = async (id) => {
   try {
@@ -439,10 +456,19 @@ const handleUpdate = async (id) => {
       hips: pt.hips,
       fbLink: pt.fbLink,
     };
+    const payloadProfile = {
+      email: pt.profile.email,
+      phoneNumber: pt.profile.phoneNumber,
+      fullName: pt.profile.fullName,
+    };
+    console.log(payloadProfile, pt.profile.id);
     const res = await ptsServices.update(id, payload);
+    await profilesService.updatedProfile(pt.profile.id, payloadProfile);
+
     handleAddImage(id);
     const index = pts.value.findIndex((pt) => pt.id === id);
     Object.assign(pts.value[index], res);
+    // Object.assign(pts.value[index].profile, resProfile);
     openUpdateDialog.value = false;
   } catch (error) {
     console.log(error);

@@ -50,6 +50,9 @@ class UserService {
   async changePassword(id, password, newPassword) {
     return (await api.patch(`${this.path}/change-password/${id}`, { password, newPassword } )).data;
   }
+  async findOneByEmail(email){
+    return (await api.get(`${this.path}/email/${email}`)).data;
+  }
 }
 
 export default new UserService();

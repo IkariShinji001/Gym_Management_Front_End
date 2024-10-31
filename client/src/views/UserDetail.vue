@@ -89,7 +89,7 @@
   import { formatDateDDMMYYY } from '../shared/formatDate'
   import userService from '../services/user.service';
   import { onBeforeMount, ref } from 'vue';
-  import { useQuasar } from 'quasar'
+  import { useQuasar, QSpinnerCube } from 'quasar'
 
   const userId = localStorage.getItem('userId');
   const user = ref()
@@ -111,6 +111,7 @@
   }
 
   const changePassword = async () => {
+  $q.loading.show({ spinner: QSpinnerCube });
     try {
       if (newPassword.value !== confirmPassword.value) {
         $q.notify({ position: 'top', color: 'negative', message: 'Mật khẩu xác nhận không khớp' });
@@ -137,7 +138,8 @@
         position: 'top',
         message: error.response.data.message
       })
-
+    } finally {
+      $q.loading.hide();
     }
   }
 
@@ -155,12 +157,15 @@
   })
 
   const handleUpdate = async () => {
+    $q.loading.show({ spinner: QSpinnerCube });
     try {
       const res = await userService.updateUser(userId, userUpdated.value);
       Object.assign(user.value, res);
       openDialog.value = false;
     } catch (error) {
       console.error(error)
+    } finally {
+      $q.loading.hide();
     }
   }
 
