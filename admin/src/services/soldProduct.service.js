@@ -27,8 +27,8 @@ class SoldProductService {
     return response.data;
   }
 
-  async createSoldProduct(soldProductPayload) {
-    return (await api.post(`${this.path}`, soldProductPayload)).data;
+  async createSoldProduct(soldProductListPayload) {
+    return (await api.post(`${this.path}`, soldProductListPayload)).data;
   }
 }
 

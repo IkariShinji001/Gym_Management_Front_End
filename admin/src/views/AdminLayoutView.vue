@@ -15,10 +15,28 @@
 
         <q-space />
 
-        <q-btn flat no-caps no-wrap @click="logoutHandler">
-          <q-toolbar-title shrink class="text-weight-bold">
-            Đăng xuất
-          </q-toolbar-title>
+        <q-btn dense flat no-wrap>
+          <q-avatar rounded size="35px">
+            <q-icon name="tag_faces" color="white" size="30px" />
+          </q-avatar>
+          <q-icon name="arrow_drop_down" size="25px" />
+
+          <q-menu auto-close>
+            <q-list dense>
+              <q-item
+                clickable
+                class="GL__menu-link"
+                @click="redirectToYourProfile"
+              >
+                <q-item-section> Trang cá nhân </q-item-section>
+              </q-item>
+              <q-separator />
+
+              <q-item clickable class="GL__menu-link" @click="logoutHandler">
+                <q-item-section> Đăng xuất </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
         </q-btn>
       </q-toolbar>
     </q-header>
@@ -133,7 +151,9 @@
                         class="routerlink-dropdown-item"
                       >
                         <q-item-section>
-                          <q-item-label>Số lần bảo trì của thiết bị trong năm</q-item-label>
+                          <q-item-label
+                            >Số lần bảo trì của thiết bị trong năm</q-item-label
+                          >
                         </q-item-section>
                       </q-item>
 
@@ -299,6 +319,9 @@ export default {
     function redirectToBlogsHandler() {
       router.push("/admins/blogs");
     }
+    function redirectToYourProfile() {
+      router.push("/admins/profile");
+    }
 
     function logoutHandler() {
       localStorage.clear();
@@ -313,6 +336,7 @@ export default {
 
       toggleLeftDrawerHandler,
       redirectToBlogsHandler,
+      redirectToYourProfile,
       logoutHandler,
     };
   },
