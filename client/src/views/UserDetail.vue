@@ -58,7 +58,7 @@
           <q-card-section class="title-card">Cập nhật thông tin</q-card-section>
           <q-card-section>
             <q-input v-model="userUpdated.fullName" label="Họ và tên"></q-input>
-            <q-input v-model="userUpdated.phoneNumber" label="Số điện thoại"></q-input>
+            <q-input v-model="userUpdated.phoneNumber" label="Số điện thoại" maxlength="10"></q-input>
             <q-input v-model="userUpdated.email" label="Email"></q-input>
             <q-select v-model="userUpdated.gender" label="Giới tính" :options="genderSelect" map-options emit-value
               option-label="text" option-value="value"></q-select>
@@ -159,6 +159,10 @@
   const handleUpdate = async () => {
     $q.loading.show({ spinner: QSpinnerCube });
     try {
+      // check null 
+      if(!userUpdated.value.fullName || !userUpdated.value.phoneNumber || !userUpdated.value.email || !userUpdated){
+        $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng nhập đầy đủ thông tin' });
+      }
       const res = await userService.updateUser(userId, userUpdated.value);
       Object.assign(user.value, res);
       openDialog.value = false;
