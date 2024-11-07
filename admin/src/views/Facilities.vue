@@ -864,24 +864,24 @@ const updateFacility = async (id, facilityIsSelected) => {
     );
     if (nameFacility) {
       toast.error("Trùng tên thiết bị");
+    } else {
+      delete facilityIsSelected.nameBranch;
+
+      console.log(facilityIsSelected);
+
+      const facilityToUpdate = await facilitiesService.update(
+        id,
+        facilityIsSelected
+      );
+
+      console.log(facilityToUpdate);
+
+      const index = facilities.value.findIndex((facility) => facility.id == id);
+      Object.assign(facilities.value[index], facilityToUpdate);
+
+      showEditDialog.value = false;
+      toast.success("Cập nhật thiết bị thành công");
     }
-
-    delete facilityIsSelected.nameBranch;
-
-    console.log(facilityIsSelected);
-
-    const facilityToUpdate = await facilitiesService.update(
-      id,
-      facilityIsSelected
-    );
-
-    console.log(facilityToUpdate);
-
-    const index = facilities.value.findIndex((facility) => facility.id == id);
-    Object.assign(facilities.value[index], facilityToUpdate);
-
-    showEditDialog.value = false;
-    toast.success("Cập nhật thiết bị thành công");
   } catch (error) {
     console.error("Error updating facility:", error);
   } finally {
