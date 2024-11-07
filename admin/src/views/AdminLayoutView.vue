@@ -105,7 +105,7 @@
                         to="/admins/daily-bill-statistics"
                       >
                         <q-item-section>
-                          <q-item-label>doanh thu theo ngày</q-item-label>
+                          <q-item-label>doanh thu gói tập theo ngày</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item
@@ -114,7 +114,7 @@
                         to="/admins/yearly-bill-statistics"
                       >
                         <q-item-section>
-                          <q-item-label>doanh thu theo năm</q-item-label>
+                          <q-item-label>doanh thu gói tập theo năm</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item
@@ -125,6 +125,17 @@
                         <q-item-section>
                           <q-item-label
                             >Người mua gói tập nhiều nhất tháng
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/top-spent-users-statistics-in-year"
+                      >
+                        <q-item-section>
+                          <q-item-label
+                            >Người mua gói tập nhiều nhất năm
                           </q-item-label>
                         </q-item-section>
                       </q-item>
@@ -146,7 +157,7 @@
                       >
                         <q-item-section>
                           <q-item-label
-                            >Gói tập được mua nhiều nhất tháng
+                            >Gói tập được mua nhiều nhất năm
                           </q-item-label>
                         </q-item-section>
                       </q-item>

@@ -1,39 +1,44 @@
 <template>
-  <div>
-    <div style="display: flex">
-      <div style="margin-right: 50px">
-        <q-select
-          filled
-          class="select"
-          v-model="monthIsSelected"
-          :options="months"
-          label="Chọn tháng"
-          style="width: 250px"
+  <div class="container-statistic">
+    <div>
+      <h4>Thống kê người mua gói tập nhiều nhất tháng</h4>
+      <div class="container-input">
+        <div style="margin-right: 50px">
+          <p class="label">Chọn tháng</p>
+          <q-select
+            filled
+            class="select"
+            v-model="monthIsSelected"
+            :options="months"
+            label="Tháng"
+            style="width: 250px"
+          />
+        </div>
+        <div>
+          <p class="label">Chọn năm</p>
+          <q-select
+            filled
+            class="select"
+            v-model="yearIsSelected"
+            :options="years"
+            label="Năm"
+            style="width: 250px"
+            @click="viewStatistics"
+          />
+        </div>
+      </div>
+      <div v-if="showNotData">
+        <h5>Không có dữ liệu thống kê</h5>
+      </div>
+      <div>
+        <Bar
+          style="height: 450px"
+          v-if="loaded"
+          :data="chartData"
+          :options="chartOptions"
+          plugins="[ChartDataLabels]"
         />
       </div>
-      <div style="margin-right: 50px">
-        <q-select
-          filled
-          class="select"
-          v-model="yearIsSelected"
-          :options="years"
-          label="Chọn năm"
-          style="width: 250px"
-          @click="viewStatistics"
-        />
-      </div>
-    </div>
-    <div>
-      <h4 v-if="showNotData">Không có dữ liệu thống kê</h4>
-    </div>
-    <div>
-      <Bar
-        style="height: 480px"
-        v-if="loaded"
-        :data="chartData"
-        :options="chartOptions"
-        plugins="[ChartDataLabels]"
-      />
     </div>
   </div>
 </template>
@@ -68,7 +73,7 @@ const yearIsSelected = ref("");
 const months = ref([]);
 const years = ref([]);
 const loaded = ref();
-const showNotData = ref();
+const showNotData = ref(true);
 
 const startMonth = 1;
 const endMonth = 12;
@@ -97,7 +102,6 @@ const chartData = reactive({
 
 // Hàm xem thống kê
 const viewStatistics = computed(async () => {
-  showNotData.value = false;
   loaded.value = false;
   if (monthIsSelected.value && yearIsSelected.value) {
     const response = await statisticsService.getTop10UsersBySpendingOfMonth(
@@ -110,6 +114,7 @@ const viewStatistics = computed(async () => {
     } else {
       chartData.labels = [...response.data.labels];
       chartData.datasets[0].data = [...response.data.datasets[0].data];
+      showNotData.value = false;
       loaded.value = true;
     }
   }
@@ -153,3 +158,31 @@ watch([monthIsSelected, yearIsSelected], ([newMonthValue, newYearValue]) => {
     "Tháng " + newMonthValue + " Năm " + newYearValue;
 });
 </script>
+
+<style scoped>
+.container-statistic {
+  display: flex;
+  justify-content: center;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+h4 {
+  text-align: center;
+  margin: 15px;
+  color: var(--icon-color);
+}
+.container-input {
+  display: flex;
+  justify-content: center;
+}
+.label {
+  text-align: center;
+  margin-bottom: 5px;
+  font-size: 18px;
+  color: var(--icon-color);
+}
+h5 {
+  border: 1px solid black;
+  text-align: center;
+}
+</style>

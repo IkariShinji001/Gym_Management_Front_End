@@ -1,43 +1,51 @@
 <template>
-  <div>
-    <div style="display: flex">
-      <div style="margin-right: 50px">
-        <q-select
-          filled
-          v-model="facilityIsSelected"
-          :options="facilities"
-          map-options
-          emit-value
-          label="Chọn thiết bị"
-          option-value="id"
-          option-label="name"
-          style="width: 250px"
-        />
-      </div>
-      <div style="margin-right: 50px">
-        <q-select
-          filled
-          class="select"
-          v-model="yearIsSelected"
-          :options="years"
-          map-options
-          emit-value
-          label="Chọn năm"
-          option-value="id"
-          option-label="name"
-          style="width: 250px"
-          @click="viewStatistics"
-        />
-      </div>
-    </div>
+  <div class="container-statistic">
     <div>
-      <Bar
-        style="height: 480px"
-        v-if="loaded"
-        :data="chartData"
-        :options="chartOptions"
-        plugins="[ChartDataLabels]" 
-      />
+      <h4>Thống kê số lần bảo trì của thiết bị trong năm</h4>
+      <div class="container-input">
+        <div style="margin-right: 50px">
+          <p class="label">Chọn thiết bị</p>
+          <q-select
+            filled
+            v-model="facilityIsSelected"
+            :options="facilities"
+            map-options
+            emit-value
+            label="Thiết bị"
+            option-value="id"
+            option-label="name"
+            style="width: 250px"
+          />
+        </div>
+        <div>
+          <p class="label">Chọn năm</p>
+          <q-select
+            filled
+            class="select"
+            v-model="yearIsSelected"
+            :options="years"
+            map-options
+            emit-value
+            label="Năm"
+            option-value="id"
+            option-label="name"
+            style="width: 250px"
+            @click="viewStatistics"
+          />
+        </div>
+      </div>
+      <div v-if="showNotData">
+        <h5>Không có dữ liệu thống kê</h5>
+      </div>
+      <div>
+        <Bar
+          style="height: 450px"
+          v-if="loaded"
+          :data="chartData"
+          :options="chartOptions"
+          plugins="[ChartDataLabels]"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -54,7 +62,7 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import facilitiesService from "../services/facilities.service";
 import maintenancesService from "../services/maintenance.service";
 
@@ -73,6 +81,7 @@ const facilities = ref([]);
 const yearIsSelected = ref("");
 const years = ref([]);
 const loaded = ref(false);
+const showNotData = ref(true);
 
 const startYear = 2020;
 const endYear = 2030;
@@ -107,6 +116,7 @@ const viewStatistics = computed(async () => {
     );
     chartData.labels = [...response.labels];
     chartData.datasets[0].data = [...response.datasets[0].data];
+    showNotData.value = false;
     loaded.value = true;
   }
 });
@@ -130,11 +140,11 @@ const chartOptions = ref({
   },
   plugins: {
     datalabels: {
-      anchor: 'end', // Đặt vị trí của nhãn
-      align: 'end',  // Căn chỉnh với cột
-      color: '#000', // Màu của nhãn
+      anchor: "end", // Đặt vị trí của nhãn
+      align: "end", // Căn chỉnh với cột
+      color: "#000", // Màu của nhãn
       font: {
-        weight: 'bold',
+        weight: "bold",
       },
       formatter: (value) => {
         return value; // Hiển thị giá trị của cột
@@ -148,3 +158,31 @@ watch(yearIsSelected, (newValue) => {
   chartOptions.value.scales.x.title.text = "Năm " + newValue;
 });
 </script>
+
+<style scoped>
+.container-statistic {
+  display: flex;
+  justify-content: center;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+h4 {
+  text-align: center;
+  margin: 15px;
+  color: var(--icon-color);
+}
+.container-input {
+  display: flex;
+  justify-content: center;
+}
+.label {
+  text-align: center;
+  margin-bottom: 5px;
+  font-size: 18px;
+  color: var(--icon-color);
+}
+h5 {
+  border: 1px solid black;
+  text-align: center;
+}
+</style>
