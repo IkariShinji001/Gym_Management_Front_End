@@ -58,7 +58,7 @@
           <q-card-section class="title-card">Cập nhật thông tin</q-card-section>
           <q-card-section>
             <q-input v-model="userUpdated.fullName" label="Họ và tên"></q-input>
-            <q-input v-model="userUpdated.phoneNumber" label="Số điện thoại"></q-input>
+            <q-input v-model="userUpdated.phoneNumber" label="Số điện thoại" maxlength="10"></q-input>
             <q-input v-model="userUpdated.email" label="Email"></q-input>
             <q-select v-model="userUpdated.gender" label="Giới tính" :options="genderSelect" map-options emit-value
               option-label="text" option-value="value"></q-select>
@@ -89,7 +89,7 @@
   import { formatDateDDMMYYY } from '../shared/formatDate'
   import userService from '../services/user.service';
   import { onBeforeMount, ref } from 'vue';
-  import { useQuasar } from 'quasar'
+  import { useQuasar, QSpinnerCube } from 'quasar'
 
   const userId = localStorage.getItem('userId');
   const user = ref()
@@ -111,6 +111,7 @@
   }
 
   const changePassword = async () => {
+  $q.loading.show({ spinner: QSpinnerCube });
     try {
       if (newPassword.value !== confirmPassword.value) {
         $q.notify({ position: 'top', color: 'negative', message: 'Mật khẩu xác nhận không khớp' });
@@ -137,7 +138,8 @@
         position: 'top',
         message: error.response.data.message
       })
-
+    } finally {
+      $q.loading.hide();
     }
   }
 
@@ -155,12 +157,19 @@
   })
 
   const handleUpdate = async () => {
+    $q.loading.show({ spinner: QSpinnerCube });
     try {
+      // check null 
+      if(!userUpdated.value.fullName || !userUpdated.value.phoneNumber || !userUpdated.value.email || !userUpdated){
+        $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng nhập đầy đủ thông tin' });
+      }
       const res = await userService.updateUser(userId, userUpdated.value);
       Object.assign(user.value, res);
       openDialog.value = false;
     } catch (error) {
       console.error(error)
+    } finally {
+      $q.loading.hide();
     }
   }
 

@@ -47,6 +47,16 @@ const handleLogin = async () => {
   $q.loading.show({
     spinner: QSpinnerCube,
   })
+  if(!user.username || !user.password) {
+    $q.notify({
+      color: "negative",
+      position: "top",
+      message: "Vui lòng nhập đầy đủ thông tin",
+    });
+    $q.loading.hide()
+    return;
+  }
+
   try {
     const res = await authService.login(user);
     localStorage.setItem("user_access_token", res.access_token);
@@ -56,16 +66,14 @@ const handleLogin = async () => {
       position: "top",
       message: "Đăng nhập thành công",
     });
-    // toast.success("Đăng nhập thành công");
     router.push({ path: '/' })
   } catch (error) {
-  
+
     $q.notify({
       color: "negative",
       position: "top",
       message: "Kiểm tra lại thông tin đăng nhập", 
     });
-    // toast.error("Xảy ra lỗi trong quá trình đăng nhập");
     console.error(error);
   } finally {
     $q.loading.hide()

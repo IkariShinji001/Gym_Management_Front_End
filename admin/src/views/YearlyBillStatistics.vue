@@ -1,34 +1,32 @@
 <template>
-  <div>
-    <div style="display: flex">
-      <div style="margin-right: 50px">
-        <q-select
-          filled
-          class="select"
-          v-model="yearIsSelected"
-          :options="years"
-          label="Chọn năm"
-          style="width: 250px"
-          @click="viewStatistics"
+  <div class="container-statistic">
+    <div>
+      <h4>Thống kê doanh thu theo năm</h4>
+      <div class="container-input">
+        <div>
+          <p class="label">Chọn năm</p>
+          <q-select
+            filled
+            class="select"
+            v-model="yearIsSelected"
+            :options="years"
+            label="Năm"
+            style="width: 250px"
+            @click="viewStatistics"
+          />
+        </div>
+      </div>
+      <div v-if="showNotData">
+        <h5>Không có dữ liệu thống kê</h5>
+      </div>
+      <div>
+        <Line
+          style="height: 450px"
+          v-if="loaded"
+          :data="chartData"
+          :options="chartOptions"
         />
       </div>
-
-      <!-- <div>
-        <q-btn
-          style="height: 52px"
-          icon="search"
-          label="Xem thống kê"
-          @click="viewStatistics"
-        />
-      </div> -->
-    </div>
-    <div>
-      <Line
-        style="height: 480px"
-        v-if="loaded"
-        :data="chartData"
-        :options="chartOptions"
-      />
     </div>
   </div>
 </template>
@@ -46,6 +44,7 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import statisticsService from "../services/statistics.service";
 
 ChartJS.register(
@@ -55,12 +54,14 @@ ChartJS.register(
   LineElement,
   PointElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
+  ChartDataLabels // Đăng ký plugin
 );
 
 const yearIsSelected = ref("");
 const years = ref([]);
 const loaded = ref(false);
+const showNotData = ref(true);
 
 const startYear = 2020;
 const endYear = 2030;
@@ -92,6 +93,7 @@ const viewStatistics = computed(async () => {
     );
     chartData.labels = [...response.labels];
     chartData.datasets[0].data = [...response.datasets[0].data];
+    showNotData.value = false;
     loaded.value = true;
   }
 });
@@ -115,6 +117,19 @@ const chartOptions = ref({
       min: 0, // Đặt giá trị tối thiểu của trục y là 0 để không hiển thị các giá trị âm
     },
   },
+  plugins: {
+    datalabels: {
+      anchor: "end", // Đặt vị trí của nhãn
+      align: "end", // Căn chỉnh với cột
+      color: "#000", // Màu của nhãn
+      font: {
+        weight: "bold",
+      },
+      formatter: (value) => {
+        return Number(value).toLocaleString("en-US"); // Hiển thị giá trị của cột có dấu phẩy
+      },
+    },
+  },
 });
 
 // Cập nhật title mỗi khi giá trị yearIsSelected thay đổi
@@ -122,3 +137,31 @@ watch(yearIsSelected, (newValue) => {
   chartOptions.value.scales.x.title.text = "Năm " + newValue;
 });
 </script>
+
+<style scoped>
+.container-statistic {
+  display: flex;
+  justify-content: center;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+h4 {
+  text-align: center;
+  margin: 15px;
+  color: var(--icon-color);
+}
+.container-input {
+  display: flex;
+  justify-content: center;
+}
+.label {
+  text-align: center;
+  margin-bottom: 5px;
+  font-size: 18px;
+  color: var(--icon-color);
+}
+h5 {
+  border: 1px solid black;
+  text-align: center;
+}
+</style>

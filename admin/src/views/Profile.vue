@@ -17,15 +17,18 @@
             <q-carousel animated v-model="slide" arrows infinite swipeable thumbnails>
               <q-carousel-slide v-for="(image, index) in profilePt.images" :key="image.id" :name="index"
                 :img-src="image?.imageUrl" img-class="carousel-image">
-                <q-icon v-if="image?.id" class="delete-icon" name="delete" color="red" size="md"
-                  @click="handleDeleteImage(image.id)">
-                  <q-tooltip>Xoá ảnh</q-tooltip>
-                </q-icon>
+                <div>
+                  <q-icon v-if="image?.id" class="delete-icon" name="delete" color="red" size="md"
+                    @click="handleDeleteImage(image.id)">
+                    <q-tooltip>Xoá ảnh</q-tooltip>
+                  </q-icon>
+                  <q-icon v-show="true" class="add-icon" name="upload_file" color="blue" size="md"
+                    @click="handleAddImageDialog">
+                    <q-tooltip>Thêm ảnh</q-tooltip>
+                  </q-icon>
+                </div>
 
-              </q-carousel-slide> <q-icon v-show="true" class="add-icon" name="upload_file" color="blue" size="md"
-                @click="handleAddImageDialog">
-                <q-tooltip>Thêm ảnh</q-tooltip>
-              </q-icon>
+              </q-carousel-slide>
 
             </q-carousel>
           </div>
@@ -71,8 +74,13 @@
                 <q-input v-model="profilePt.profile.email" label="Email" :rules="[
                   val => !!val || 'Email không được để trống', validateEmail]" />
                 <q-input v-model="profilePt.profile.phoneNumber" label="Số điện thoại" />
-                <q-btn type="submit" label="Lưu" color="primary" />
+                <div class="submit-button">
+                  <q-btn type="submit" label="Lưu" color="primary" />
+                </div>
               </q-form>
+              <q-card-title>
+                <h4>Chỉnh sửa thông tin chỉ số </h4>
+              </q-card-title>
               <q-form @submit="handleUpdatePt">
                 <q-input v-model="profilePt.weight" label="Cân nặng" />
                 <q-input v-model="profilePt.height" label="Chiều cao" />
@@ -140,7 +148,7 @@
               <q-form @submit="handleUpdateManagerProfile">
                 <q-input v-model="profileManager.fullName" label="Họ và tên" />
                 <q-input v-model="profileManager.email" label="Email"
-                :rules="[ val => !!val || 'Email không được để trống', validateEmail]" />
+                  :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
                 <q-input v-model="profileManager.phoneNumber" label="Số điện thoại" />
                 <div class="submit-button">
                   <q-btn type="submit" label="Lưu" color="primary" />
@@ -160,7 +168,7 @@
               <q-form @submit="handleUpdateEmployeeProfile">
                 <q-input v-model="profileEmployee.fullName" label="Họ và tên" />
                 <q-input v-model="profileEmployee.email" label="Email"
-                :rules="[ val => !!val || 'Email không được để trống', validateEmail]" />
+                  :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
                 <q-input v-model="profileEmployee.phoneNumber" label="Số điện thoại" />
                 <div class="submit-button">
                   <q-btn type="submit" label="Lưu" color="primary" />
@@ -175,7 +183,7 @@
   </template>
 
 <script setup>
-import { useQuasar } from 'quasar';
+import { useQuasar, QSpinnerCube } from 'quasar';
 import { onBeforeMount, ref } from 'vue';
 import profilesService from '../services/profiles.service';
 import ptsService from '../services/pts.service';
@@ -198,7 +206,7 @@ const secure_urlList = ref([]);
 const profileManager = ref({});
 const openUpdateManagerDialog = ref(false);
 const openUpdateEmployeeDialog = ref(false);
-const profileEmployee = ref({});  
+const profileEmployee = ref({});
 
 const $q = useQuasar();
 
@@ -247,7 +255,7 @@ const handleUpdateEmployeeProfile = async () => {
   try {
     // validate not empty
     if (profileEmployee.value.fullName === '' || profileEmployee.value.email === '' || profileEmployee.value.phoneNumber === '') {
-      $q.notify({ position: 'top', color: 'negative', message:'Vui lòng kiểm tra lại thông tin cập nhật' });
+      $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
       return;
     }
     const updatedEmployeeProfile = {
@@ -257,7 +265,7 @@ const handleUpdateEmployeeProfile = async () => {
     }
     await profilesService.updatedProfile(id, updatedEmployeeProfile);
     openUpdateEmployeeDialog.value = false;
-  }catch (error) {
+  } catch (error) {
     $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
     console.log(error);
   }
@@ -284,6 +292,10 @@ const handleUpdateManagerProfile = async () => {
 };
 
 const handleAddImage = async () => {
+  $q.loading.show({
+    spinner: QSpinnerCube,
+    message: "Đang cập nhật...",
+  });
   try {
     secure_urlList.value = [];// reset danh sách ảnh
     for (var i = 0; i < fileUploaded.value.length; i++) {
@@ -300,8 +312,12 @@ const handleAddImage = async () => {
     fileUploaded.value = [];
     openAddImageDialog.value = false;
   } catch (error) {
+    $q.notify({ position: 'top', color: 'negative', message: 'Có lỗi xảy ra khi thêm ảnh' });
     console.log(error);
+  } finally {
+    $q.loading.hide();
   }
+
 }
 
 const handleUpdatePt = async () => {
@@ -410,7 +426,6 @@ const handleDeleteImage = async (imageId) => {
 // }
 const validateEmail = (email) => {
   const regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
-  
   return regex.test(email) || "Email không hợp lệ";
 };  
 </script>
@@ -485,8 +500,8 @@ h2 {
 
 .add-icon {
   position: absolute;
-  top: 60px;
-  right: 10px;
+  top: 10px;
+  right: 50px;
   cursor: pointer;
 }
 

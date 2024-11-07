@@ -1,27 +1,33 @@
 <template>
-  <div>
-    <div style="margin-right: 50px">
-      <q-select
-        filled
-        class="select"
-        v-model="yearIsSelected"
-        :options="years"
-        label="Chọn năm"
-        style="width: 250px"
-        @click="viewStatistics"
-      />
-    </div>
-    <div v-if="showNotData">
-      <h4>Không có dữ liệu thống kê</h4>
-    </div>
+  <div class="container-statistic">
     <div>
-      <Bar
-        style="height: 480px"
-        v-if="loaded"
-        :data="chartData"
-        :options="chartOptions"
-        plugins="[ChartDataLabels]"
-      />
+      <h4>Thống kê gói tập được mua nhiều nhất năm</h4>
+      <div class="container-input">
+        <div>
+          <p class="label">Chọn năm</p>
+          <q-select
+            filled
+            class="select"
+            v-model="yearIsSelected"
+            :options="years"
+            label="Năm"
+            style="width: 250px"
+            @click="viewStatistics"
+          />
+        </div>
+      </div>
+      <div v-if="showNotData">
+        <h5>Không có dữ liệu thống kê</h5>
+      </div>
+      <div>
+        <Bar
+          style="height: 450px"
+          v-if="loaded"
+          :data="chartData"
+          :options="chartOptions"
+          plugins="[ChartDataLabels]"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -53,7 +59,7 @@ ChartJS.register(
 const yearIsSelected = ref("");
 const years = ref([]);
 const loaded = ref();
-const showNotData = ref();
+const showNotData = ref(true);
 const startYear = 2020;
 const endYear = 2030;
 
@@ -74,7 +80,6 @@ const chartData = reactive({
 
 // Hàm xem thống kê
 const viewStatistics = computed(async () => {
-  showNotData.value = false;
   loaded.value = false;
   if (yearIsSelected.value) {
     const response = await statisticsServices.getTopPurchasedPackagesOfYear(
@@ -85,6 +90,7 @@ const viewStatistics = computed(async () => {
     } else {
       chartData.labels = [...response.labels];
       chartData.datasets[0].data = [...response.datasets[0].data];
+      showNotData.value = false;
       loaded.value = true;
     }
   }
@@ -126,3 +132,31 @@ watch(yearIsSelected, (newValue) => {
   chartOptions.value.scales.x.title.text = "Năm " + newValue;
 });
 </script>
+
+<style scoped>
+.container-statistic {
+  display: flex;
+  justify-content: center;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+h4 {
+  text-align: center;
+  margin: 15px;
+  color: var(--icon-color);
+}
+.container-input {
+  display: flex;
+  justify-content: center;
+}
+.label {
+  text-align: center;
+  margin-bottom: 5px;
+  font-size: 18px;
+  color: var(--icon-color);
+}
+h5 {
+  border: 1px solid black;
+  text-align: center;
+}
+</style>

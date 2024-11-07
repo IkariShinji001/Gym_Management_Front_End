@@ -164,7 +164,7 @@
                         class="routerlink-dropdown-item"
                       >
                         <q-item-section>
-                          <q-item-label>doanh thu theo ngày</q-item-label>
+                          <q-item-label>doanh thu gói tập theo ngày</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item
@@ -174,7 +174,7 @@
                         class="routerlink-dropdown-item"
                       >
                         <q-item-section>
-                          <q-item-label>doanh thu theo năm</q-item-label>
+                          <q-item-label>doanh thu gói tập theo năm</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item
@@ -186,6 +186,18 @@
                         <q-item-section>
                           <q-item-label
                             >Người mua gói tập nhiều nhất tháng
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        to="/admins/top-spent-users-statistics-in-year"
+                        class="routerlink-dropdown-item"
+                      >
+                        <q-item-section>
+                          <q-item-label
+                            >Người mua gói tập nhiều nhất năm
                           </q-item-label>
                         </q-item-section>
                       </q-item>

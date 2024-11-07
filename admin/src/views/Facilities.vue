@@ -1,6 +1,7 @@
 <template>
   <div>
     <div class="equipment-management">
+      <h3>Quản lý thiết bị</h3>
       <div class="search-bar">
         <q-input
           class="input-search"
@@ -20,8 +21,8 @@
             emit-value
             option-value="id"
             option-label="name"
-            @update:model-value="filterFacilities"
-            @click="updateBranches"
+            @update:model-value="filterFacilityByBranch"
+            @click="getAllBranches"
           />
         </div>
         <div class="search-facilityType">
@@ -35,10 +36,9 @@
             emit-value
             option-value="id"
             option-label="name"
-            @update:model-value="filterFacilities"
-            @click="updateBranches"
+            @update:model-value="filterFacilityByFacilityTypes"
+            @click="getAllFacilityType"
           />
-          <!-- btn-drop -->
           <q-btn-dropdown class="update-type-btn" label="Loại" icon="settings">
             <q-list>
               <q-item clickable v-close-popup @click="openFacilityType()">
@@ -63,8 +63,8 @@
               </q-item>
             </q-list>
           </q-btn-dropdown>
-          <!-- btn-drop -->
         </div>
+
         <div class="cover-btn-add">
           <q-btn
             class="btn-add"
@@ -80,7 +80,7 @@
         <table style="width: 100%">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>STT</th>
               <th>Tên</th>
               <th>Hình ảnh</th>
               <th>Ngày mua</th>
@@ -182,13 +182,26 @@
       <q-dialog v-model="isUpdateTypeFormVisible">
         <q-card>
           <q-card-section>
+            <div class="cover-btn-cancel-dialog">
+              <q-btn
+                class="btn-cancel-dialog"
+                icon="cancel"
+                color="red"
+                flat
+                @click="isUpdateTypeFormVisible = false"
+              />
+            </div>
             <div class="container-facility-type">
               <div
                 class="item"
                 v-for="facilityType in facilityTypes"
                 :key="facilityType.id"
               >
-                <q-input v-model="facilityType.name" />
+                <q-input
+                  style="font-size: 15px"
+                  v-model="facilityType.name"
+                  input-class="text-center"
+                />
                 <q-btn
                   label="Cập nhật"
                   @click="updateFacilityType(facilityType.id, facilityType)"
@@ -384,6 +397,7 @@
               <q-input v-model="facility.description" label="Mô tả" />
               <div class="q-select q-gutter-md">
                 <q-select
+                  style="text-transform: capitalize"
                   filled
                   v-model="facility.branchId"
                   :options="branches"
@@ -506,13 +520,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onBeforeMount, computed } from "vue";
+import { ref, reactive, onBeforeMount, computed, watch } from "vue";
 import { useToast } from "vue-toastification";
 import facilitiesService from "../services/facilities.service";
 import branchesService from "../services/branches.service";
 import maintenancesService from "../services/maintenance.service";
 import facilityTypesService from "../services/facilityType.service";
 import uploadFileService from "../services/uploadFile.service";
+import { useQuasar } from "quasar";
 
 const toast = useToast();
 const facilities = ref([]);
@@ -530,7 +545,7 @@ const facilityTypeIsSelected = ref("");
 const facilityTypes = ref([]);
 const isAddTypeFormVisible = ref(false);
 const isUpdateTypeFormVisible = ref(false);
-
+const $q = useQuasar();
 const facility = reactive({
   name: "",
   description: "",
@@ -591,13 +606,22 @@ const filteredFacilities = computed(() => {
   // Chuẩn hóa searchQuery để tìm kiếm
   const normalizedQuery = removeAccents(searchQuery.value.trim().toLowerCase());
 
-  if (normalizedQuery === "") {
-    return facilities.value; // Hiển thị tất cả cơ sở khi tìm kiếm trống
-  }
+  return facilities.value.filter((facility) => {
+    const matchesQuery =
+      normalizedQuery === "" ||
+      removeAccents(facility.name.toLowerCase()).includes(normalizedQuery);
 
-  return facilities.value.filter((facility) =>
-    removeAccents(facility.name.toLowerCase()).includes(normalizedQuery)
-  );
+    const matchesBranch =
+      !branchIdIsSelected.value ||
+      facility.branchId === branchIdIsSelected.value;
+
+    const matchesFacilityType =
+      !facilityTypeIsSelected.value ||
+      facility.facilityTypeId === facilityTypeIsSelected.value;
+
+    // Kết hợp tất cả điều kiện
+    return matchesQuery && matchesBranch && matchesFacilityType;
+  });
 });
 
 const formatDate = (date) => {
@@ -618,16 +642,30 @@ const formatDateInput = (date) => {
 
 const getAllFacilities = async () => {
   facilities.value = await facilitiesService.findAll();
+  branchIdIsSelected.value = "";
+  facilityTypeIsSelected.value = "";
 };
 
-const filterFacilities = async () => {
-  facilities.value = await facilitiesService.findFacilitiesByBranchId(
-    branchIdIsSelected.value
-  );
-};
+// const filterFacilityByBranch = async () => {
+//   facilities.value = await facilitiesService.findFacilitiesByBranchId(
+//     branchIdIsSelected.value
+//   );
+//   facilityTypeIsSelected.value = "";
+// };
 
-const updateBranches = async () => {
+// const filterFacilityByFacilityTypes = async () => {
+//   facilities.value = await facilitiesService.findFacilitiesByFacilityTypeId(
+//     facilityTypeIsSelected.value
+//   );
+//   branchIdIsSelected.value = "";
+// };
+
+const getAllBranches = async () => {
   branches.value = await branchesService.findAll();
+};
+
+const getAllFacilityType = async () => {
+  facilityTypes.value = await facilityTypesService.findAll();
 };
 
 const OpenAddDialog = async () => {
@@ -644,18 +682,39 @@ const OpenAddDialog = async () => {
 };
 
 const addFacility = async () => {
+  $q.loading.show();
   try {
-    const formData = new FormData();
-    formData.append("file", facility.imageUrl);
-    const res = await uploadFileService.uploadFile(formData);
-    facility.imageUrl = res.secure_url;
-    const newFacility = await facilitiesService.create(facility);
-    console.log(newFacility);
-    facilities.value.push(newFacility);
-    showAddDialog.value = false;
-    toast.success("Thêm thiết bị thành công");
+    if (facility.warrantyStartDate > facility.warrantyEndDate) {
+      toast.error(
+        "Ngày bắt đầu bảo hành không được sau ngày kết thúc bảo hành"
+      );
+      return; // Dừng lại nếu có lỗi
+    }
+    const nameFacility = await facilitiesService.checkNameFacilityExisted(
+      facility.name,
+      999999999
+    );
+    if (nameFacility) {
+      toast.error("Tên thiết bị trùng");
+    } else {
+      const formData = new FormData();
+      formData.append("file", facility.imageUrl);
+      formData.forEach((value, key) => {
+        console.log(`${key}: ${value}`);
+      });
+      const res = await uploadFileService.uploadFile(formData);
+      facility.imageUrl = res.secure_url;
+      const newFacility = await facilitiesService.create(facility);
+      console.log(newFacility);
+      facilities.value.push(newFacility);
+      showAddDialog.value = false;
+      $q.loading.hide();
+      toast.success("Thêm thiết bị thành công");
+    }
   } catch (error) {
     console.error("Error adding facility:", error);
+  } finally {
+    $q.loading.hide();
   }
 };
 
@@ -683,6 +742,7 @@ const updateFacilityType = async (id, facilityTypeToUpdate) => {
     (facilityType) => facilityType.id === id
   );
   Object.assign(facilityTypes.value[index], facilityTypeIsUpdated);
+  facilities.value = await facilitiesService.findAll();
   toast.success("Cập nhật loại thiết bị thành công");
   isUpdateTypeFormVisible.value = false;
 };
@@ -723,6 +783,7 @@ const viewMaintenanceHistory = async (idFacility) => {
 };
 
 const viewFacilityDetails = async (facility) => {
+  console.log(facility);
   facility.purchaseDate = formatDateInput(facility.purchaseDate);
   facility.warrantyStartDate = formatDateInput(facility.warrantyStartDate);
   facility.warrantyEndDate = formatDateInput(facility.warrantyEndDate);
@@ -755,6 +816,14 @@ const updateImg = async () => {
   }
 };
 
+watch(
+  () => facilityIsSelected.imageUrl,
+  (newVal) => {
+    facilityIsSelected.imageUrl = newVal;
+  },
+  { deep: true }
+);
+
 const editFacility = async (facility) => {
   console.log(facility.facilityTypeId);
   branches.value = await branchesService.findAll();
@@ -768,6 +837,7 @@ const editFacility = async (facility) => {
 };
 
 const updateFacility = async (id, facilityIsSelected) => {
+  $q.loading.show();
   try {
     // if (facilityIsSelected.imageUrl instanceof File) {
     //   const formData = new FormData();
@@ -779,25 +849,43 @@ const updateFacility = async (id, facilityIsSelected) => {
     //   console.log(facilityIsSelected.imageUrl);
     // }
 
-    // Loại bỏ thuộc tính nameBranch
-    delete facilityIsSelected.nameBranch;
+    if (
+      facilityIsSelected.warrantyStartDate > facilityIsSelected.warrantyEndDate
+    ) {
+      toast.error(
+        "Ngày bắt đầu bảo hành không được sau ngày kết thúc bảo hành"
+      );
+      return; // Dừng lại nếu có lỗi
+    }
 
-    console.log(facilityIsSelected);
-
-    const facilityToUpdate = await facilitiesService.update(
-      id,
-      facilityIsSelected
+    const nameFacility = await facilitiesService.checkNameFacilityExisted(
+      facilityIsSelected.name,
+      facilityIsSelected.id
     );
+    if (nameFacility) {
+      toast.error("Trùng tên thiết bị");
+    } else {
+      delete facilityIsSelected.nameBranch;
 
-    console.log(facilityToUpdate);
+      console.log(facilityIsSelected);
 
-    const index = facilities.value.findIndex((facility) => facility.id == id);
-    Object.assign(facilities.value[index], facilityToUpdate);
+      const facilityToUpdate = await facilitiesService.update(
+        id,
+        facilityIsSelected
+      );
 
-    showEditDialog.value = false;
-    toast.success("Cập nhật thiết bị thành công");
+      console.log(facilityToUpdate);
+
+      const index = facilities.value.findIndex((facility) => facility.id == id);
+      Object.assign(facilities.value[index], facilityToUpdate);
+
+      showEditDialog.value = false;
+      toast.success("Cập nhật thiết bị thành công");
+    }
   } catch (error) {
     console.error("Error updating facility:", error);
+  } finally {
+    $q.loading.hide();
   }
 };
 
@@ -823,13 +911,12 @@ const deleteFacility = async (id) => {
   /* background: #d5d5d6; */
 }
 h3 {
-  margin: 0px;
-  padding: 15px;
-  margin: 20px;
+  margin: 25px;
 }
 h4 {
-  margin: 20px 20px 0px 20px;
-  padding: 20px;
+  padding: 0px;
+  margin: 0px;
+  text-align: center;
 }
 .table {
   width: 100% !important;
@@ -846,7 +933,7 @@ h4 {
 .input-search {
   background: white;
   width: 40%;
-  margin-top: 8px;
+  margin: auto;
   margin-right: 20px;
 }
 .search-branch {
@@ -855,23 +942,22 @@ h4 {
   margin: auto;
   margin-right: 20px;
 }
-
 .search-facilityType {
   display: flex;
   width: 30%;
   margin: auto;
+  margin-right: 20px;
 }
-
 .btn-all {
   margin: auto;
   margin-right: 20px;
   height: 54px;
   width: 100px;
+  border-radius: 6px;
   background: var(--icon-color);
   box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
     rgba(0, 0, 0, 0.5) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
-
 .search-bar-q-select {
   padding: 0px;
   margin: auto;
@@ -882,12 +968,15 @@ h4 {
   /* margin-right: 15px; */
   height: 53px;
   margin-left: 20px;
+  border-radius: 6px;
 }
-.cover-btn-add {
-  width: 15%;
-  padding-left: 22px !important;
-  /* padding-right: 1px !important; */
-  /* justify-content: center !important; */
+.btn-cancel-dialog {
+  border-radius: 100px;
+  font-size: 20px;
+}
+.cover-btn-cancel-dialog {
+  text-align: right;
+  margin-bottom: 5px;
 }
 .container-facility-type {
   display: grid;
@@ -896,17 +985,22 @@ h4 {
 }
 .item {
   padding: 10px; /* Khoảng cách bên trong */
-  border: 1px solid #ccc; /* Đường viền cho dễ nhìn */
+  border: 1px solid #1f1d1d; /* Đường viền cho dễ nhìn */
 }
 
 .btn-add {
-  margin-top: 10px !important;
-  height: 53px;
+  width: 130px;
+  height: 54px;
   border-radius: 6px;
   color: black !important;
   background: var(--icon-color) !important;
   box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
     rgba(0, 0, 0, 0.5) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+}
+.cover-btn-add {
+  margin: auto;
+  /* padding-right: 1px !important; */
+  /* justify-content: center !important; */
 }
 .add-icon {
   color: blue;

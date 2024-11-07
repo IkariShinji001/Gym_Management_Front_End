@@ -67,7 +67,7 @@ export default {
         router.push({ path: "/admins/blogs" });
       } catch (error) {
 
-        $q.notify({position: "top", color: "negative",  message: "Đăng nhập thất bại"});
+        $q.notify({position: "top", color: "negative",  message: "Kiểm tra lại thông tin đăng nhập"});
         // alert("Login fail");
         console.log(error);
       }

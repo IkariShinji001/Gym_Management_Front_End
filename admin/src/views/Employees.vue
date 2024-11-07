@@ -40,13 +40,19 @@
             <span>Thêm nhân viên</span>
           </q-card-title>
           <q-card-section>
-            <q-input class="dia-input" v-model="employeeInput.profile.fullName" label="Họ và tên" outlined />
+            <q-input class="dia-input" v-model="employeeInput.profile.fullName" label="Họ và tên" outlined
+              :rules="[val => !!val || 'Họ và tên không được để trống']" />
             <q-input class="dia-input" v-model="employeeInput.profile.email" label="Email" outlined
               :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
-            <q-input class="dia-input" v-model="employeeInput.profile.password" label="Password" outlined />
-            <q-input class="dia-input" v-model="employeeInput.profile.phoneNumber" label="Số điện thoại" outlined />
-            <q-input class="dia-input" v-model="employeeInput.position" label="Vị trí" outlined />
-            <q-input class="dia-input" v-model="employeeInput.hireDate" label="Ngày vào làm" type="date" outlined />
+            <q-input class="dia-input" v-model="employeeInput.profile.password" label="Password" outlined
+              :rules="[val => !!val || 'Password không được để trống']" type="password" />
+            <q-input class="dia-input" v-model="employeeInput.profile.phoneNumber" label="Số điện thoại" outlined
+              maxlength="10" :rules="[val => !!val || 'Số điện thoại không được để trống']" />
+            <q-input class="dia-input" v-model="employeeInput.position" label="Vị trí" outlined
+              :rules="[val => !!val || 'Vị trí không được để trống']" />
+            <q-input class="dia-input" v-model="employeeInput.hireDate" label="Ngày vào làm" type="date" outlined
+              :rules="[val => !!val || 'Ngày vào làm không được để trống']" />
+
           </q-card-section>
         </q-card-section>
         <q-card-actions class="action">
@@ -67,7 +73,7 @@
             <q-input class="dia-input" v-model="employeeUpdate.profile.fullName" label="Họ và tên" outlined />
             <q-input class="dia-input" v-model="employeeUpdate.profile.email" label="Email" outlined
               :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
-            <q-input class="dia-input" v-model="employeeUpdate.profile.phoneNumber" label="Số điện thoại" outlined />
+            <q-input class="dia-input" v-model="employeeUpdate.profile.phoneNumber" label="Số điện thoại"  maxlength="10" outlined />
             <q-input class="dia-input" v-model="employeeUpdate.position" label="Vị trí" outlined />
             <q-input class="dia-input" v-model="employeeUpdate.hireDate" label="Ngày vào làm" type="date" outlined />
           </q-card-section>
@@ -99,7 +105,10 @@ import employeesService from "../services/employee.service";
 import managersService from "../services/managers.service";
 import profileService from "../services/profiles.service";
 import { format } from "date-fns";
+import { useQuasar, QSpinnerCube } from "quasar";
 
+
+const $q = useQuasar();
 const search = ref("");
 const openCreateDialog = ref(false);
 const openUpdateDialog = ref(false);
@@ -110,6 +119,7 @@ const deleteId = ref(null); // Lưu id nhân viên cần xóa
 const openDeleteDialog = ref(false);
 const profileId = localStorage.getItem("id");
 
+
 const employeeInput = ref({
   profile: {
     fullName: "",
@@ -119,9 +129,7 @@ const employeeInput = ref({
   },
   position: "",
   hireDate: "",
-  manager: {
-    id: "",
-  },
+  managerId: "",
 });
 const employeeUpdate = ref({
   id: "",
@@ -133,9 +141,7 @@ const employeeUpdate = ref({
   },
   position: "",
   hireDate: "",
-  manager: {
-    id: "",
-  },
+  managerId: "",
 });
 
 const currentPage = ref(1);
@@ -153,6 +159,14 @@ const handleOpenUpdateDialog = (id) => {
   updateId.value = id;
 };
 const handleUpdate = async () => {
+  $q.loading.show({
+    spinner: QSpinnerCube,
+    message: "Đang cập nhật...",
+  });
+  if (employeeUpdate.value.profile.fullName === "" || employeeUpdate.value.profile.email === "" || employeeUpdate.value.profile.phoneNumber === "" || employeeUpdate.value.position === "" || employeeUpdate.value.hireDate === "") {
+    $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng nhập đầy đủ thông tin' });
+    return;
+  }
   try {
     const payloadProfile = {
       fullName: employeeUpdate.value.profile.fullName,
@@ -181,7 +195,10 @@ const handleUpdate = async () => {
 
     openUpdateDialog.value = false;
   } catch (error) {
+    $q.notify({ position: 'top', color: 'negative', message: `Lỗi: ${error.response.data.message || 'Không thể tạo thành viên mới'}` });
     console.log(error);
+  }finally {
+    $q.loading.hide();
   }
 };
 const manager = ref({});
@@ -192,63 +209,74 @@ onBeforeMount(async () => {
 });
 
 const formatDate = (date) => {
-  return format(new Date(date), "dd/MM/yyyy");
-};
+      date = new Date(date);
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
+      const day = date.getDate().toString().padStart(2, "0");
+      return `${day}-${month}-${year}`;
+    };
 const formatDateTime = (Date) => {
   return formatDate(Date);
 };
 const handleAdd = async () => {
-  const payload = {
-    createProfileDto: {
-      fullName: employeeInput.value.profile.fullName,
-      email: employeeInput.value.profile.email,
-      password: employeeInput.value.profile.password,
-      phoneNumber: employeeInput.value.profile.phoneNumber,
-      role: "employee",
-    },
-    createEmployeeDto: {
-      position: employeeInput.value.position,
-      hireDate: employeeInput.value.hireDate,
-      manager: {
-        id: manager.value.id,
+  $q.loading.show({
+    spinner: QSpinnerCube,
+    message: "Đang tạo thành viên mới...",
+  });
+  try {
+    if (employeeInput.value.profile.fullName === "" || employeeInput.value.profile.email === "" || employeeInput.value.profile.password === "" || employeeInput.value.profile.phoneNumber === "" || employeeInput.value.position === "" || employeeInput.value.hireDate === "" || manager.value.id === "") {
+      $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng nhập đầy đủ thông tin' });
+      return;
+    }
+    const payload = {
+      createProfileDto: {
+        fullName: employeeInput.value.profile.fullName,
+        email: employeeInput.value.profile.email,
+        password: employeeInput.value.profile.password,
+        phoneNumber: employeeInput.value.profile.phoneNumber,
+        role: "employee",
       },
-    },
-  };
-  const res = await employeesService.createEmployee(payload);
-  employees.value.push(res);
-  employeeInput.value = {
-    profile: {
-      fullName: "",
-      email: "",
-      password: "",
-      phoneNumber: "",
-    },
-    position: "",
-    hireDate: "",
-    manager: {
-      id: "",
-    },
-  };
-  openCreateDialog.value = false;
+      createEmployeeDto: {
+        position: employeeInput.value.position,
+        hireDate: employeeInput.value.hireDate,
+        managerId: manager.value.id,
+      },
+    };
+    const res = await employeesService.createEmployee(payload);
+    employees.value.push(res);
+    employeeInput.value = {
+      profile: {
+        fullName: "",
+        email: "",
+        password: "",
+        phoneNumber: "",
+      },
+      position: "",
+      hireDate: "",
+      managerId: "",
+    };
+    openCreateDialog.value = false;
+  } catch (error) {
+    $q.notify({ position: 'top', color: 'negative', message: `Lỗi: ${error.response.data.message || 'Không thể tạo thành viên mới'}` });
+    console.log(error);
+  } finally {
+    $q.loading.hide();
+  }
 };
-
-// const handleDelete = async (id) => {
-//   await employeesService.deleteEmployee(id);
-//   employees.value = employees.value.filter((employee) => employee.id !== id);
-// };
-// const handleOpenDetailDialog = (id) => {
-//   openDetailDialog.value = true;
-//   const index = employees.value.findIndex((employee) => employee.id === id);
-//   Object.assign(employeeDetail.value, employees.value[index]);
-// };
 
 const filteredEmployees = computed(() => {
   if (!search.value) return employees.value;
   const searchValue = search.value.toLowerCase();
+
   return employees.value.filter((employee) => {
-    return employee.profile.fullName.includes(searchValue);
+    return (
+      employee.profile.fullName.toLowerCase().includes(searchValue) ||
+      employee.profile.email.toLowerCase().includes(searchValue) ||
+      employee.profile.phoneNumber.toLowerCase().includes(searchValue)
+    );
   });
 });
+
 const totalPages = computed(() => {
   return Math.ceil(filteredEmployees.value.length / rowsPerPage.value);
 });
