@@ -10,6 +10,7 @@ class DurationService{
     }
 
     async create(duration){
+        console.log(duration)
         return (await api.post(`${this.path}`, duration)).data
     }
 

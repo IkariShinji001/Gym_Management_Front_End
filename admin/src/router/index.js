@@ -6,19 +6,19 @@ const router = createRouter({
     {
       path: "/admins",
       component: () => import("../views/AdminLayoutView.vue"),
-      meta: { requiresAuth: true, roles: ["manager"] },
+      meta: { requiresAuth: true, roles: ["manager", "employee", "pt"] },
       children: [
         {
           path: "blogs",
           name: "blog",
           component: () => import("../views/BlogView.vue"),
-          meta: { requiresAuth: true, roles: ["manager", "employee"] },
+          meta: { requiresAuth: true, roles: ["manager", "employee", "pt"] },
         },
         {
           path: "blogs/posts/:id",
           name: "postDetails",
           component: () => import("../views/PostDetailView.vue"),
-          meta: { requiresAuth: true, roles: ["manager", "employee"] },
+          meta: { requiresAuth: true, roles: ["manager", "employee", "pt"] },
         },
         {
           path: "supplement-products",
@@ -30,13 +30,13 @@ const router = createRouter({
           path: "facilities",
           name: "facilities",
           component: () => import("../views/Facilities.vue"),
-          meta: { requiresAuth: true, roles: ["manager"] },
+          meta: { requiresAuth: true, roles: ["manager", "employee"] },
         },
         {
           path: "maintenances",
           name: "maintenances",
           component: () => import("../views/MaintenanceView.vue"),
-          meta: { requiresAuth: true, roles: ["manager"] },
+          meta: { requiresAuth: true, roles: ["manager", "employee"] },
         },
         {
           path: "branches",

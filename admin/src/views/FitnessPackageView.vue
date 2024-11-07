@@ -126,11 +126,11 @@
       >
         <div class="service-tabs-container">
           <q-tabs v-model="tab[index]" vertical>
-            <q-tab name="info" icon="info" label="About" class="q-tabs-icon" />
+            <q-tab name="info" icon="info" label="Thông tin" class="q-tabs-icon" />
             <q-tab
               name="tables"
               icon="payments"
-              label="Prices"
+              label="Giá"
               class="q-tabs-icon"
             />
           </q-tabs>
@@ -175,8 +175,8 @@
               <div>
                 <ul class="responsive-table">
                   <li class="table-header">
-                    <div class="col col-1">Time</div>
-                    <div class="col col-2">Cost</div>
+                    <div class="col col-1">Thời gian</div>
+                    <div class="col col-2">Giá</div>
                   </li>
                   <li
                     class="table-row"
@@ -280,13 +280,13 @@
                 (val) => val >= 1 || 'Giá phải là số dương',
               ]"
             >
-              VND</q-input
-            >
+            </q-input>
             <q-select
               style="width: 160px"
               filled
               v-model="durationInput.durationType"
               :options="durationTypeList"
+              :option-label="formatDurationTypeHandler"
               label="Chọn thời gian"
               class="q-select"
               map-options
@@ -458,6 +458,7 @@ export default {
       if (checkDuplicate.length > 0) {
         toast.error("Đã tồn tại thời hạn");
       } else {
+        console.log(durationInput.value);
         const newDuration = await durationService.create(durationInput.value);
         toast.success("Tạo thời hạn thành công");
         durationList.value.push(newDuration);
@@ -465,11 +466,26 @@ export default {
     }
 
     async function createPackageType() {
-      const newPackageType = await packageTypeService.createPackageType(
-        packageTypeInput.value
+      console.log(packageTypes.value[0].type);
+      console.log(packageTypeInput.value);
+      const checkDuplicate = packageTypes.value.filter(
+        (type) =>
+          type.type.toLowerCase() == packageTypeInput.value.type.toLowerCase()
       );
-      packageTypes.value.push(newPackageType);
+      if (checkDuplicate.length > 0) {
+        toast.error("Đã tồn tại loại dịch vụ");
+      } else {
+        const newPackageType = await packageTypeService.createPackageType(
+          packageTypeInput.value
+        );
+        packageTypes.value.push(newPackageType);
+
+        toast.success("Đã thêm loại dịch vụ thành công!", {
+          timeout: 2000,
+        });
+      }
     }
+
     function deletedType(id) {
       packageTypes.value = packageTypes.value.filter((type) => type.id !== id);
     }
@@ -482,7 +498,7 @@ export default {
     function formatDurationTypeHandler(value) {
       if (value === "year") return "năm";
       else if (value === "month") return "tháng";
-      else return "day";
+      else return "ngày";
     }
     return {
       tab,
