@@ -34,6 +34,7 @@
 <script>
 import { ref, reactive } from "vue";
 import typeService from "../services/type.service";
+import { useToast } from "vue-toastification";
 
 export default {
   props: {
@@ -43,6 +44,7 @@ export default {
     const type = reactive({
       name: "",
     });
+    const toast = ref(useToast)
     const types = ref(props.typeList);
 
     async function createType(e) {
@@ -63,6 +65,9 @@ export default {
 
         emit("getNewType", createdType);
         closeModal();
+        toast.success("Đã thêm loại sản phẩm thành công!", {
+          timeout: 2000,
+        });
       } catch (e) {
         console.log(e);
       }

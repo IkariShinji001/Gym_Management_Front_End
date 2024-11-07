@@ -76,6 +76,7 @@
         />
         <div class="post-title">{{ post.title }}</div>
       </div>
+      <chatbotcom />
     </router-link>
   </div>
 </template>
@@ -83,8 +84,10 @@
 <script>
 import { ref, onBeforeMount, computed } from "vue";
 import blogService from "../../../admin/src/services/blog.service";
+import chatbotcom from '../components/chatbotcom.vue';
 
 export default {
+  components: { chatbotcom },
   setup() {
     const postList = ref([]);
 
