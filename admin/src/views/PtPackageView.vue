@@ -51,11 +51,11 @@
       >
         <div class="service-tabs">
           <q-tabs v-model="tab[index]" vertical>
-            <q-tab name="info" icon="info" label="About" class="q-tabs-icon" />
+            <q-tab name="info" icon="info" label="Thông tin" class="q-tabs-icon" />
             <q-tab
               name="tables"
               icon="payments"
-              label="Prices"
+              label="Giá"
               class="q-tabs-icon"
             />
           </q-tabs>
@@ -118,8 +118,8 @@
               <div>
                 <ul class="responsive-table">
                   <li class="table-header">
-                    <div class="col col-1">Time</div>
-                    <div class="col col-2">Cost</div>
+                    <div class="col col-1">Thời gian</div>
+                    <div class="col col-2">Giá</div>
                   </li>
                   <li
                     class="table-row"
