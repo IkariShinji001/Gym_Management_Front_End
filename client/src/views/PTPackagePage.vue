@@ -36,9 +36,10 @@ import { useRoute } from "vue-router";
 const allPtPackages = ref([]);
 const route = useRoute();
 const priceId = route.params.priceId;
+const typeId = route.params.typeId;
 
 onBeforeMount(async () => {
-  allPtPackages.value = await ptPackageService.getAll();
+  allPtPackages.value = await ptPackageService.getAllByTypeId(typeId);
 });
 </script>
 

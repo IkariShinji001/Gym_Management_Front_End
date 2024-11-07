@@ -58,11 +58,11 @@
           <q-card-section class="title-card">Cập nhật thông tin</q-card-section>
           <q-card-section>
             <q-input v-model="userUpdated.fullName" label="Họ và tên"></q-input>
-            <q-input v-model="userUpdated.phoneNumber" label="Số điện thoại" maxlength="10"></q-input>
+            <q-input v-model="userUpdated.phoneNumber" label="Số điện thoại" :rules="[validatePhoneNumber]" ></q-input>
             <q-input v-model="userUpdated.email" label="Email"></q-input>
             <q-select v-model="userUpdated.gender" label="Giới tính" :options="genderSelect" map-options emit-value
               option-label="text" option-value="value"></q-select>
-            <q-input v-model="userUpdated.dateBirth" label="Ngày sinh" type="date" />
+            <q-input v-model="userUpdated.dateBirth" label="Ngày sinh" type="date" :rules="[validateDateBirth]"  />
             <q-btn class="btn" @click="handleUpdate">Cập nhật</q-btn>
           </q-card-section>
         </q-card>
@@ -105,6 +105,15 @@
 
   const $q = useQuasar();
 
+
+  const validateDateBirth = (date) => {
+  const today = new Date().toISOString().split('T')[0];
+  return date <= today || "Ngày sinh không được lớn hơn ngày hiện tại";
+};
+  const validatePhoneNumber  = (phoneNumber) => {
+    const regex = /^[0-9]{10}$/;
+    return regex.test(phoneNumber) || "Số điện thoại phải có 10 số";
+  }
 
   const handleChangePassword = () => {
     openChangePassword.value = true;

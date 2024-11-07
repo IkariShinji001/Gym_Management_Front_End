@@ -17,6 +17,9 @@ class PTPackageService {
     async getAll(){
         return (await api.get(`${this.path}/getAll`)).data;
     }
+    async getAllByTypeId(typeId){
+        return (await api.get(`${this.path}/type/${typeId}`)).data;
+    }
 }
 
 export default new PTPackageService();
