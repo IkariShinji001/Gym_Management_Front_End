@@ -42,6 +42,7 @@
     </q-header>
 
     <q-drawer
+      v-if="role != 'pt'"
       show-if-above
       v-model="isLeftDrawerOpen"
       side="left"
@@ -164,7 +165,9 @@
                         class="routerlink-dropdown-item"
                       >
                         <q-item-section>
-                          <q-item-label>doanh thu gói tập theo ngày</q-item-label>
+                          <q-item-label
+                            >doanh thu gói tập theo ngày</q-item-label
+                          >
                         </q-item-section>
                       </q-item>
                       <q-item
@@ -174,7 +177,9 @@
                         class="routerlink-dropdown-item"
                       >
                         <q-item-section>
-                          <q-item-label>doanh thu gói tập theo năm</q-item-label>
+                          <q-item-label
+                            >doanh thu gói tập theo năm</q-item-label
+                          >
                         </q-item-section>
                       </q-item>
                       <q-item
@@ -331,6 +336,7 @@ export default {
     function redirectToBlogsHandler() {
       router.push("/admins/blogs");
     }
+
     function redirectToYourProfile() {
       router.push("/admins/profile");
     }
@@ -339,6 +345,7 @@ export default {
       localStorage.clear();
       router.push("/login");
     }
+
     return {
       isLeftDrawerOpen,
       basePath,
