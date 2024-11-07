@@ -19,13 +19,12 @@
         label="Chọn thành phố"
         option-value="id"
         option-label="name"
-        style="width: 250px"
+        style="width: 240px"
         @update:model-value="filterBranchesInProvince"
       />
       <q-btn
         label="Thêm chi nhánh"
         icon="add"
-        color="primary"
         @click="openAddBranch()"
         class="add-button"
       />
@@ -69,7 +68,6 @@
           <q-form @submit="submitAddBranch">
             <q-input v-model="branch.name" label="Tên chi nhánh" />
             <q-input v-model="branch.address" label="Địa chỉ" />
-            {{ ProvinceIsSelected }}
             <div class="input-province-district q-pa-md">
               <q-select
                 filled
@@ -88,7 +86,6 @@
               />
             </div>
             <div class="input-province-district q-pa-md">
-              {{ districtsIsSelected }}
               <q-select
                 filled
                 v-model="districtsIsSelected"
@@ -131,16 +128,6 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="showUpProvince">
-      <q-card class="dialog-update">
-        <q-card-section>
-          <div>
-            <h5>Cập nhật thành phố</h5>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
     <!-- Edit Dialog -->
     <q-dialog v-model="showUpdateDialog" persistent>
       <q-card class="dialog-update">
@@ -151,7 +138,11 @@
         </q-card-section>
         <q-card-section>
           <q-form @submit="updateBranch(branchToEdit.id, branchToEdit)">
-            <q-input v-model="branchToEdit.name" label="Tên chi nhánh" />
+            <q-input
+              style="text-transform: capitalize"
+              v-model="branchToEdit.name"
+              label="Tên chi nhánh"
+            />
             <q-input v-model="branchToEdit.address" label="Địa chỉ" />
             <div class="input-province-district q-pa-md">
               <q-select
@@ -221,12 +212,12 @@ import districtsService from "../services/districts.service.js";
 import provincesService from "../services/provinces.service.js";
 import branchesService from "../services/branches.service.js";
 import locationService from "../services/location.service.js";
+import { useQuasar } from "quasar";
 
 const toast = useToast();
 const branches = ref([]);
 const searchQuery = ref("");
 const showAddDialog = ref(false);
-const showUpProvince = ref(false);
 const showUpdateDialog = ref(false);
 const provinceIsSelectedForFiltering = ref("");
 const provinces = ref([]);
@@ -234,6 +225,7 @@ const districtsIsSelected = ref();
 const districts = ref([]);
 const ProvinceIsSelected = ref();
 const provincesInFilter = ref([]);
+const $q = useQuasar();
 const branch = reactive({
   name: "",
   address: "",
@@ -269,7 +261,7 @@ const district = reactive({
 });
 
 const columns = [
-  { name: "id", label: "ID", align: "center", field: "id" },
+  { name: "index", label: "STT", align: "center", field: "index" },
   {
     name: "name",
     label: "Tên chi nhánh",
@@ -336,9 +328,9 @@ onBeforeMount(async () => {
   try {
     branches.value = await branchesService.findAll();
     console.log(branches.value);
+    provincesInFilter.value = await provincesService.findAll();
     provinces.value = await locationService.findAllProvinces();
     console.log(provinces.value);
-    provincesInFilter.value = await provincesService.findAll();
     // console.log(provinces.value);
     // districts.value = await districtsService.findAll();
     // const newbranches = branches.value.map((branch) => {
@@ -365,13 +357,31 @@ const filteredBranches = computed(() => {
 
   const normalizedQuery = removeAccents(searchQuery.value.trim().toLowerCase());
 
+  // Tạo danh sách với chỉ số tự tăng
+  const branchesWithIndex = branches.value.map((branch, index) => ({
+    ...branch,
+    index: index + 1, // Thêm thuộc tính 'index' tự động tăng
+  }));
+
+  // Nếu không có truy vấn, trả về toàn bộ danh sách với chỉ số
   if (normalizedQuery === "") {
-    return branches.value;
+    return branchesWithIndex;
   }
-  return branches.value.filter((branch) =>
+
+  // Lọc chi nhánh dựa trên truy vấn tìm kiếm
+  return branchesWithIndex.filter((branch) =>
     removeAccents(branch.name.toLowerCase()).includes(normalizedQuery)
   );
 });
+
+// computed: {
+//   filteredBranches() {
+//     return this.branches.map((branch, index) => ({
+//       ...branch,
+//       index: index + 1, // Thêm thuộc tính 'index' tự động tăng
+//     }));
+//   }
+// };
 
 // const filterProvinces = (valueInput, update) => {
 //   update(async () => {
@@ -409,37 +419,52 @@ const filterDistricts = (valueInput, update) => {
 };
 
 const submitAddBranch = async () => {
+  $q.loading.show();
   try {
-    console.log(branch.name);
-    const nameBranch = await branchesService.checkNameBranchExisted(
-      branch.name,
-      9999999999
-    );
-    if (nameBranch) {
-      toast.error("Trùng tên chi nhánh");
+    if (
+      !branch.name ||
+      !branch.phoneNumber ||
+      !branch.openTime ||
+      !branch.closedTime ||
+      !districtsIsSelected.value
+    ) {
+      toast.error("Vui lòng nhập đầy đủ thông tin chi nhánh!");
+      return;
     } else {
-      // Kiểm tra số điện thoại
-      const phoneNumberPattern = /^\d{10}$/; // Chỉ chấp nhận 10 chữ số
+      const nameBranch = await branchesService.checkNameBranchExisted(
+        branch.name,
+        9999999999
+      );
+      if (nameBranch) {
+        toast.error("Trùng tên chi nhánh");
+      } else {
+        // Kiểm tra số điện thoại
+        const phoneNumberPattern = /^\d{10}$/; // Chỉ chấp nhận 10 chữ số
 
-      if (!phoneNumberPattern.test(branch.phoneNumber)) {
-        toast.error("Số điện thoại phải là 10 chữ số và không chứa ký tự chữ.");
-        return;
+        if (!phoneNumberPattern.test(branch.phoneNumber)) {
+          toast.error(
+            "Số điện thoại phải là 10 chữ số và không chứa ký tự chữ."
+          );
+          return;
+        }
+        const newProvince = await provincesService.create(province);
+        console.log(newProvince);
+        district.name = districtsIsSelected.value;
+        district.provinceId = newProvince.id;
+        const newDistrict = await districtsService.create(district);
+        branch.districtId = newDistrict.id;
+        const newBranch = await branchesService.create(branch);
+        console.log(newBranch);
+        branches.value.push(newBranch);
+        provincesInFilter.value = await provincesService.findAll();
+        showAddDialog.value = false;
+        toast.success("Thêm chi nhánh thành công");
       }
-      const newProvince = await provincesService.create(province);
-      console.log(newProvince);
-      district.name = districtsIsSelected.value;
-      district.provinceId = newProvince.id;
-      const newDistrict = await districtsService.create(district);
-      branch.districtId = newDistrict.id;
-      const newBranch = await branchesService.create(branch);
-      console.log(newBranch);
-      branches.value.push(newBranch);
-      provincesInFilter.value = await provincesService.findAll();
-      showAddDialog.value = false;
-      toast.success("Thêm chi nhánh thành công");
     }
   } catch (error) {
     console.error("Error add branch: " + error);
+  } finally {
+    $q.loading.hide();
   }
 };
 
@@ -542,56 +567,55 @@ const deleteBranch = async (id) => {
 .branch-management {
   padding: 20px;
 }
-
 .header-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
-
 .search-bar {
   width: 50%;
 }
-
 .btn-all {
-  margin: auto;
-  height: 53px;
-  background: rgb(26, 127, 241);
-  color: white;
+  margin: auto 50px auto 50px;
+  height: 54px;
+  background: var(--icon-color) !important;
+  color: black;
+  border-radius: 7px;
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.5) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
-
+h3 {
+  margin: 25px;
+}
 h4 {
-  margin: 20px;
-}
-
-h5 {
+  padding: 0px;
   margin: 0px;
+  text-align: center;
 }
-
 .add-button {
-  margin-left: 47px;
+  margin-left: 50px;
   height: 52px;
-  border-radius: 10px;
+  border-radius: 7px;
+  background: var(--icon-color) !important;
+  color: black;
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.5) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
-
 .branch-table {
   height: 400px;
   width: 100%;
   overflow-y: auto;
 }
-
 .container {
   display: flex;
   align-items: center;
 }
-
 .input-province-district {
   padding: 0px;
   margin-bottom: 15px;
   margin-top: 15px;
 }
-
 .add-province {
   background: #284df1;
   height: 50px;
@@ -601,7 +625,6 @@ h5 {
   padding: 5px;
   margin-left: 10px;
 }
-
 .btn-save {
   margin-top: 10px;
   margin-right: 20px;
@@ -610,11 +633,9 @@ h5 {
 .btn-cancel {
   margin-top: 10px;
 }
-
 .dialog-add {
   width: 520px;
 }
-
 .dialog-update {
   width: 520px;
 }
