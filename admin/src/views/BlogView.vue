@@ -101,6 +101,9 @@ import "quill/dist/quill.snow.css";
 import ImageResize from "quill-image-resize-module";
 Quill.register("modules/imageResize", ImageResize);
 
+import { useToast } from "vue-toastification";
+import { useQuasar, QSpinnerCube } from "quasar";
+
 import { ref, onBeforeMount, reactive, nextTick, computed } from "vue";
 import blogService from "../services/blog.service";
 import uploadFileService from "../services/uploadFile.service";
@@ -108,6 +111,9 @@ import uploadFileService from "../services/uploadFile.service";
 export default {
   name: "MyQuillEditor",
   setup() {
+    const toast = useToast();
+    const $q = useQuasar();
+
     const isShowEditorDialog = ref(false);
     const editor = ref(null);
     let quill = null;
@@ -121,14 +127,32 @@ export default {
     });
     const postList = ref([]);
 
+    // const postList1 = computed(() =>
+    //   postList.value.filter((_, index) => index % 3 === 0)
+    // );
+    // const postList2 = computed(() =>
+    //   postList.value.filter((_, index) => index % 3 === 1)
+    // );
+    // const postList3 = computed(() =>
+    //   postList.value.filter((_, index) => index % 3 === 2)
+    // );
     const postList1 = computed(() =>
-      postList.value.filter((_, index) => index % 3 === 0)
+      postList.value
+        .slice()
+        .reverse()
+        .filter((_, index) => index % 3 === 0)
     );
     const postList2 = computed(() =>
-      postList.value.filter((_, index) => index % 3 === 1)
+      postList.value
+        .slice()
+        .reverse()
+        .filter((_, index) => index % 3 === 1)
     );
     const postList3 = computed(() =>
-      postList.value.filter((_, index) => index % 3 === 2)
+      postList.value
+        .slice()
+        .reverse()
+        .filter((_, index) => index % 3 === 2)
     );
 
     onBeforeMount(async () => {
@@ -156,8 +180,6 @@ export default {
     };
 
     const handlerOpenDialog = () => {
-      console.log(postList1);
-      console.log(postList2);
       isShowEditorDialog.value = true;
       nextTick(() => {
         quill = new Quill(editor.value, {
@@ -188,6 +210,11 @@ export default {
 
     async function handlerCreatePost() {
       try {
+        $q.loading.show({
+          spinner: QSpinnerCube,
+          message: "Đang tạo bài đăng mới...",
+        });
+
         const formData = new FormData();
         formData.append("file", imgUploaded.value);
         const res = await uploadFileService.uploadFile(formData);
@@ -214,11 +241,14 @@ export default {
           }
         }
 
-        const createdPost = blogService.createPost(post);
+        const createdPost = await blogService.createPost(post);
+
         postList.value.push(createdPost);
         handlerCloseDialog();
       } catch (e) {
         console.error(e);
+      } finally {
+        $q.loading.hide();
       }
     }
 
