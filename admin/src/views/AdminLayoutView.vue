@@ -193,6 +193,7 @@
                         clickable
                         v-close-popup
                         to="/admins/top-spent-users-statistics-in-year"
+                        class="routerlink-dropdown-item"
                       >
                         <q-item-section>
                           <q-item-label
