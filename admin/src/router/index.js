@@ -137,16 +137,11 @@ const router = createRouter({
             import("../views/TopPurchasedPackagesStatisticsInYear.vue"),
           meta: { requiresAuth: true, roles: ["manager"] },
         },
+        
         {
           path: "profile",
           name: "profile",
           component: () => import("../views/Profile.vue"),
-          meta: { requiresAuth: true, roles: ["manager", "pt", "employee"] },
-        },
-        {
-          path: "Vidu",
-          name: "profile",
-          component: () => import("../views/Vidu.vue"),
           meta: { requiresAuth: true, roles: ["manager", "pt", "employee"] },
         },
       ],

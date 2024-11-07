@@ -8,6 +8,7 @@ import "vue-toastification/dist/index.css";
 import "@quasar/extras/material-icons/material-icons.css";
 import "quasar/src/css/index.sass";
 
+
 import App from "./App.vue";
 import router from "./router/index";
 
@@ -32,6 +33,8 @@ myApp.use(Quasar, {
 
 myApp.use(router);
 myApp.use(Toast, options);
+
+
 
 // Assumes you have a <div id="app"></div> in your index.html
 myApp.mount("#app");

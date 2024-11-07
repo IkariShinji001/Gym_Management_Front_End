@@ -14,9 +14,8 @@
         required
         filled
         label="Tên gói dịch vụ"
-        :rules="[
-          (val) => (val && val.length > 0) || 'Vui lòng điền tên sản phẩm',
-        ]"
+        :rules="[handleCheckPackageName]"
+        @blur="handleCheckFitnessPackageNameExists"
       />
 
       <div class="textarea-description">
@@ -28,8 +27,7 @@
           label="Mô tả gói dịch vụ"
           required
           :rules="[
-            (val) =>
-              (val && val.length > 0) || 'Vui lòng điền mô tả gói dịch vụ',
+            (val) => (val && val.length > 0) || 'Vui lòng điền mô tả gói tập',
           ]"
         />
         <div>
@@ -111,7 +109,7 @@
           :rules="[
             (val) => val !== null || 'Vui lòng điền giá',
             (val) => !isNaN(val) || 'Vui lòng nhập một số hợp lệ',
-            (val) => val >= 0 || 'Giá phải là số dương',
+            (val) => val >= 1000 || 'Giá phải lớn hơn 1000 VND',
           ]"
         >
           VND</q-input
@@ -135,7 +133,7 @@
         <img :src="imageUrl" alt="Image preview" class="preview-img" />
       </div>
       <div class="btn">
-        <q-btn label="Thêm gói tập" type="submit" color="primary" />
+        <q-btn label="Thêm gói tập  " type="submit" color="primary" />
       </div>
     </q-form>
   </div>
@@ -151,6 +149,7 @@ export default {
   props: {
     durationList: Array,
     packageTypes: Array,
+    fitnessPackageList: Array,
   },
   setup(props, { emit }) {
     const $q = useQuasar();
@@ -160,9 +159,19 @@ export default {
     const imageUrl = ref("");
     const selectedDurationType = ref("day");
 
+    const nameExists = ref(false);
+
     const packageTypeList = ref(props.packageTypes);
     const durationList = ref(props.durationList);
-    const createPackagePriceDtoList = ref([]);
+    const fitnessPackageList = ref(props.fitnessPackageList);
+    const createPackagePriceDtoList = ref([
+      {
+        price: "",
+        packageDurationId: null,
+        selectedDurationType: "",
+        filteredDuration: props.durationList,
+      },
+    ]);
     const durationTypeList = ref(["day", "month", "year"]);
 
     const createFitnessPackageDto = reactive({
@@ -202,6 +211,23 @@ export default {
         selectedDurationType: "",
         filteredDuration: props.durationList,
       });
+    }
+
+    function handleCheckFitnessPackageNameExists() {
+      nameExists.value = fitnessPackageList.value.filter(
+        (fitness) =>
+          fitness.servicePackage.name === createServicePackageDto.name
+      );
+    }
+
+    function handleCheckPackageName(val) {
+      if (!val || val.length === 0) {
+        return "Vui lòng điền tên gói tập";
+      }
+      if (nameExists.value.length > 0) {
+        return "Tên gói dịch vụ đã tồn tại";
+      }
+      return true;
     }
 
     function handleFileChange() {
@@ -257,6 +283,8 @@ export default {
       handleFileChange,
       handleCreateFitnessPackage,
       handleUpdateFilteredDuration,
+      handleCheckFitnessPackageNameExists,
+      handleCheckPackageName,
     };
   },
 };

@@ -186,9 +186,15 @@
                   >
                     <div class="col col-1">
                       {{ packagePrice.packageDuration.duration }}
-                      {{ packagePrice.packageDuration.durationType }}
+                      {{
+                        formatDurationTypeHandler(
+                          packagePrice.packageDuration.durationType
+                        )
+                      }}
                     </div>
-                    <div class="col col-2">{{ packagePrice.price }} VND</div>
+                    <div class="col col-2">
+                      {{ formatPriceHandler(packagePrice.price) }} VND
+                    </div>
                   </li>
                 </ul>
               </div>
@@ -204,6 +210,7 @@
         <AddFitnessPackageForm
           :durationList="durationList"
           :packageTypes="packageTypes"
+          :fitnessPackageList="fitnessPackages"
           @addCreatedFitness="addCreatedFitness"
           @closeForm="closeForm"
         ></AddFitnessPackageForm>
@@ -410,7 +417,7 @@ export default {
       }
     }
     function addCreatedFitness(updatedFitness) {
-      console.log(updatedFitness)
+      console.log(updatedFitness);
       const index = filteredFitnessPackages.value.findIndex(
         (fitness) => fitness.id === updatedFitness.id
       );
@@ -466,6 +473,17 @@ export default {
     function deletedType(id) {
       packageTypes.value = packageTypes.value.filter((type) => type.id !== id);
     }
+
+    function formatPriceHandler(value) {
+      if (!value) return "";
+      return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function formatDurationTypeHandler(value) {
+      if (value === "year") return "năm";
+      else if (value === "month") return "tháng";
+      else return "day";
+    }
     return {
       tab,
       fitnessPackages,
@@ -495,6 +513,9 @@ export default {
       confirmDeleteFitnessHandler,
       deleteFitnessHandler,
       createDurationHandler,
+
+      formatPriceHandler,
+      formatDurationTypeHandler,
     };
   },
 };

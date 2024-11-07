@@ -5,8 +5,6 @@ class MailService {
     this.path = "/emails";
   }
 
-
-
   async sendMail(emailList) {
     const formData = new FormData();
 
@@ -29,10 +27,6 @@ class MailService {
       })
     ).data;
   }
-
-  // async sendMail(emailList){
-  //     return (await api.post(`${this.path}/send`, emailList)).data
-  // }
 
   async sendAllMail(emailList) {
     const formData = new FormData();

@@ -38,7 +38,7 @@ class UserService {
     ).data;
   }
   async forgetPassword(email) {
-    return (await api.post(`${this.path}/reset-password`, { email })).data;
+    return (await api.post(`emails/reset-password`, { email })).data;
   }
   async resetPassword(token, newPassword) {
     return (
@@ -49,6 +49,9 @@ class UserService {
   }
   async changePassword(id, password, newPassword) {
     return (await api.patch(`${this.path}/change-password/${id}`, { password, newPassword } )).data;
+  }
+  async findOneByEmail(email){
+    return (await api.get(`${this.path}/email/${email}`)).data;
   }
 }
 

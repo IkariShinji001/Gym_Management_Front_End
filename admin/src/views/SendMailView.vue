@@ -19,22 +19,22 @@
         </div>
       </div>
       <div class="pagination-container">
-        <div class="btn-check-desc" v-if="isCheckAllCheckboxInPageFunc">
+        <div class="btn-check-desc" v-if="areAllCheckboxOnPageChecked">
           Chọn theo trang
         </div>
-        <div class="btn-check-desc" v-if="isCheckAllCheckboxFunc">
+        <div class="btn-check-desc" v-if="areAllCheckboxChecked">
           Chọn tất cả
         </div>
 
         <button
-          @click="checkAllPageCheckbox"
-          :class="['btn-one-check', { checked: isCheckAllCheckboxInPageFunc }]"
+          @click="checkAllCheckboxOnPage"
+          :class="['btn-one-check', { checked: areAllCheckboxOnPageChecked }]"
         >
           <q-icon class="icon-one-check" name="check" size="28px" />
         </button>
         <button
           @click="checkAllCheckbox"
-          :class="['btn-double-check', { checked: isCheckAllCheckboxFunc }]"
+          :class="['btn-double-check', { checked: areAllCheckboxChecked }]"
         >
           <q-icon class="icon-double-check" name="done_all" size="28px" />
         </button>
@@ -151,17 +151,18 @@ export default {
     const dataRes = ref(null);
     const fileInput = ref(null);
     const showEmailWritingForm = ref(false);
-    const selectedGender = ref({ label: "Tất cả", value: "" });
-    const selectedCheckboxList = new Set();
+    const areAllCheckboxOnPageChecked = ref(false);
+    const areAllCheckboxChecked = ref(false);
+
     const searchQuery = ref("");
-    const isCheckAllCheckboxInPageFunc = ref(false);
-    const isCheckAllCheckboxFunc = ref(false);
     const totalPages = ref(1);
     const currentPage = ref(1);
     const itemsPerPage = 8;
+
+    const selectedCheckboxList = new Set();
     const userInfoList = ref([]);
     const emailList = ref([]);
-    const filteredUsersByGender = ref([]);
+    const filteredUsersByGenderList = ref([]);
     const paginatedUsersList = ref([]);
     const emailListSet = new Set();
     const genderOptions = ref([
@@ -169,7 +170,7 @@ export default {
       { label: "Nam", value: true },
       { label: "Nữ", value: false },
     ]);
-
+    const selectedGender = ref({ label: "Tất cả", value: "" });
     const emailPayload = reactive({
       recipients: [],
       from: {
@@ -188,21 +189,24 @@ export default {
       );
 
       totalPages.value = dataRes.value.meta.pageCount;
-      userInfoList.value = dataRes.value.data.map((user) => ({
-        ...user,
-        checked: false,
-      }));
+      // userInfoList.value = dataRes.value.data.map((user) => ({
+      //   ...user,
+      //   checked: false,
+      // }));
     });
 
     watchEffect(async () => {
+      areAllCheckboxOnPageChecked.value = false;
+
       if (selectedGender.value.value === "") {
         const userInfoRes = await userService.getAllUserEmailPerPage(
           currentPage.value,
           itemsPerPage
         );
-        filteredUsersByGender.value = userInfoRes.data.map((user) => ({
+        totalPages.value = userInfoRes.meta.pageCount;
+        filteredUsersByGenderList.value = userInfoRes.data.map((user) => ({
           ...user,
-          checked: selectedCheckboxList.has(user.email),
+          checked: false,
         }));
       } else {
         const userInfoRes = await userService.getAllUserEmailPerPageByGender(
@@ -211,35 +215,40 @@ export default {
           selectedGender.value.value
         );
         totalPages.value = userInfoRes.meta.pageCount;
-        filteredUsersByGender.value = userInfoRes.data.map((user) => ({
+        filteredUsersByGenderList.value = userInfoRes.data.map((user) => ({
           ...user,
-          checked: selectedCheckboxList.has(user.email),
+          checked: false,
         }));
       }
     });
 
     watchEffect(() => {
-      paginatedUsersList.value = filteredUsersByGender.value;
+      paginatedUsersList.value = filteredUsersByGenderList.value;
     });
 
-    function checkAllPageCheckbox() {
-      isCheckAllCheckboxInPageFunc.value = !isCheckAllCheckboxInPageFunc.value;
+    function checkAllCheckboxOnPage() {
+      areAllCheckboxOnPageChecked.value = !areAllCheckboxOnPageChecked.value;
+      areAllCheckboxChecked.value = false;
 
-      paginatedUsersList.value.forEach((userInfo) => {
-        if (isCheckAllCheckboxInPageFunc.value) {
+      if (areAllCheckboxOnPageChecked.value) {
+        paginatedUsersList.value.forEach((userInfo) => {
           userInfo.checked = true;
-          selectedCheckboxList.add(userInfo.email);
-        } else {
+          // selectedCheckboxList.add(userInfo.email);
+        });
+      } else {
+        paginatedUsersList.value.forEach((userInfo) => {
           userInfo.checked = false;
-          selectedCheckboxList.delete(userInfo.email);
-        }
-      });
+          // selectedCheckboxList.delete(userInfo.email);
+        });
+      }
     }
 
     function checkAllCheckbox() {
-      isCheckAllCheckboxFunc.value = !isCheckAllCheckboxFunc.value;
-      filteredUsersByGender.value.forEach((userInfo) => {
-        userInfo.checked = isCheckAllCheckboxFunc.value;
+      areAllCheckboxChecked.value = !areAllCheckboxChecked.value;
+      areAllCheckboxOnPageChecked.value = false;
+
+      filteredUsersByGenderList.value.forEach((userInfo) => {
+        userInfo.checked = areAllCheckboxChecked.value;
       });
     }
 
@@ -263,18 +272,20 @@ export default {
     }
 
     async function sendEmail() {
-      if (isCheckAllCheckboxFunc) {
-        toast.success("Gửi mail cho tất cả người dùng");
-        emailPayload.recipients = [...selectedCheckboxList];
-        emailListSet.clear();
-        selectedCheckboxList.clear();
+      if (areAllCheckboxChecked.value) {
+        toast.success("Đã gửi mail cho tất cả người dùng");
+        emailPayload.recipients.length = 0;
         const res = await mailService.sendAllMail(emailPayload);
       } else {
-        toast.success("Đã gửi");
+       
+        emailPayload.recipients.length = 0;
 
-        emailPayload.recipients = [...selectedCheckboxList];
-        emailListSet.clear();
-        selectedCheckboxList.clear();
+        filteredUsersByGenderList.value.map((user) => {
+          if (user.checked) {
+            emailPayload.recipients.push(user.email);
+          }
+        });
+        toast.success(`Đã gửi ${emailPayload.recipients.length} mail`);
         const res = await mailService.sendMail(emailPayload);
       }
     }
@@ -286,16 +297,16 @@ export default {
       showEmailWritingForm,
       emailPayload,
       fileInput,
-      isCheckAllCheckboxFunc,
-      isCheckAllCheckboxInPageFunc,
+      areAllCheckboxChecked,
+      areAllCheckboxOnPageChecked,
 
       genderOptions,
-      filteredUsersByGender,
+      filteredUsersByGenderList,
       userInfoList,
       emailList,
       paginatedUsersList,
       sendEmail,
-      checkAllPageCheckbox,
+      checkAllCheckboxOnPage,
       checkAllCheckbox,
 
       openFilePicker,

@@ -1,5 +1,5 @@
 <template>
-  <div class="btn-container">
+  <div class="btn-container" v-if="role === 'manager'">
     <button class="btn-open-dialog" @click="handlerOpenDialog">
       <q-icon size="40px" name="add"></q-icon>
     </button>
@@ -112,6 +112,7 @@ export default {
     const editor = ref(null);
     let quill = null;
     const imgUploaded = ref(null);
+    const role = ref(localStorage.getItem("role"));
 
     const post = reactive({
       title: "",
@@ -231,13 +232,13 @@ export default {
 
       imgUploaded,
       post,
+      role,
+      editor,
 
       postList,
       postList1,
       postList2,
       postList3,
-
-      editor,
 
       handlerAdjustImageSize,
       handlerOpenDialog,
