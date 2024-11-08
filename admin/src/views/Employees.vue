@@ -47,11 +47,11 @@
             <q-input class="dia-input" v-model="employeeInput.profile.password" label="Password" outlined
               :rules="[val => !!val || 'Password không được để trống']" type="password" />
             <q-input class="dia-input" v-model="employeeInput.profile.phoneNumber" label="Số điện thoại" outlined
-              maxlength="10" :rules="[val => !!val || 'Số điện thoại không được để trống']" />
+              maxlength="10" :rules="[validatePhoneNumber]" />
             <q-input class="dia-input" v-model="employeeInput.position" label="Vị trí" outlined
               :rules="[val => !!val || 'Vị trí không được để trống']" />
             <q-input class="dia-input" v-model="employeeInput.hireDate" label="Ngày vào làm" type="date" outlined
-              :rules="[val => !!val || 'Ngày vào làm không được để trống']" />
+              :rules="[validateHireDate]" />
 
           </q-card-section>
         </q-card-section>
@@ -73,9 +73,11 @@
             <q-input class="dia-input" v-model="employeeUpdate.profile.fullName" label="Họ và tên" outlined />
             <q-input class="dia-input" v-model="employeeUpdate.profile.email" label="Email" outlined
               :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
-            <q-input class="dia-input" v-model="employeeUpdate.profile.phoneNumber" label="Số điện thoại"  maxlength="10" outlined />
+            <q-input class="dia-input" v-model="employeeUpdate.profile.phoneNumber" label="Số điện thoại" outlined
+              :rules="[validatePhoneNumber]" />
             <q-input class="dia-input" v-model="employeeUpdate.position" label="Vị trí" outlined />
-            <q-input class="dia-input" v-model="employeeUpdate.hireDate" label="Ngày vào làm" type="date" outlined />
+            <q-input class="dia-input" v-model="employeeUpdate.hireDate" label="Ngày vào làm" type="date"
+              :rules="[validateHireDate]" outlined />
           </q-card-section>
         </q-card-section>
         <q-card-actions class="action">
@@ -147,6 +149,25 @@ const employeeUpdate = ref({
 const currentPage = ref(1);
 const rowsPerPage = ref(10);
 
+
+
+const validateEmail = (email) => {
+  const regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+
+  return regex.test(email) || "Email không hợp lệ";
+};
+
+const validatePhoneNumber = (phoneNumber) => {
+  const regex = /^[0-9]{10}$/;
+  return regex.test(phoneNumber) || "Số điện thoại không hợp lệ";
+};
+
+const validateHireDate = (date) => {
+  const today = new Date().toISOString().split('T')[0];
+  return date <= today || "Ngày vào làm không được lớn hơn ngày hiện tại";
+};
+
+
 const handleOpenCreateDialog = () => {
   openCreateDialog.value = true;
 };
@@ -192,12 +213,12 @@ const handleUpdate = async () => {
     }
     // cập nhật vị trí trực tiếp trên employee
     employees.value[index].position = employeeUpdate.value.position;
-
+    $q.notify({ position: 'top', color: 'positive', message: 'Cập nhật thành công' });
     openUpdateDialog.value = false;
   } catch (error) {
     $q.notify({ position: 'top', color: 'negative', message: `Lỗi: ${error.response.data.message || 'Không thể tạo thành viên mới'}` });
     console.log(error);
-  }finally {
+  } finally {
     $q.loading.hide();
   }
 };
@@ -209,12 +230,12 @@ onBeforeMount(async () => {
 });
 
 const formatDate = (date) => {
-      date = new Date(date);
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
-      const day = date.getDate().toString().padStart(2, "0");
-      return `${day}-${month}-${year}`;
-    };
+  date = new Date(date);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${day}-${month}-${year}`;
+};
 const formatDateTime = (Date) => {
   return formatDate(Date);
 };
@@ -255,6 +276,7 @@ const handleAdd = async () => {
       hireDate: "",
       managerId: "",
     };
+    $q.notify({ position: 'top', color: 'positive', message: 'Tạo thành công' });
     openCreateDialog.value = false;
   } catch (error) {
     $q.notify({ position: 'top', color: 'negative', message: `Lỗi: ${error.response.data.message || 'Không thể tạo thành viên mới'}` });
@@ -290,11 +312,7 @@ const paginatedEmployees = computed(() => {
 const updatePage = (page) => {
   currentPage.value = page;
 };
-const validateEmail = (email) => {
-  const regex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
 
-  return regex.test(email) || "Email không hợp lệ";
-};
 // Hàm mở hộp thoại xác nhận xóa
 const handleOpenDeleteDialog = (id) => {
   deleteId.value = id;
@@ -304,17 +322,25 @@ const handleOpenDeleteDialog = (id) => {
 
 // Hàm thực hiện xóa sau khi người dùng xác nhận
 const confirmDelete = async () => {
+  $q.loading.show({
+    spinner: QSpinnerCube,
+    message: "Đang xóa...",
+  });
+
   try {
     await employeesService.deleteEmployee(deleteId.value);
     employees.value = employees.value.filter((employee) => employee.id !== deleteId.value);
     openDeleteDialog.value = false; // Đóng hộp thoại xác nhận sau khi xóa
+    $q.notify({ position: 'top', color: 'positive', message: 'Xóa thành công' });
   } catch (error) {
     console.log(error);
+  } finally {
+    $q.loading.hide();
   }
 };
 </script>
 
-<style>
+<style scoped>
 h1 {
   text-align: center;
   font-size: 30px;

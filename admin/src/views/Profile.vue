@@ -73,7 +73,7 @@
                 <q-input v-model="profilePt.profile.fullName" label="Họ và tên" />
                 <q-input v-model="profilePt.profile.email" label="Email" :rules="[
                   val => !!val || 'Email không được để trống', validateEmail]" />
-                <q-input v-model="profilePt.profile.phoneNumber" label="Số điện thoại" />
+                <q-input v-model="profilePt.profile.phoneNumber" label="Số điện thoại" :rules="[validatePhoneNumber]"/>
                 <div class="submit-button">
                   <q-btn type="submit" label="Lưu" color="primary" />
                 </div>
@@ -98,10 +98,10 @@
         </q-card>
       </q-dialog>
       <q-dialog v-model="openUpdatePasswordDialog">
-        <q-card>
+        <q-card class="changpass-card">
           <q-card-section>
             <q-card-title>
-              <h4>Đổi mật khẩu</h4>
+              <h4 class="doimatkhau">Đổi mật khẩu</h4>
             </q-card-title>
             <q-card-section>
               <q-form @submit="handleUpdatePassword">
@@ -149,7 +149,7 @@
                 <q-input v-model="profileManager.fullName" label="Họ và tên" />
                 <q-input v-model="profileManager.email" label="Email"
                   :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
-                <q-input v-model="profileManager.phoneNumber" label="Số điện thoại" />
+                <q-input v-model="profileManager.phoneNumber" label="Số điện thoại" :rules="[validatePhoneNumber]"/>
                 <div class="submit-button">
                   <q-btn type="submit" label="Lưu" color="primary" />
                 </div>
@@ -169,7 +169,7 @@
                 <q-input v-model="profileEmployee.fullName" label="Họ và tên" />
                 <q-input v-model="profileEmployee.email" label="Email"
                   :rules="[val => !!val || 'Email không được để trống', validateEmail]" />
-                <q-input v-model="profileEmployee.phoneNumber" label="Số điện thoại" />
+                <q-input v-model="profileEmployee.phoneNumber" label="Số điện thoại" :rules="[validatePhoneNumber]"/>
                 <div class="submit-button">
                   <q-btn type="submit" label="Lưu" color="primary" />
                 </div>
@@ -210,6 +210,10 @@ const profileEmployee = ref({});
 
 const $q = useQuasar();
 
+const validatePhoneNumber = (phoneNumber) => {
+  const regex = /^[0-9]{10}$/;
+  return regex.test(phoneNumber) || "Số điện thoại không hợp lệ";
+};
 
 onBeforeMount(async () => {
   try {
@@ -273,6 +277,10 @@ const handleUpdateEmployeeProfile = async () => {
 
 const handleUpdateManagerProfile = async () => {
   try {
+    $q.loading.show({
+      spinner: QSpinnerCube,
+      message: "Đang cập nhật...",
+    });
     // validate not empty
     if (profileManager.value.fullName === '' || profileManager.value.email === '' || profileManager.value.phoneNumber === '') {
       $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
@@ -285,9 +293,12 @@ const handleUpdateManagerProfile = async () => {
     };
     await profilesService.updatedProfile(id, updatedManagerProfile);
     openUpdateManagerDialog.value = false;
+    $q.notify({ position: 'top', color: 'positive', message: 'Cập nhật thông tin thành công' });
   } catch (error) {
     $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
     console.log(error);
+  } finally {
+    $q.loading.hide();
   }
 };
 
@@ -356,19 +367,25 @@ const handleUpdateProfile = async () => {
       updatedProfile.phoneNumber = profilePt.value.profile.phoneNumber;
     }
 
+
     // Kiểm tra nếu có thay đổi thì mới gọi API
     if (Object.keys(updatedProfile).length > 0) {
+      $q.loading.show({
+        spinner: QSpinnerCube,
+        message: "Đang cập nhật...",
+      });
       await profilesService.updatedProfile(profilePt.value.profile.id, updatedProfile);
       openUpdatePtDialog.value = false;
       originalProfile.value = JSON.parse(JSON.stringify(profilePt.value)); // Cập nhật lại bản sao gốc
+      $q.notify({ position: 'top', color: 'positive', message: 'Cập nhật thông tin thành công' });
     } else {
       $q.notify({ position: 'top', message: 'Không có thay đổi nào để cập nhật' });
-
-
     }
   } catch (error) {
     $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng kiểm tra lại thông tin cập nhật' });
     console.log(error);
+  }finally {
+    $q.loading.hide();
   }
 };
 const handleUpdatePassword = async () => {
@@ -390,13 +407,23 @@ const handleUpdatePassword = async () => {
       $q.notify({ position: 'top', color: 'negative', message: 'Vui lòng nhập mật khẩu cũ' });
       return;
     }
+    $q.loading.show({
+      spinner: QSpinnerCube,
+      message: "Đang cập nhật...",
+    });
     if (role === 'manager') {
       await profilesService.updatePassword(id, oldPassword.value, newPassword.value);
+      $q.notify({ position: 'top', color: 'positive', message: 'Cập nhật mật khẩu thành công' });
+
     } else if (role === 'pt') {
       await profilesService.updatePassword(profilePt.value.profile.id, oldPassword.value, newPassword.value);
+      $q.notify({ position: 'top', color: 'positive', message: 'Cập nhật mật khẩu thành công' });
+
     }
     else if (role === 'employee') {
       await profilesService.updatePassword(id, oldPassword.value, newPassword.value);
+      $q.notify({ position: 'top', color: 'positive', message: 'Cập nhật mật khẩu thành công' });
+
     }
     // after update password, clear the input fields
     oldPassword.value = '';
@@ -406,8 +433,12 @@ const handleUpdatePassword = async () => {
     // await profilesService.updatePassword(profilePt.value.profile.id, oldPassword.value, newPassword.value);
     openUpdatePasswordDialog.value = false;
   } catch (error) {
-    $q.notify({ position: 'top', color: 'negative', message: error.response.data.message })
+    $q.notify({ position: 'top', color: 'negative', message: error.response.data.message });
     console.log(error);
+  }
+  finally {
+    $q.loading.hide();
+
   }
 };
 const handleDeleteImage = async (imageId) => {
@@ -525,5 +556,14 @@ h2 {
 .submit-button {
   text-align: center;
   margin-top: 10px;
+}
+
+.changpass-card {
+  width: 400px;
+}
+
+.doimatkhau {
+  text-align: center;
+  margin-bottom: 10px;
 }
 </style>
